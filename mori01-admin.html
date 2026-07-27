@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administración · MORI-01</title>
+<style>
+  :root{
+    --bg-deep:#07080d; --bg-panel:#0c0f1c; --bg-panel-2:#10142a;
+    --border-soft:#232842; --border-bright:#3a4270;
+    --text-primary:#e8eaf2; --text-muted:#8b93b3; --text-dim:#565d80;
+    --accent-cyan:#06b6d4; --accent-gold:#f5b849; --accent-violet:#7c6cff;
+    --accent-red:#e8546b;
+    --font-display:"Eurostile","Michroma","Orbitron",system-ui,sans-serif;
+    --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
+    --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg-deep); color:var(--text-primary); font-family:var(--font-body); line-height:1.5; min-height:100vh;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important; transition-duration:.01ms !important;}}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
+  input,select,button{font-family:inherit; font-size:14px;}
+
+  .wrap{max-width:760px; margin:0 auto; padding:48px 24px 80px;}
+  .wrap.wide{max-width:980px;}
+
+  .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
+  .top-eyebrow::before{content:""; width:20px; height:1px; background:var(--accent-gold); opacity:.6;}
+  h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,5vw,40px); letter-spacing:.03em; margin-bottom:12px;}
+  .lede{color:var(--text-muted); font-size:15px; max-width:600px; margin-bottom:32px;}
+
+  .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
+  .back-link:hover{color:var(--accent-cyan);}
+
+  .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:28px;}
+  .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
+  .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:12px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);}
+  .field input{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:11px 13px; border-radius:4px; transition:border-color .2s;
+  }
+  .field input:focus{border-color:var(--accent-cyan);}
+
+  .btn{font-weight:600; letter-spacing:.03em; padding:12px 22px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
+  .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
+  .btn-primary:hover:not(:disabled){background:#31cbe6;}
+  .btn-primary:disabled{opacity:.35; cursor:not-allowed;}
+  .btn-ghost{border-color:var(--border-bright); color:var(--text-primary); background:transparent; font-size:13px; padding:9px 16px;}
+  .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
+
+  .alert{padding:13px 16px; border-radius:5px; font-size:13.5px; margin-bottom:18px; display:none;}
+  .alert.show{display:block;}
+  .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
+  .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
+
+  /* admin bar */
+  .admin-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
+  .admin-who{font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted);}
+  .admin-who b{color:var(--accent-cyan); font-weight:600;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .tab{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.04em; padding:8px 14px;
+    border:1px solid var(--border-soft); border-radius:20px; color:var(--text-muted); cursor:pointer; transition:all .2s;
+    background:var(--bg-panel-2);
+  }
+  .tab.active{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .tab .count{color:var(--text-dim); margin-left:4px;}
+  .tab.active .count{color:var(--accent-cyan);}
+
+  /* registry rows */
+  .reg-row{border-bottom:1px solid var(--border-soft); padding:16px 0;}
+  .reg-row:last-child{border-bottom:none;}
+  .reg-top{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;}
+  .reg-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px;}
+  .reg-name{font-weight:600; font-size:15px; flex:1; min-width:120px;}
+  .status-pill{
+    font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; white-space:nowrap;
+  }
+  .status-pill.pending{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
+  .status-pill.approved{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
+  .status-pill.rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
+  .reg-meta{font-size:12.5px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:12px;}
+  .reg-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .act-btn{
+    font-family:var(--font-mono); font-size:11.5px; padding:7px 13px; border-radius:4px; cursor:pointer;
+    border:1px solid var(--border-bright); background:transparent; color:var(--text-primary); transition:all .15s;
+  }
+  .act-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .act-btn.approve:hover{border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(6,182,212,.08);}
+  .act-btn.reject:hover{border-color:var(--accent-red); color:var(--accent-red); background:rgba(232,84,107,.08);}
+  .act-btn.delete:hover{border-color:var(--accent-red); color:var(--accent-red); background:rgba(232,84,107,.08);}
+  .act-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  /* inline edit */
+  .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+  .edit-grid input, .edit-grid select{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 11px; border-radius:4px; font-size:13px;
+  }
+  .edit-grid .full{grid-column:1 / -1;}
+
+  .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
+
+  #adminView{display:none;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="wrap" id="loginView">
+  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <p class="top-eyebrow">Acceso restringido</p>
+  <h1>Panel de Administración</h1>
+  <p class="lede">Inicia sesión con tu correo de administrador para gestionar las solicitudes de ciudadanía.</p>
+
+  <div class="panel">
+    <h2>Iniciar sesión</h2>
+    <p class="sub">Solo cuentas creadas manualmente en Firebase Authentication pueden entrar aquí.</p>
+
+    <div id="loginAlert" class="alert"></div>
+
+    <div class="field">
+      <label for="loginEmail">Correo</label>
+      <input type="email" id="loginEmail" placeholder="admin@correo.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="loginPassword">Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="loginBtn">Entrar</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="wrap wide" id="adminView">
+  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <p class="top-eyebrow">Panel de Administración</p>
+  <h1>Solicitudes de Ciudadanía</h1>
+  <p class="lede">Revisa, aprueba, rechaza o edita cada solicitud registrada en Mori-01.</p>
+
+  <div class="admin-bar">
+    <div class="admin-who">Sesión iniciada como <b id="whoami">—</b></div>
+    <button class="btn btn-ghost" id="logoutBtn">Cerrar sesión</button>
+  </div>
+
+  <div class="panel">
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-filter="all">Todos <span class="count" id="countAll">0</span></div>
+      <div class="tab" data-filter="pending">Pendientes <span class="count" id="countPending">0</span></div>
+      <div class="tab" data-filter="approved">Aprobados <span class="count" id="countApproved">0</span></div>
+      <div class="tab" data-filter="rejected">Rechazados <span class="count" id="countRejected">0</span></div>
+    </div>
+    <div id="adminAlert" class="alert"></div>
+    <div id="registryList"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { db, auth } from './firebase-config.js';
+  import { PLANETS } from './mori01-data.js';
+  import {
+    collection, doc, updateDoc, deleteDoc, orderBy, query, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    signInWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const citizensCol = collection(db, 'citizens');
+  const loginView = document.getElementById('loginView');
+  const adminView = document.getElementById('adminView');
+
+  let allEntries = [];
+  let currentFilter = 'all';
+  let unsubscribe = null;
+
+  // ---------- LOGIN ----------
+  function showLoginAlert(msg){
+    const box = document.getElementById('loginAlert');
+    box.textContent = msg;
+    box.className = 'alert show alert-error';
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if(!email || !password){ showLoginAlert('Completa correo y contraseña.'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+    }catch(e){
+      showLoginAlert('Correo o contraseña incorrectos.');
+    }
+    btn.disabled = false; btn.textContent = 'Entrar';
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await signOut(auth);
+  });
+
+  onAuthStateChanged(auth, user=>{
+    if(user){
+      loginView.style.display = 'none';
+      adminView.style.display = 'block';
+      document.getElementById('whoami').textContent = user.email;
+      subscribeRegistry();
+    }else{
+      loginView.style.display = 'block';
+      adminView.style.display = 'none';
+      if(unsubscribe){ unsubscribe(); unsubscribe = null; }
+    }
+  });
+
+  // ---------- REGISTRY ----------
+  function subscribeRegistry(){
+    const q = query(citizensCol, orderBy('ts', 'desc'));
+    unsubscribe = onSnapshot(q, snap=>{
+      allEntries = snap.docs.map(d=>({ docId: d.id, ...d.data() }));
+      renderCounts();
+      renderList();
+    }, err=>{
+      document.getElementById('registryList').innerHTML =
+        '<div class="empty-state">No se pudo cargar el registro. Revisa las reglas de Firestore.</div>';
+    });
+  }
+
+  function renderCounts(){
+    document.getElementById('countAll').textContent = allEntries.length;
+    document.getElementById('countPending').textContent = allEntries.filter(e=>(e.status||'pending')==='pending').length;
+    document.getElementById('countApproved').textContent = allEntries.filter(e=>e.status==='approved').length;
+    document.getElementById('countRejected').textContent = allEntries.filter(e=>e.status==='rejected').length;
+  }
+
+  document.getElementById('tabs').addEventListener('click', e=>{
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    renderList();
+  });
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
+  function planetOptions(selectedIndex){
+    return PLANETS.map(p=>`<option value="${p.i}" ${p.i===selectedIndex?'selected':''}>${p.name} (glifo ${p.i})</option>`).join('');
+  }
+
+  function renderList(){
+    const list = document.getElementById('registryList');
+    const filtered = currentFilter === 'all'
+      ? allEntries
+      : allEntries.filter(e=>(e.status||'pending') === currentFilter);
+
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">No hay solicitudes en esta categoría.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(e=>{
+      const status = e.status || 'pending';
+      const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      return `
+        <div class="reg-row" data-doc="${e.docId}">
+          <div class="reg-top">
+            <span class="reg-id">${escapeHtml(e.id)}</span>
+            <span class="reg-name">${escapeHtml(e.name)}</span>
+            <span class="status-pill ${status}">${status==='approved'?'Aprobado':status==='rejected'?'Rechazado':'Pendiente'}</span>
+          </div>
+          <div class="reg-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</div>
+          <div class="reg-actions">
+            <button class="act-btn approve" data-action="approve">Aprobar</button>
+            <button class="act-btn reject" data-action="reject">Rechazar</button>
+            <button class="act-btn" data-action="edit">Editar</button>
+            <button class="act-btn delete" data-action="delete">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function showAdminAlert(msg, type){
+    const box = document.getElementById('adminAlert');
+    box.textContent = msg;
+    box.className = 'alert show ' + (type==='error' ? 'alert-error' : 'alert-ok');
+    setTimeout(()=>{ box.className = 'alert'; }, 3500);
+  }
+
+  document.getElementById('registryList').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.act-btn');
+    if(!btn) return;
+    const row = e.target.closest('.reg-row');
+    const docId = row.dataset.doc;
+    const action = btn.dataset.action;
+    const entry = allEntries.find(x=>x.docId===docId);
+    if(!entry) return;
+
+    if(action === 'approve'){
+      await setStatus(docId, 'approved');
+    }else if(action === 'reject'){
+      await setStatus(docId, 'rejected');
+    }else if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la solicitud ${entry.id} de ${entry.name}?`)) return;
+      try{
+        await deleteDoc(doc(db, 'citizens', docId));
+        showAdminAlert('Solicitud eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas de Firestore.', 'error');
+      }
+    }else if(action === 'edit'){
+      openEdit(row, entry);
+    }
+  });
+
+  async function setStatus(docId, status){
+    try{
+      await updateDoc(doc(db, 'citizens', docId), { status });
+      showAdminAlert(status === 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
+    }catch(err){
+      showAdminAlert('No se pudo actualizar. Revisa las reglas de Firestore.', 'error');
+    }
+  }
+
+  function openEdit(row, entry){
+    row.innerHTML = `
+      <div class="edit-grid">
+        <input type="text" class="edit-name" value="${escapeHtml(entry.name)}" placeholder="Nombre">
+        <select class="edit-planet">${planetOptions(entry.planetIndex)}</select>
+        <input type="text" class="edit-lat" value="${entry.lat}" placeholder="Latitud">
+        <input type="text" class="edit-lon" value="${entry.lon}" placeholder="Longitud">
+      </div>
+      <div class="reg-actions">
+        <button class="act-btn approve" data-action="save-edit">Guardar</button>
+        <button class="act-btn" data-action="cancel-edit">Cancelar</button>
+      </div>
+    `;
+    row.querySelector('[data-action="cancel-edit"]').addEventListener('click', renderList);
+    row.querySelector('[data-action="save-edit"]').addEventListener('click', async ()=>{
+      const name = row.querySelector('.edit-name').value.trim();
+      const planetIndex = parseInt(row.querySelector('.edit-planet').value, 10);
+      const lat = parseFloat(row.querySelector('.edit-lat').value.replace(',', '.'));
+      const lon = parseFloat(row.querySelector('.edit-lon').value.replace(',', '.'));
+      if(!name || isNaN(lat) || isNaN(lon)){ showAdminAlert('Datos inválidos.', 'error'); return; }
+      try{
+        await updateDoc(doc(db, 'citizens', entry.docId), { name, planetIndex, lat, lon });
+        showAdminAlert('Solicitud actualizada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');
+      }
+    });
+  }
+</script>
+</body>
+</html>
