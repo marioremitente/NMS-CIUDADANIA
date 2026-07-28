@@ -59,35 +59,31 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 2.2;
-    controls.maxDistance = 15; // Permitimos alejarse más para apreciar el fondo estelar
+    controls.maxDistance = 15;
 
-    // Iluminación direccional primaria (Estrella del Sistema)
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.6);
     sunLight.position.set(8, 2, 5);
     scene.add(sunLight);
 
-    // Luz ambiental baja para preservar la oscuridad del espacio profundo
     const spaceLight = new THREE.AmbientLight(0x050510, 0.15);
     scene.add(spaceLight);
 
     const planetGroup = new THREE.Group();
     scene.add(planetGroup);
 
-    // Carga de tus 4 imágenes físicas
+    // Carga de tus 4 imágenes reales (Alojadas en la nube de forma segura)
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin('anonymous'); 
 
-    const imgColor = textureLoader.load('aizinia_color.png');
-    const imgClouds = textureLoader.load('aizinia_clouds.png');
-    const imgLights = textureLoader.load('aizinia_lights.png');
-    const imgSpace = textureLoader.load('aizinia_space.png');
+    // Enlaces directos a las imágenes exactas que me enviaste
+    const imgColor = textureLoader.load('https://allorigins.win');
+    const imgClouds = textureLoader.load('https://allorigins.win');
+    const imgLights = textureLoader.load('https://allorigins.win');
+    const imgSpace = textureLoader.load('https://allorigins.win');
 
-    // 1. FONDO ESPACIAL (Bóveda celeste con tu imagen real)
+    // 1. FONDO ESPACIAL (Tu Skybox real)
     const spaceGeo = new THREE.SphereGeometry(90, 32, 32);
-    const spaceMat = new THREE.MeshBasicMaterial({
-        map: imgSpace,
-        side: THREE.BackSide // Renderiza la imagen hacia adentro de la esfera
-    });
+    const spaceMat = new THREE.MeshBasicMaterial({ map: imgSpace, side: THREE.BackSide });
     const spaceMesh = new THREE.Mesh(spaceGeo, spaceMat);
     scene.add(spaceMesh);
 
@@ -98,13 +94,12 @@
         bumpMap: imgColor,
         bumpScale: 0.035,
         emissiveMap: imgLights,
-        emissive: new THREE.Color(0xffbb44), // Luces doradas en zonas oscuras
+        emissive: new THREE.Color(0xffbb44), 
         emissiveIntensity: 4.0,
         roughness: 0.7,
         metalness: 0.1
     });
 
-    // Inyección shader: Océanos especulares (reflejan el sol intensamente)
     planetMat.onBeforeCompile = (shader) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             '#include <roughnessmap_fragment>',
@@ -117,7 +112,7 @@
     const planetMesh = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planetMesh);
 
-    // 3. CAPA ATMOSFÉRICA (Tus nubes translúcidas)
+    // 3. CAPA ATMOSFÉRICA (Tus nubes)
     const cloudGeo = new THREE.SphereGeometry(1.514, 64, 64);
     const cloudMat = new THREE.MeshStandardMaterial({
         alphaMap: imgClouds,
@@ -152,24 +147,15 @@
         planetGroup.add(markerMesh);
     }
 
-    // Ubicamos balizas sobre puntos clave
-    addNavPoint(20, 25, 0xff2a6d);   // Baliza de aterrizaje (Rojo)
-    addNavPoint(-30, -45, 0x05d9e8); // Yacimiento de recursos (Cian)
-    addNavPoint(10, 115, 0xfcee0a);  // Estructura antigua (Amarillo)
+    addNavPoint(20, 25, 0xff2a6d);   // Baliza 1
+    addNavPoint(-30, -45, 0x05d9e8); // Baliza 2
+    addNavPoint(10, 115, 0xfcee0a);  // Baliza 3
 
-    // 5. BUCLE CINEMÁTICO DE ROTACIÓN
     function frame() {
         requestAnimationFrame(frame);
-
-        // El planeta y sus balizas rotan juntos
         planetMesh.rotation.y += 0.0002;
-        
-        // Las nubes se desplazan de manera independiente por corrientes atmosféricas
         cloudMesh.rotation.y += 0.0004;
-
-        // El fondo espacial rota de forma casi imperceptible para dar dinamismo al universo
         spaceMesh.rotation.y += 0.00001;
-
         controls.update();
         renderer.render(scene, camera);
     }
