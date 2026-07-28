@@ -6,11 +6,9 @@
     <title>MORI-01 · Asentamiento planetario</title>
     <style>
         :root{
-            --bg-deep:#020205;
+            --bg-deep:#010103;
             --accent-cyan:#7ef3ff;
             --accent-cyan-dim:#1a5f7a;
-            --accent-gold:#f5b849;
-            --text-dim:#888;
             --font-display: system-ui, sans-serif;
             --font-mono: monospace;
         }
@@ -26,103 +24,27 @@
         h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; text-shadow: 0 0 10px #7ef3ff; font-family:var(--font-display); font-weight:400; letter-spacing:.03em; }
         .stat { margin: 5px 0; font-size: 13px; font-family:var(--font-mono); }
         .label { color: #888; }
-        
-        #loading{
-            position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
-            background:var(--bg-deep); color:var(--accent-cyan); font-family:var(--font-mono);
-            font-size:12px; letter-spacing:.2em; text-transform:uppercase; transition:opacity .4s ease;
-        }
-        #loading.hidden{ opacity:0; pointer-events:none; }
-        
-        #poi-tooltip{
-            position:absolute; z-index:15; pointer-events:none;
-            background:rgba(2,2,8,.9); border:1px solid var(--accent-cyan-dim); border-radius:5px;
-            color:#fff; font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em;
-            text-transform:uppercase; padding:6px 10px; transform:translate(-50%,-130%);
-            white-space:nowrap; opacity:0; transition:opacity .12s ease;
-        }
-        #poi-tooltip.visible{ opacity:1; }
-        #poi-tooltip .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:middle; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top:0; left:0; }
     </style>
 </head>
 <body>
 
-<div id="loading">Generando terreno…</div>
-
 <div id="info-panel">
-    <h1 id="poiPlanetName">Aizinia</h1>
-    <div class="stat"><span class="label">Clima:</span> <span id="poiClima" style="color:#55ff55;">Apacible</span></div>
-    <div class="stat"><span class="label">Centinelas:</span> <span id="poiCentinelas" style="color:#ffaa00;">Remoto</span></div>
-    <div class="stat"><span class="label">Flora:</span> <span id="poiFlora">Generoso</span></div>
-    <div class="stat"><span class="label">Fauna:</span> <span id="poiFauna">Abundante</span></div>
-    <div class="stat" style="margin-top:10px;"><span class="label">Recursos:</span> <br><span id="poiRecursos" style="color:#fff; font-size:11px;">—</span></div>
+    <h1>Aizinia ★</h1>
+    <div class="stat"><span class="label">Clima:</span> <span style="color:#55ff55;">Apacible</span></div>
+    <div class="stat"><span class="label">Centinelas:</span> <span style="color:#ffaa00;">Remoto</span></div>
+    <div class="stat"><span class="label">Flora:</span> Generoso</div>
+    <div class="stat"><span class="label">Fauna:</span> Abundante</div>
+    <div class="stat" style="margin-top:10px;"><span class="label">Recursos:</span> <br><span style="color:#fff; font-size:11px;">Bulbo Estelar · Plata · Parafino · Cobre</span></div>
 </div>
 
-<div id="poi-tooltip"><span class="dot"></span><span id="poi-tooltip-text"></span></div>
 <div id="canvas-container"></div>
 
-<!-- Recursos de WebGL externos altamente estables -->
+<!-- Recursos estables de Three.js -->
 <script src="https://cloudflare.com"></script>
 <script src="https://jsdelivr.net"></script>
 
 <script>
-    // ------------------------------------------------------------------
-    // BASE DE DATOS LOCAL INTEGRADA
-    // ------------------------------------------------------------------
-    const PLANETS = [
-      {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
-      {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
-      {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
-      {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},
-      {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
-      {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']}
-    ];
-
-    const params = new URLSearchParams(window.location.search);
-    const requestedName = params.get('planeta') || 'Aizinia';
-    const planetData = PLANETS.find(p => p.name.toLowerCase() === requestedName.toLowerCase()) || PLANETS[0];
-
-    // Inyectar datos en el panel HTML
-    document.getElementById('poiPlanetName').textContent = planetData.name + (planetData.capital ? ' ★' : '');
-    document.getElementById('poiClima').textContent = planetData.clima;
-    document.getElementById('poiCentinelas').textContent = planetData.centinela;
-    document.getElementById('poiFlora').textContent = planetData.flora;
-    document.getElementById('poiFauna').textContent = planetData.fauna;
-    document.getElementById('poiRecursos').textContent = planetData.rec.join(' · ');
-
-    // Coordenadas de los marcadores espaciales
-    const defaultPois = [
-        { lat: 25, lon: 45, color: 0xff2a6d, label: 'Baliza de aterrizaje' },
-        { lat: -35, lon: -50, color: 0x05d9e8, label: 'Yacimiento de recursos' },
-        { lat: 5, lon: 130, color: 0xfcee0a, label: 'Estructura antigua' }
-    ];
-
-    // Configuración cromática por bioma de clima
-    function paletteForClimate(climate = ''){
-        const c = climate.toLowerCase();
-        if (c.includes('ácido') || c.includes('acido')) {
-            return { land:['#2a4d12','#7ac93c'], sea:'#102b0c', glow:[0.55,1.0,0.35], bump: 0.05 };
-        }
-        if (c.includes('sobrecalentado') || c.includes('calor')) {
-            return { land:['#5a2e12','#a8632b'], sea:'#2b1405', glow:[1.0,0.55,0.2], bump: 0.06 };
-        }
-        if (c.includes('nubes perdidas') || c.includes('niebla')) {
-            return { land:['#3a4258','#6b7794'], sea:'#121824', glow:[0.55,0.65,0.85], bump: 0.03 };
-        }
-        if (c.includes('volátiles') || c.includes('volatiles')) {
-            return { land:['#3a1a4d','#7c4fa8'], sea:'#100720', glow:[0.65,0.4,1.0], bump: 0.05 };
-        }
-        if (c.includes('tóxico') || c.includes('toxico') || c.includes('vaho')) {
-            return { land:['#1f3d1a','#5ea832'], sea:'#071708', glow:[0.4,0.9,0.35], bump: 0.04 };
-        }
-        return { land:['#154f24','#2d8c47'], sea:'#062d5e', glow:[0.3,0.6,1.0], bump: 0.04 };
-    }
-    const palette = paletteForClimate(planetData.clima);
-
-    // ------------------------------------------------------------------
-    // ESCENARIO 3D
-    // ------------------------------------------------------------------
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -137,52 +59,127 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 2.2;
-    controls.maxDistance = 7;
+    controls.maxDistance = 15; // Permitimos alejarse más para apreciar el fondo estelar
 
-    // Luces cinemáticas
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.8);
-    sunLight.position.set(7, 3, 5);
+    // Iluminación direccional primaria (Estrella del Sistema)
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.6);
+    sunLight.position.set(8, 2, 5);
     scene.add(sunLight);
 
-    const spaceLight = new THREE.AmbientLight(0x080812, 0.4);
+    // Luz ambiental baja para preservar la oscuridad del espacio profundo
+    const spaceLight = new THREE.AmbientLight(0x050510, 0.15);
     scene.add(spaceLight);
-
-    // Bóveda de estrellas realista
-    function addStarfield(count = 2000) {
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const r = 50 + Math.random() * 100;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos((Math.random() * 2) - 1);
-            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-            positions[i * 3 + 2] = r * Math.cos(phi);
-        }
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.7 });
-        const stars = new THREE.Points(geo, mat);
-        scene.add(stars);
-        return stars;
-    }
-    const starfield = addStarfield();
 
     const planetGroup = new THREE.Group();
     scene.add(planetGroup);
 
-    // ------------------------------------------------------------------
-    // GENERACIÓN DE TEXTURAS PROCEDIMENTALES (CORREGIDO)
-    // ------------------------------------------------------------------
-    function generateProceduralMaps() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1024; canvas.height = 512;
-        const ctx = canvas.getContext('2d');
+    // Carga de tus 4 imágenes físicas
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous'); 
 
-        const bumpCanvas = document.createElement('canvas');
-        bumpCanvas.width = 1024; bumpCanvas.height = 512;
-        const bumpCtx = bumpCanvas.getContext('2d');
+    const imgColor = textureLoader.load('aizinia_color.png');
+    const imgClouds = textureLoader.load('aizinia_clouds.png');
+    const imgLights = textureLoader.load('aizinia_lights.png');
+    const imgSpace = textureLoader.load('aizinia_space.png');
 
-        ctx.fillStyle = palette.sea; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        bumpCtx.fillStyle = '#000000'; bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height);
+    // 1. FONDO ESPACIAL (Bóveda celeste con tu imagen real)
+    const spaceGeo = new THREE.SphereGeometry(90, 32, 32);
+    const spaceMat = new THREE.MeshBasicMaterial({
+        map: imgSpace,
+        side: THREE.BackSide // Renderiza la imagen hacia adentro de la esfera
+    });
+    const spaceMesh = new THREE.Mesh(spaceGeo, spaceMat);
+    scene.add(spaceMesh);
 
-        for (let i = 0; i < 45; i++) {
+    // 2. CAPA PLANETARIA (Color + Relieve + Luces nocturnas)
+    const planetGeo = new THREE.SphereGeometry(1.5, 64, 64);
+    const planetMat = new THREE.MeshStandardMaterial({
+        map: imgColor,
+        bumpMap: imgColor,
+        bumpScale: 0.035,
+        emissiveMap: imgLights,
+        emissive: new THREE.Color(0xffbb44), // Luces doradas en zonas oscuras
+        emissiveIntensity: 4.0,
+        roughness: 0.7,
+        metalness: 0.1
+    });
+
+    // Inyección shader: Océanos especulares (reflejan el sol intensamente)
+    planetMat.onBeforeCompile = (shader) => {
+        shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <roughnessmap_fragment>',
+            `#include <roughnessmap_fragment>
+             float bumpVal = texture2D(bumpMap, vUv).r;
+             roughnessFactor = mix(0.12, 0.85, bumpVal);`
+        );
+    };
+
+    const planetMesh = new THREE.Mesh(planetGeo, planetMat);
+    planetGroup.add(planetMesh);
+
+    // 3. CAPA ATMOSFÉRICA (Tus nubes translúcidas)
+    const cloudGeo = new THREE.SphereGeometry(1.514, 64, 64);
+    const cloudMat = new THREE.MeshStandardMaterial({
+        alphaMap: imgClouds,
+        transparent: true,
+        color: 0xffffff,
+        blending: THREE.NormalBlending
+    });
+    const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+    planetGroup.add(cloudMesh);
+
+    // 4. BALIZAS DE ORIENTACIÓN ESPACIAL
+    function addNavPoint(lat, lon, colorHex) {
+        const radius = 1.516;
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+
+        const x = -(radius * Math.sin(phi) * Math.sin(theta));
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.cos(theta);
+
+        const markerGeo = new THREE.SphereGeometry(0.025, 16, 16);
+        const markerMat = new THREE.MeshBasicMaterial({ color: colorHex });
+        const markerMesh = new THREE.Mesh(markerGeo, markerMat);
+        markerMesh.position.set(x, y, z);
+        
+        const ringGeo = new THREE.RingGeometry(0.01, 0.04, 16);
+        const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.lookAt(new THREE.Vector3(0,0,0));
+        markerMesh.add(ringMesh);
+
+        planetGroup.add(markerMesh);
+    }
+
+    // Ubicamos balizas sobre puntos clave
+    addNavPoint(20, 25, 0xff2a6d);   // Baliza de aterrizaje (Rojo)
+    addNavPoint(-30, -45, 0x05d9e8); // Yacimiento de recursos (Cian)
+    addNavPoint(10, 115, 0xfcee0a);  // Estructura antigua (Amarillo)
+
+    // 5. BUCLE CINEMÁTICO DE ROTACIÓN
+    function frame() {
+        requestAnimationFrame(frame);
+
+        // El planeta y sus balizas rotan juntos
+        planetMesh.rotation.y += 0.0002;
+        
+        // Las nubes se desplazan de manera independiente por corrientes atmosféricas
+        cloudMesh.rotation.y += 0.0004;
+
+        // El fondo espacial rota de forma casi imperceptible para dar dinamismo al universo
+        spaceMesh.rotation.y += 0.00001;
+
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    frame();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
