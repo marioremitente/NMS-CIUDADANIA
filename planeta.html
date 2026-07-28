@@ -62,13 +62,13 @@
 <div id="poi-tooltip"><span class="dot"></span><span id="poi-tooltip-text"></span></div>
 <div id="canvas-container"></div>
 
-<!-- CDNs Estables e independientes del protocolo local -->
+<!-- Recursos de WebGL externos altamente estables -->
 <script src="https://cloudflare.com"></script>
 <script src="https://jsdelivr.net"></script>
 
 <script>
     // ------------------------------------------------------------------
-    // ARREGLO DE PLANETAS DIRECTO
+    // BASE DE DATOS LOCAL INTEGRADA
     // ------------------------------------------------------------------
     const PLANETS = [
       {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
@@ -83,7 +83,7 @@
     const requestedName = params.get('planeta') || 'Aizinia';
     const planetData = PLANETS.find(p => p.name.toLowerCase() === requestedName.toLowerCase()) || PLANETS[0];
 
-    // Inyectar datos en la interfaz
+    // Inyectar datos en el panel HTML
     document.getElementById('poiPlanetName').textContent = planetData.name + (planetData.capital ? ' ★' : '');
     document.getElementById('poiClima').textContent = planetData.clima;
     document.getElementById('poiCentinelas').textContent = planetData.centinela;
@@ -91,12 +91,14 @@
     document.getElementById('poiFauna').textContent = planetData.fauna;
     document.getElementById('poiRecursos').textContent = planetData.rec.join(' · ');
 
+    // Coordenadas de los marcadores espaciales
     const defaultPois = [
         { lat: 25, lon: 45, color: 0xff2a6d, label: 'Baliza de aterrizaje' },
         { lat: -35, lon: -50, color: 0x05d9e8, label: 'Yacimiento de recursos' },
         { lat: 5, lon: 130, color: 0xfcee0a, label: 'Estructura antigua' }
     ];
 
+    // Configuración cromática por bioma de clima
     function paletteForClimate(climate = ''){
         const c = climate.toLowerCase();
         if (c.includes('ácido') || c.includes('acido')) {
@@ -119,7 +121,7 @@
     const palette = paletteForClimate(planetData.clima);
 
     // ------------------------------------------------------------------
-    // MOTOR 3D Y CÁMARA
+    // ESCENARIO 3D
     // ------------------------------------------------------------------
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
@@ -137,6 +139,7 @@
     controls.minDistance = 2.2;
     controls.maxDistance = 7;
 
+    // Luces cinemáticas
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.8);
     sunLight.position.set(7, 3, 5);
     scene.add(sunLight);
@@ -144,6 +147,7 @@
     const spaceLight = new THREE.AmbientLight(0x080812, 0.4);
     scene.add(spaceLight);
 
+    // Bóveda de estrellas realista
     function addStarfield(count = 2000) {
         const positions = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
@@ -166,10 +170,12 @@
     const planetGroup = new THREE.Group();
     scene.add(planetGroup);
 
-    // TEXTURIZACIÓN AVANZADA
+    // ------------------------------------------------------------------
+    // GENERACIÓN DE TEXTURAS PROCEDIMENTALES (CORREGIDO)
+    // ------------------------------------------------------------------
     function generateProceduralMaps() {
         const canvas = document.createElement('canvas');
-        canvas.width = 1024; canvas.height = 512; // Tamaños ajustados para acelerar procesamiento
+        canvas.width = 1024; canvas.height = 512;
         const ctx = canvas.getContext('2d');
 
         const bumpCanvas = document.createElement('canvas');
@@ -180,9 +186,3 @@
         bumpCtx.fillStyle = '#000000'; bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height);
 
         for (let i = 0; i < 45; i++) {
-            let x = Math.random() * canvas.width;
-            let y = Math.random() * canvas.height;
-            let radius = 40 + Math.random() * 100;
-
-            let grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            grad.addColorStop(0, palette.land[0]);
