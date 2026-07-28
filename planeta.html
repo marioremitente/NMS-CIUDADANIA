@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planeta Aizinia - No Man's Sky 3D</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050510; font-family: sans-serif; }
+        #info-panel {
+            position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.75);
+            color: #7ef3ff; padding: 20px; border-radius: 8px; border: 1px solid #1a5f7a;
+            pointer-events: none; text-transform: uppercase; letter-spacing: 1px;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; text-shadow: 0 0 10px #7ef3ff; }
+        .stat { margin: 5px 0; font-size: 13px; }
+        .label { color: #888; }
+        #canvas-container { width: 100vw; height: 100vh; }
+    </style>
+    <!-- Importamos Three.js y OrbitControls para poder rotar la cámara con el mouse -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com",
+                "three/addons/": "https://unpkg.com"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="info-panel">
+        <h1>Aizinia</h1>
+        <div class="stat"><span class="label">Clima:</span> <span style="color: #55ff55;">Apacible</span></div>
+        <div class="stat"><span class="label">Centinelas:</span> <span style="color: #ffaa00;">Remoto</span></div>
+        <div class="stat"><span class="label">Flora:</span> Generoso</div>
+        <div class="stat"><span class="label">Fauna:</span> Abundante</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 1. CONFIGURACIÓN DEL ESCENARIO
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Espacio con estrellas de fondo
+        scene.background = new THREE.Color(0x030308);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 4;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // 2. ILUMINACIÓN (Simula el sol del sistema estelar)
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        sunLight.position.set(5, 3, 5);
+        scene.add(sunLight);
+
+        const ambientLight = new THREE.AmbientLight(0x333355, 0.5); // Luz ambiental azulada para las sombras
+        scene.add(ambientLight);
+
+        // 3. CREACIÓN DEL PLANETA (AIZINIA)
+        // Grupo para rotar el planeta y sus puntos juntos
+        const planetGroup = new THREE.Group();
+        scene.add(planetGroup);
+
+        // Para evitar depender de imágenes externas, generamos una textura procedimental en código
+        function generatePlanetTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Llenar con el azul de los mares de Aizinia
+            ctx.fillStyle = '#0a4b91'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar continentes verdes (Flora: Generoso)
+            ctx.fillStyle = '#2d7a41';
+            for (let i = 0; i < 40; i++) {
+                ctx.beginPath();
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let radius = 40 + Math.random() * 80;
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const planetTexture = generatePlanetTexture();
+        const planetGeo = new THREE.SphereGeometry(1.5, 64, 64);
+        const planetMat = new THREE.MeshStandardMaterial({
+            map: planetTexture,
+            roughness: 0.8,
+            metalness: 0.1
+        });
+        const planetMesh = new THREE.Mesh(planetGeo, planetMat);
+        planetGroup.add(planetMesh);
+
+        // 4. ATMÓSFERA (Cielo claro, pocas nubes)
+        function generateCloudTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Pocas nubes blancas difuminadas
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            for (let i = 0; i < 15; i++) {
+                ctx.beginPath();
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let radius = 20 + Math.random() * 40;
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const cloudTexture = generateCloudTexture();
+        const cloudGeo = new THREE.SphereGeometry(1.52, 64, 64); // Ligeramente más grande que el planeta
+        const cloudMat = new THREE.MeshStandardMaterial({
+            map: cloudTexture,
+            transparent: true,
+            blending: THREE.NormalBlending
+        });
+        const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+        planetGroup.add(cloudMesh);
+
+        // 5. FUNCIÓN PARA MARCAR PUNTOS RELATIVOS (Coordenadas Esféricas)
+        function addMarker(lat, lon, colorHex, name) {
+            const radius = 1.51; // Un poco por encima de la superficie terrestre
+            
+            // Convertir Latitud y Longitud a radianes
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lon + 180) * (Math.PI / 180);
+
+            // Calcular posiciones X, Y, Z relativas
+            const x = -(radius * Math.sin(phi) * Math.sin(theta));
+            const y = radius * Math.cos(phi);
+            const z = radius * Math.sin(phi) * Math.cos(theta);
+
+            // Crear el marcador visual (un pequeño cono/pin orientado hacia afuera)
+            const markerGeo = new THREE.ConeGeometry(0.04, 0.15, 8);
+            markerGeo.rotateX(Math.PI / 2); // Orientar la punta correctamente
+            
+            const markerMat = new THREE.MeshBasicMaterial({ color: colorHex });
+            const markerMesh = new THREE.Mesh(markerGeo, markerMat);
+            
+            markerMesh.position.set(x, y, z);
+            // Hacer que el pin mire hacia afuera del centro del planeta
+            markerMesh.lookAt(new THREE.Vector3(0, 0, 0)); 
+            markerMesh.rotateX(Math.PI / 2);
+
+            planetGroup.add(markerMesh);
+        }
+
+        // Añadimos puntos de interés de ejemplo usando coordenadas estimadas
+        addMarker(-15, 45, 0xff0055, "Puesto de Avanzada Alfa");
+        addMarker(35, -70, 0x00ffff, "Depósito de Recursos");
+        addMarker(5, 120, 0xffff00, "Monolito Ancestral");
+
+        // 6. BUCLE DE ANIMACIÓN
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotación suave del planeta
+            planetMesh.rotation.y += 0.001;
+            
+            // Las nubes se mueven a una velocidad ligeramente diferente para dar realismo
+            cloudMesh.rotation.y += 0.0013; 
+            
+            // Asegurar que los marcadores roten junto con todo el planeta
+            // (Ya lo hacen automáticamente por pertenecer al mismo planetGroup)
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Ajustar el tamaño si la ventana cambia
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
