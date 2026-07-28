@@ -3,449 +3,361 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel del Arcade · MORI-01</title>
+<title>Panel de Administración · MORI-01</title>
 <style>
   :root{
     --bg-deep:#07080d; --bg-panel:#0c0f1c; --bg-panel-2:#10142a;
     --border-soft:#232842; --border-bright:#3a4270;
     --text-primary:#e8eaf2; --text-muted:#8b93b3; --text-dim:#565d80;
     --accent-cyan:#06b6d4; --accent-gold:#f5b849; --accent-violet:#7c6cff;
-    --accent-red:#e8546b; --accent-green:#3ddc97;
+    --accent-red:#e8546b;
     --font-display:"Eurostile","Michroma","Orbitron",system-ui,sans-serif;
     --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
     --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg-deep); color:var(--text-primary); font-family:var(--font-body); line-height:1.5; min-height:100vh;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important; transition-duration:.01ms !important;}}
   a{color:inherit;}
   :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
   input,select,button{font-family:inherit; font-size:14px;}
-  button{cursor:pointer;}
 
-  /* ---------- LOGIN GATE ---------- */
-  #loginGate{
-    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  .login-box{
-    width:100%; max-width:360px; background:var(--bg-panel); border:1px solid var(--border-soft);
-    border-radius:10px; padding:32px;
-  }
-  .login-box .eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:8px;}
-  .login-box h1{font-family:var(--font-display); font-weight:400; font-size:24px; margin-bottom:22px;}
-  .field{margin-bottom:16px;}
-  .field label{display:block; font-size:11.5px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; font-family:var(--font-mono);}
-  .field input, .field select{
+  .wrap{max-width:760px; margin:0 auto; padding:48px 24px 80px;}
+  .wrap.wide{max-width:980px;}
+
+  .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
+  .top-eyebrow::before{content:""; width:20px; height:1px; background:var(--accent-gold); opacity:.6;}
+  h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,5vw,40px); letter-spacing:.03em; margin-bottom:12px;}
+  .lede{color:var(--text-muted); font-size:15px; max-width:600px; margin-bottom:32px;}
+
+  .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
+  .back-link:hover{color:var(--accent-cyan);}
+
+  .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:28px;}
+  .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
+  .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:12px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);}
+  .field input{
     width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
-    padding:10px 12px; border-radius:4px;
+    padding:11px 13px; border-radius:4px; transition:border-color .2s;
   }
-  .field input:focus, .field select:focus{border-color:var(--accent-cyan);}
-  .btn{font-weight:600; letter-spacing:.03em; padding:11px 20px; border-radius:4px; border:1px solid transparent; transition:all .2s;}
-  .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%;}
-  .btn-primary:hover{background:#31cbe6;}
-  .btn-ghost{border-color:var(--border-bright); color:var(--text-primary); background:none;}
+  .field input:focus{border-color:var(--accent-cyan);}
+
+  .btn{font-weight:600; letter-spacing:.03em; padding:12px 22px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
+  .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
+  .btn-primary:hover:not(:disabled){background:#31cbe6;}
+  .btn-primary:disabled{opacity:.35; cursor:not-allowed;}
+  .btn-ghost{border-color:var(--border-bright); color:var(--text-primary); background:transparent; font-size:13px; padding:9px 16px;}
   .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
-  .btn-danger{border-color:rgba(232,84,107,.5); color:var(--accent-red); background:none;}
-  .btn-danger:hover{background:rgba(232,84,107,.12);}
-  .login-error{font-size:12.5px; color:var(--accent-red); margin-top:12px; display:none;}
-  .login-error.show{display:block;}
 
-  /* ---------- DASHBOARD ---------- */
-  #dashboard{display:none;}
-  #dashboard.show{display:block;}
+  .alert{padding:13px 16px; border-radius:5px; font-size:13.5px; margin-bottom:18px; display:none;}
+  .alert.show{display:block;}
+  .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
+  .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
 
-  header{border-bottom:1px solid var(--border-soft); position:sticky; top:0; background:rgba(7,8,13,.9); backdrop-filter:blur(8px); z-index:10;}
-  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1280px; margin:0 auto;}
-  .brand{font-family:var(--font-display); letter-spacing:.1em; font-size:14px; display:flex; align-items:center; gap:9px;}
-  .brand-tag{font-family:var(--font-mono); font-size:10px; color:var(--accent-gold); border:1px solid rgba(245,184,73,.4); padding:2px 8px; border-radius:20px; letter-spacing:.08em;}
-  .nav-right{display:flex; align-items:center; gap:14px; font-size:12.5px; color:var(--text-muted);}
+  /* admin bar */
+  .admin-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
+  .admin-who{font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted);}
+  .admin-who b{color:var(--accent-cyan); font-weight:600;}
 
-  .wrap{max-width:1280px; margin:0 auto; padding:32px 28px 80px;}
-
-  .stats-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:16px; margin-bottom:32px;}
-  .stat-card{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:20px;}
-  .stat-card .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;}
-  .stat-card .v{font-family:var(--font-display); font-size:30px;}
-  .stat-card .v.gold{color:var(--accent-gold);}
-  .stat-card .v.cyan{color:var(--accent-cyan);}
-  .stat-card .v.green{color:var(--accent-green);}
-
-  .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; margin-bottom:28px;}
-  .panel-head{padding:18px 22px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
-  .panel-head h2{font-family:var(--font-display); font-weight:400; font-size:16px; letter-spacing:.03em;}
-  .panel-body{padding:22px;}
-
-  /* planet occupancy bars */
-  .occ-row{display:flex; align-items:center; gap:12px; margin-bottom:12px; font-size:13px;}
-  .occ-row:last-child{margin-bottom:0;}
-  .occ-name{width:130px; flex-shrink:0; color:var(--text-muted);}
-  .occ-track{flex:1; height:8px; background:var(--bg-panel-2); border-radius:4px; overflow:hidden;}
-  .occ-fill{height:100%; background:linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));}
-  .occ-count{width:24px; text-align:right; font-family:var(--font-mono); color:var(--text-primary); flex-shrink:0;}
-
-  /* filters */
-  .filters{display:flex; gap:8px; flex-wrap:wrap;}
-  .filter-btn{
-    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; padding:7px 14px; border-radius:20px;
-    border:1px solid var(--border-bright); color:var(--text-muted); background:none;
+  .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .tab{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.04em; padding:8px 14px;
+    border:1px solid var(--border-soft); border-radius:20px; color:var(--text-muted); cursor:pointer; transition:all .2s;
+    background:var(--bg-panel-2);
   }
-  .filter-btn.active{border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(6,182,212,.08);}
-  .search-input{
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
-    padding:8px 12px; border-radius:4px; font-size:13px; min-width:180px;
-  }
+  .tab.active{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .tab .count{color:var(--text-dim); margin-left:4px;}
+  .tab.active .count{color:var(--accent-cyan);}
 
-  /* table */
-  table{width:100%; border-collapse:collapse; font-size:13.5px;}
-  thead th{
-    text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; color:var(--text-dim);
-    text-transform:uppercase; padding:0 10px 12px; border-bottom:1px solid var(--border-soft);
+  /* registry rows */
+  .reg-row{border-bottom:1px solid var(--border-soft); padding:16px 0;}
+  .reg-row:last-child{border-bottom:none;}
+  .reg-top{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;}
+  .reg-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px;}
+  .reg-name{font-weight:600; font-size:15px; flex:1; min-width:120px;}
+  .status-pill{
+    font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; white-space:nowrap;
   }
-  tbody td{padding:14px 10px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
-  tbody tr:last-child td{border-bottom:none;}
-  .cell-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; white-space:nowrap;}
-  .cell-coords{font-family:var(--font-mono); font-size:12px; color:var(--text-muted); white-space:nowrap;}
-  .pill{font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; padding:4px 10px; border-radius:20px; white-space:nowrap; display:inline-block;}
-  .pill-pending{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
-  .pill-approved{background:rgba(61,220,151,.12); border:1px solid rgba(61,220,151,.4); color:var(--accent-green);}
-  .pill-rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
-  .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
-  .icon-btn{
-    font-family:var(--font-mono); font-size:11px; padding:6px 11px; border-radius:4px; border:1px solid var(--border-bright);
-    background:none; color:var(--text-primary); white-space:nowrap;
+  .status-pill.pending{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
+  .status-pill.approved{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
+  .status-pill.rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
+  .reg-meta{font-size:12.5px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:12px;}
+  .reg-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .act-btn{
+    font-family:var(--font-mono); font-size:11.5px; padding:7px 13px; border-radius:4px; cursor:pointer;
+    border:1px solid var(--border-bright); background:transparent; color:var(--text-primary); transition:all .15s;
   }
-  .icon-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
-  .icon-btn.approve:hover{border-color:var(--accent-green); color:var(--accent-green);}
-  .icon-btn.revoke:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
-  .icon-btn.delete:hover{border-color:var(--accent-red); color:var(--accent-red);}
+  .act-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .act-btn.approve:hover{border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(6,182,212,.08);}
+  .act-btn.reject:hover{border-color:var(--accent-red); color:var(--accent-red); background:rgba(232,84,107,.08);}
+  .act-btn.delete:hover{border-color:var(--accent-red); color:var(--accent-red); background:rgba(232,84,107,.08);}
+  .act-btn:disabled{opacity:.4; cursor:not-allowed;}
 
-  .edit-row td{background:var(--bg-panel-2); padding:16px 10px;}
-  .edit-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:12px;}
-  .edit-grid .field{margin-bottom:0;}
-
-  .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:36px 0; font-family:var(--font-mono);}
-
-  @media(max-width:900px){
-    .stats-grid{grid-template-columns:1fr 1fr; }
-    table, thead, tbody, tr, td, th{display:block;}
-    thead{display:none;}
-    tbody tr{border-bottom:1px solid var(--border-soft); padding:14px 0; display:block;}
-    tbody td{border-bottom:none; padding:4px 0;}
+  /* inline edit */
+  .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+  .edit-grid input, .edit-grid select{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 11px; border-radius:4px; font-size:13px;
   }
+  .edit-grid .full{grid-column:1 / -1;}
+
+  .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
+
+  #adminView{display:none;}
 </style>
 </head>
 <body>
 
-<!-- ============ LOGIN ============ -->
-<div id="loginGate">
-  <div class="login-box">
-    <p class="eyebrow">Acceso restringido</p>
-    <h1>Panel del Arcade</h1>
+<!-- LOGIN -->
+<div class="wrap" id="loginView">
+  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <p class="top-eyebrow">Acceso restringido</p>
+  <h1>Panel de Administración</h1>
+  <p class="lede">Inicia sesión con tu correo de administrador para gestionar las solicitudes de ciudadanía.</p>
+
+  <div class="panel">
+    <h2>Iniciar sesión</h2>
+    <p class="sub">Solo cuentas creadas manualmente en Firebase Authentication pueden entrar aquí.</p>
+
+    <div id="loginAlert" class="alert"></div>
+
     <div class="field">
-      <label for="loginEmail">Email</label>
-      <input type="email" id="loginEmail" autocomplete="username">
+      <label for="loginEmail">Correo</label>
+      <input type="email" id="loginEmail" placeholder="admin@correo.com" autocomplete="username">
     </div>
     <div class="field">
-      <label for="loginPass">Contraseña</label>
-      <input type="password" id="loginPass" autocomplete="current-password">
+      <label for="loginPassword">Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="btn btn-primary" id="loginBtn">Entrar</button>
-    <p class="login-error" id="loginError"></p>
   </div>
 </div>
 
-<!-- ============ DASHBOARD ============ -->
-<div id="dashboard">
-  <header>
-    <div class="nav">
-      <div class="brand">MORI-01 <span class="brand-tag">PANEL DEL ARCADE</span></div>
-      <div class="nav-right">
-        <span id="whoami"></span>
-        <button class="btn btn-ghost" id="logoutBtn" style="padding:8px 16px;">Salir</button>
-      </div>
+<!-- ADMIN -->
+<div class="wrap wide" id="adminView">
+  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <p class="top-eyebrow">Panel de Administración</p>
+  <h1>Solicitudes de Ciudadanía</h1>
+  <p class="lede">Revisa, aprueba, rechaza o edita cada solicitud registrada en Mori-01.</p>
+
+  <div class="admin-bar">
+    <div class="admin-who">Sesión iniciada como <b id="whoami">—</b></div>
+    <button class="btn btn-ghost" id="logoutBtn">Cerrar sesión</button>
+  </div>
+
+  <div class="panel">
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-filter="all">Todos <span class="count" id="countAll">0</span></div>
+      <div class="tab" data-filter="pending">Pendientes <span class="count" id="countPending">0</span></div>
+      <div class="tab" data-filter="approved">Aprobados <span class="count" id="countApproved">0</span></div>
+      <div class="tab" data-filter="rejected">Rechazados <span class="count" id="countRejected">0</span></div>
     </div>
-  </header>
-
-  <div class="wrap">
-
-    <div class="stats-grid">
-      <div class="stat-card"><div class="k">Total de solicitudes</div><div class="v" id="statTotal">—</div></div>
-      <div class="stat-card"><div class="k">Esperando decisión</div><div class="v gold" id="statPending">—</div></div>
-      <div class="stat-card"><div class="k">Ciudadanos aprobados</div><div class="v green" id="statApproved">—</div></div>
-      <div class="stat-card"><div class="k">Rechazadas</div><div class="v" style="color:var(--accent-red);" id="statRejected">—</div></div>
-      <div class="stat-card"><div class="k">Planeta más ocupado</div><div class="v cyan" id="statTopPlanet" style="font-size:18px;">—</div></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Ocupación por planeta</h2></div>
-      <div class="panel-body" id="occupancyBody"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Solicitudes y ciudadanos</h2>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <input class="search-input" id="searchInput" placeholder="Buscar por nombre o ID…">
-          <div class="filters" id="filterButtons">
-            <button class="filter-btn active" data-filter="all">Todos</button>
-            <button class="filter-btn" data-filter="pending">Pendientes</button>
-            <button class="filter-btn" data-filter="approved">Aprobados</button>
-            <button class="filter-btn" data-filter="rejected">Rechazados</button>
-          </div>
-        </div>
-      </div>
-      <div class="panel-body" style="overflow-x:auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Nombre</th><th>Planeta</th><th>Coordenadas</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="citizensBody"></tbody>
-        </table>
-        <div class="empty-state" id="emptyState" style="display:none;">No hay solicitudes que coincidan.</div>
-      </div>
-    </div>
-
+    <div id="adminAlert" class="alert"></div>
+    <div id="registryList"></div>
   </div>
 </div>
 
 <script type="module">
-  import { app, db } from './firebase-config.js';
+  import { db, auth } from './firebase-config.js';
   import { PLANETS } from './mori01-data.js';
   import {
-    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc
+    collection, doc, updateDoc, deleteDoc, orderBy, query, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    signInWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const auth = getAuth(app);
   const citizensCol = collection(db, 'citizens');
-  const PLANET_BY_INDEX = Object.fromEntries(PLANETS.map(p=>[p.i, p.name]));
-
-  const loginGate = document.getElementById('loginGate');
-  const dashboard = document.getElementById('dashboard');
-  const loginError = document.getElementById('loginError');
-
-  document.getElementById('loginBtn').addEventListener('click', async ()=>{
-    loginError.className = 'login-error';
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPass').value;
-    try{
-      await signInWithEmailAndPassword(auth, email, pass);
-    }catch(e){
-      loginError.textContent = 'No se pudo entrar. Revisa el email y la contraseña.';
-      loginError.className = 'login-error show';
-    }
-  });
-
-  document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
+  const loginView = document.getElementById('loginView');
+  const adminView = document.getElementById('adminView');
 
   let allEntries = [];
   let currentFilter = 'all';
   let unsubscribe = null;
 
+  // ---------- LOGIN ----------
+  function showLoginAlert(msg){
+    const box = document.getElementById('loginAlert');
+    box.textContent = msg;
+    box.className = 'alert show alert-error';
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if(!email || !password){ showLoginAlert('Completa correo y contraseña.'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+    }catch(e){
+      showLoginAlert('Correo o contraseña incorrectos.');
+    }
+    btn.disabled = false; btn.textContent = 'Entrar';
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await signOut(auth);
+  });
+
   onAuthStateChanged(auth, user=>{
     if(user){
-      loginGate.style.display = 'none';
-      dashboard.classList.add('show');
+      loginView.style.display = 'none';
+      adminView.style.display = 'block';
       document.getElementById('whoami').textContent = user.email;
-      startListening();
+      subscribeRegistry();
     }else{
-      loginGate.style.display = 'flex';
-      dashboard.classList.remove('show');
-      if(unsubscribe) unsubscribe();
+      loginView.style.display = 'block';
+      adminView.style.display = 'none';
+      if(unsubscribe){ unsubscribe(); unsubscribe = null; }
     }
   });
 
-  function startListening(){
+  // ---------- REGISTRY ----------
+  function subscribeRegistry(){
     const q = query(citizensCol, orderBy('ts', 'desc'));
     unsubscribe = onSnapshot(q, snap=>{
-      allEntries = snap.docs.map(d=>({ docId:d.id, ...d.data() }));
-      renderStats();
-      renderOccupancy();
-      renderTable();
+      allEntries = snap.docs.map(d=>({ docId: d.id, ...d.data() }));
+      renderCounts();
+      renderList();
     }, err=>{
-      document.getElementById('citizensBody').innerHTML =
-        `<tr><td colspan="7" class="empty-state">No se pudo cargar el registro (¿tu cuenta tiene permiso en las reglas de Firestore?).</td></tr>`;
+      document.getElementById('registryList').innerHTML =
+        '<div class="empty-state">No se pudo cargar el registro. Revisa las reglas de Firestore.</div>';
     });
   }
 
-  function renderStats(){
-    const total = allEntries.length;
-    const approved = allEntries.filter(e=>e.status==='citizen').length;
-    const rejected = allEntries.filter(e=>e.status==='rejected').length;
-    const pending = allEntries.filter(e=>e.status!=='citizen' && e.status!=='rejected').length;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statApproved').textContent = approved;
-    document.getElementById('statRejected').textContent = rejected;
-    document.getElementById('statPending').textContent = pending;
-
-    const counts = {};
-    allEntries.forEach(e=> counts[e.planetIndex] = (counts[e.planetIndex]||0)+1 );
-    let topIdx = null, topCount = 0;
-    Object.entries(counts).forEach(([idx,c])=>{ if(c>topCount){ topCount=c; topIdx=idx; } });
-    document.getElementById('statTopPlanet').textContent = topIdx
-      ? `${PLANET_BY_INDEX[topIdx]} (${topCount})` : '—';
+  function renderCounts(){
+    document.getElementById('countAll').textContent = allEntries.length;
+    document.getElementById('countPending').textContent = allEntries.filter(e=>(e.status||'pending')==='pending').length;
+    document.getElementById('countApproved').textContent = allEntries.filter(e=>e.status==='approved').length;
+    document.getElementById('countRejected').textContent = allEntries.filter(e=>e.status==='rejected').length;
   }
 
-  function renderOccupancy(){
-    const counts = {};
-    PLANETS.forEach(p=> counts[p.i] = 0 );
-    allEntries.forEach(e=>{ if(counts[e.planetIndex]!==undefined) counts[e.planetIndex]++; });
-    const max = Math.max(1, ...Object.values(counts));
-    const body = document.getElementById('occupancyBody');
-    body.innerHTML = PLANETS.map(p=>{
-      const c = counts[p.i] || 0;
-      const pct = (c/max)*100;
+  document.getElementById('tabs').addEventListener('click', e=>{
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    renderList();
+  });
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
+  function planetOptions(selectedIndex){
+    return PLANETS.map(p=>`<option value="${p.i}" ${p.i===selectedIndex?'selected':''}>${p.name} (glifo ${p.i})</option>`).join('');
+  }
+
+  function renderList(){
+    const list = document.getElementById('registryList');
+    const filtered = currentFilter === 'all'
+      ? allEntries
+      : allEntries.filter(e=>(e.status||'pending') === currentFilter);
+
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">No hay solicitudes en esta categoría.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(e=>{
+      const status = e.status || 'pending';
+      const planet = PLANETS.find(p=>p.i===e.planetIndex);
       return `
-        <div class="occ-row">
-          <div class="occ-name">${p.name}</div>
-          <div class="occ-track"><div class="occ-fill" style="width:${pct}%"></div></div>
-          <div class="occ-count">${c}</div>
+        <div class="reg-row" data-doc="${e.docId}">
+          <div class="reg-top">
+            <span class="reg-id">${escapeHtml(e.id)}</span>
+            <span class="reg-name">${escapeHtml(e.name)}</span>
+            <span class="status-pill ${status}">${status==='approved'?'Aprobado':status==='rejected'?'Rechazado':'Pendiente'}</span>
+          </div>
+          <div class="reg-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</div>
+          <div class="reg-actions">
+            <button class="act-btn approve" data-action="approve">Aprobar</button>
+            <button class="act-btn reject" data-action="reject">Rechazar</button>
+            <button class="act-btn" data-action="edit">Editar</button>
+            <button class="act-btn delete" data-action="delete">Eliminar</button>
+          </div>
         </div>`;
     }).join('');
   }
 
-  function matchesFilter(e){
-    if(currentFilter==='pending') return e.status!=='citizen' && e.status!=='rejected';
-    if(currentFilter==='approved') return e.status==='citizen';
-    if(currentFilter==='rejected') return e.status==='rejected';
-    return true;
-  }
-  function matchesSearch(e, term){
-    if(!term) return true;
-    term = term.toLowerCase();
-    return (e.name||'').toLowerCase().includes(term) || (e.id||'').toLowerCase().includes(term);
+  function showAdminAlert(msg, type){
+    const box = document.getElementById('adminAlert');
+    box.textContent = msg;
+    box.className = 'alert show ' + (type==='error' ? 'alert-error' : 'alert-ok');
+    setTimeout(()=>{ box.className = 'alert'; }, 3500);
   }
 
-  function renderTable(){
-    const term = document.getElementById('searchInput').value.trim();
-    const rows = allEntries.filter(e=>matchesFilter(e) && matchesSearch(e, term));
-    const body = document.getElementById('citizensBody');
-    document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
-
-    body.innerHTML = rows.map(e=>{
-      const planetName = PLANET_BY_INDEX[e.planetIndex] || '—';
-      const date = e.ts ? new Date(e.ts).toLocaleDateString('es-DO', {day:'2-digit',month:'short',year:'numeric'}) : '—';
-      const statusPill = e.status==='citizen'
-        ? '<span class="pill pill-approved">Ciudadano</span>'
-        : e.status==='rejected'
-          ? '<span class="pill pill-rejected">Rechazada</span>'
-          : '<span class="pill pill-pending">Esperando</span>';
-      const reasonLine = e.status==='rejected' && e.rejectionReason
-        ? `<div style="font-size:11px; color:var(--text-dim); margin-top:4px; max-width:180px;">${escapeHtml(e.rejectionReason)}</div>` : '';
-      return `
-        <tr data-doc="${e.docId}">
-          <td class="cell-id">${e.id||'—'}</td>
-          <td>${escapeHtml(e.name||'—')}</td>
-          <td>${planetName}</td>
-          <td class="cell-coords">${e.lat}, ${e.lon}</td>
-          <td>${statusPill}${reasonLine}</td>
-          <td class="cell-coords">${date}</td>
-          <td>
-            <div class="row-actions">
-              ${e.status==='citizen'
-                ? `<button class="icon-btn revoke" data-action="revoke">Revocar</button>`
-                : `<button class="icon-btn approve" data-action="approve">Aprobar</button>`}
-              ${e.status!=='rejected'
-                ? `<button class="icon-btn delete" data-action="reject">Rechazar</button>`
-                : `<button class="icon-btn" data-action="reconsider">Reconsiderar</button>`}
-              <button class="icon-btn" data-action="edit">Editar</button>
-              <button class="icon-btn delete" data-action="delete">Borrar</button>
-            </div>
-          </td>
-        </tr>`;
-    }).join('');
-
-    body.querySelectorAll('button[data-action]').forEach(btn=>{
-      btn.addEventListener('click', ()=> handleAction(btn));
-    });
-  }
-
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
-  async function handleAction(btn){
-    const tr = btn.closest('tr');
-    const docId = tr.dataset.doc;
+  document.getElementById('registryList').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.act-btn');
+    if(!btn) return;
+    const row = e.target.closest('.reg-row');
+    const docId = row.dataset.doc;
     const action = btn.dataset.action;
-    const entry = allEntries.find(e=>e.docId===docId);
+    const entry = allEntries.find(x=>x.docId===docId);
     if(!entry) return;
 
-    if(action==='approve' || action==='revoke'){
-      await updateDoc(doc(db,'citizens',docId), { status: action==='approve' ? 'citizen' : 'pending' });
-    }
-    if(action==='reject'){
-      const reason = prompt(`Motivo del rechazo para ${entry.name} (se guarda junto a la solicitud):`, '');
-      if(reason===null) return; // canceló
-      await updateDoc(doc(db,'citizens',docId), { status:'rejected', rejectionReason: reason.trim() });
-    }
-    if(action==='reconsider'){
-      await updateDoc(doc(db,'citizens',docId), { status:'pending', rejectionReason: '' });
-    }
-    if(action==='delete'){
-      if(confirm(`¿Borrar definitivamente la solicitud de ${entry.name} (${entry.id})? Esto no se puede deshacer.`)){
-        await deleteDoc(doc(db,'citizens',docId));
+    if(action === 'approve'){
+      await setStatus(docId, 'approved');
+    }else if(action === 'reject'){
+      await setStatus(docId, 'rejected');
+    }else if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la solicitud ${entry.id} de ${entry.name}?`)) return;
+      try{
+        await deleteDoc(doc(db, 'citizens', docId));
+        showAdminAlert('Solicitud eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas de Firestore.', 'error');
       }
+    }else if(action === 'edit'){
+      openEdit(row, entry);
     }
-    if(action==='edit'){
-      openEditRow(tr, entry);
+  });
+
+  async function setStatus(docId, status){
+    try{
+      await updateDoc(doc(db, 'citizens', docId), { status });
+      showAdminAlert(status === 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
+    }catch(err){
+      showAdminAlert('No se pudo actualizar. Revisa las reglas de Firestore.', 'error');
     }
   }
 
-  function openEditRow(tr, entry){
-    if(tr.nextElementSibling && tr.nextElementSibling.classList.contains('edit-row')){
-      tr.nextElementSibling.remove();
-      return;
-    }
-    document.querySelectorAll('.edit-row').forEach(r=>r.remove());
-
-    const editTr = document.createElement('tr');
-    editTr.className = 'edit-row';
-    const planetOptions = PLANETS.map(p=>
-      `<option value="${p.i}" ${p.i===entry.planetIndex?'selected':''}>${p.name}</option>`
-    ).join('');
-
-    editTr.innerHTML = `
-      <td colspan="7">
-        <div class="edit-grid">
-          <div class="field"><label>Nombre</label><input type="text" id="edit-name" value="${escapeHtml(entry.name||'')}"></div>
-          <div class="field"><label>Planeta</label><select id="edit-planet">${planetOptions}</select></div>
-          <div class="field"><label>Latitud</label><input type="text" id="edit-lat" value="${entry.lat}"></div>
-          <div class="field"><label>Longitud</label><input type="text" id="edit-lon" value="${entry.lon}"></div>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary" style="width:auto;" id="edit-save">Guardar cambios</button>
-          <button class="btn btn-ghost" id="edit-cancel">Cancelar</button>
-        </div>
-      </td>`;
-    tr.after(editTr);
-
-    editTr.querySelector('#edit-cancel').addEventListener('click', ()=> editTr.remove());
-    editTr.querySelector('#edit-save').addEventListener('click', async ()=>{
-      const name = editTr.querySelector('#edit-name').value.trim();
-      const planetIndex = parseInt(editTr.querySelector('#edit-planet').value, 10);
-      const lat = parseFloat(editTr.querySelector('#edit-lat').value.replace(',','.'));
-      const lon = parseFloat(editTr.querySelector('#edit-lon').value.replace(',','.'));
-      if(!name || isNaN(lat) || isNaN(lon)){ alert('Revisa los datos antes de guardar.'); return; }
-      await updateDoc(doc(db,'citizens',entry.docId), { name, planetIndex, lat, lon });
-      editTr.remove();
+  function openEdit(row, entry){
+    row.innerHTML = `
+      <div class="edit-grid">
+        <input type="text" class="edit-name" value="${escapeHtml(entry.name)}" placeholder="Nombre">
+        <select class="edit-planet">${planetOptions(entry.planetIndex)}</select>
+        <input type="text" class="edit-lat" value="${entry.lat}" placeholder="Latitud">
+        <input type="text" class="edit-lon" value="${entry.lon}" placeholder="Longitud">
+      </div>
+      <div class="reg-actions">
+        <button class="act-btn approve" data-action="save-edit">Guardar</button>
+        <button class="act-btn" data-action="cancel-edit">Cancelar</button>
+      </div>
+    `;
+    row.querySelector('[data-action="cancel-edit"]').addEventListener('click', renderList);
+    row.querySelector('[data-action="save-edit"]').addEventListener('click', async ()=>{
+      const name = row.querySelector('.edit-name').value.trim();
+      const planetIndex = parseInt(row.querySelector('.edit-planet').value, 10);
+      const lat = parseFloat(row.querySelector('.edit-lat').value.replace(',', '.'));
+      const lon = parseFloat(row.querySelector('.edit-lon').value.replace(',', '.'));
+      if(!name || isNaN(lat) || isNaN(lon)){ showAdminAlert('Datos inválidos.', 'error'); return; }
+      try{
+        await updateDoc(doc(db, 'citizens', entry.docId), { name, planetIndex, lat, lon });
+        showAdminAlert('Solicitud actualizada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');
+      }
     });
   }
-
-  document.getElementById('searchInput').addEventListener('input', renderTable);
-  document.getElementById('filterButtons').addEventListener('click', e=>{
-    const btn = e.target.closest('.filter-btn');
-    if(!btn) return;
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    renderTable();
-  });
 </script>
 </body>
 </html>
