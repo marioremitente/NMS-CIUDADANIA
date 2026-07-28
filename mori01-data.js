@@ -1,7 +1,19 @@
-// Datos fijos del sistema NETINOSTV, compartidos entre todas las páginas.
+// Datos fijos del sistema MRNG (antes NETINOSTV), compartidos entre todas las páginas.
 // Sin dependencias — index.html no necesita cargar Firebase solo para esto.
+export const SYSTEM_INFO = {
+  tag: '[MRNG]',
+  name: 'Moringos PRIME_Disonante',
+  shortName: 'Moringos PRIME',
+  region: 'Cuadrante Goffle',
+  regionDetail: 'Región en el cuadrante Delta',
+  race: 'Korvax',
+  economy: 'Generación de Energía',
+  conflict: '2 · Tempestuoso',
+  galaxy: 'Galaxia de Euclides',
+};
+
 export const PLANETS = [
-  {i:4, name:'Aizinia', clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
+  {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
   {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
   {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
   {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},

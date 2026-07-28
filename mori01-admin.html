@@ -82,9 +82,10 @@
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; white-space:nowrap;
   }
   .status-pill.pending{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
-  .status-pill.approved{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
+  .status-pill.citizen{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
   .status-pill.rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
   .reg-meta{font-size:12.5px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:12px;}
+  .reg-reason{font-size:12.5px; color:var(--accent-red); font-family:var(--font-mono); margin-bottom:12px; font-style:italic;}
   .reg-actions{display:flex; gap:8px; flex-wrap:wrap;}
   .act-btn{
     font-family:var(--font-mono); font-size:11.5px; padding:7px 13px; border-radius:4px; cursor:pointer;
@@ -152,7 +153,7 @@
     <div class="tabs" id="tabs">
       <div class="tab active" data-filter="all">Todos <span class="count" id="countAll">0</span></div>
       <div class="tab" data-filter="pending">Pendientes <span class="count" id="countPending">0</span></div>
-      <div class="tab" data-filter="approved">Aprobados <span class="count" id="countApproved">0</span></div>
+      <div class="tab" data-filter="citizen">Aprobados <span class="count" id="countApproved">0</span></div>
       <div class="tab" data-filter="rejected">Rechazados <span class="count" id="countRejected">0</span></div>
     </div>
     <div id="adminAlert" class="alert"></div>
@@ -233,7 +234,7 @@
   function renderCounts(){
     document.getElementById('countAll').textContent = allEntries.length;
     document.getElementById('countPending').textContent = allEntries.filter(e=>(e.status||'pending')==='pending').length;
-    document.getElementById('countApproved').textContent = allEntries.filter(e=>e.status==='approved').length;
+    document.getElementById('countApproved').textContent = allEntries.filter(e=>e.status==='citizen').length;
     document.getElementById('countRejected').textContent = allEntries.filter(e=>e.status==='rejected').length;
   }
 
@@ -270,14 +271,17 @@
     list.innerHTML = filtered.map(e=>{
       const status = e.status || 'pending';
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      const reasonHtml = (status === 'rejected' && e.rejectionReason)
+        ? `<div class="reg-reason">Motivo: ${escapeHtml(e.rejectionReason)}</div>` : '';
       return `
         <div class="reg-row" data-doc="${e.docId}">
           <div class="reg-top">
             <span class="reg-id">${escapeHtml(e.id)}</span>
             <span class="reg-name">${escapeHtml(e.name)}</span>
-            <span class="status-pill ${status}">${status==='approved'?'Aprobado':status==='rejected'?'Rechazado':'Pendiente'}</span>
+            <span class="status-pill ${status}">${status==='citizen'?'Aprobado':status==='rejected'?'Rechazado':'Pendiente'}</span>
           </div>
           <div class="reg-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</div>
+          ${reasonHtml}
           <div class="reg-actions">
             <button class="act-btn approve" data-action="approve">Aprobar</button>
             <button class="act-btn reject" data-action="reject">Rechazar</button>
@@ -305,9 +309,11 @@
     if(!entry) return;
 
     if(action === 'approve'){
-      await setStatus(docId, 'approved');
+      await setStatus(docId, 'citizen');
     }else if(action === 'reject'){
-      await setStatus(docId, 'rejected');
+      const reason = prompt(`Motivo del rechazo para ${entry.name} (opcional, se le mostrará al solicitante):`, entry.rejectionReason || '');
+      if(reason === null) return; // canceló el diálogo
+      await setStatus(docId, 'rejected', reason.trim());
     }else if(action === 'delete'){
       if(!confirm(`¿Eliminar definitivamente la solicitud ${entry.id} de ${entry.name}?`)) return;
       try{
@@ -321,10 +327,16 @@
     }
   });
 
-  async function setStatus(docId, status){
+  async function setStatus(docId, status, rejectionReason){
     try{
-      await updateDoc(doc(db, 'citizens', docId), { status });
-      showAdminAlert(status === 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
+      const payload = { status };
+      if(status === 'rejected'){
+        payload.rejectionReason = rejectionReason || null;
+      }else if(status === 'citizen'){
+        payload.rejectionReason = null; // limpia un motivo previo si se re-aprueba
+      }
+      await updateDoc(doc(db, 'citizens', docId), payload);
+      showAdminAlert(status === 'citizen' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
     }catch(err){
       showAdminAlert('No se pudo actualizar. Revisa las reglas de Firestore.', 'error');
     }

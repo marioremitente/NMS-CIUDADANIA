@@ -100,7 +100,7 @@
 <body>
 <div class="wrap">
 
-  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <a class="back-link" href="./index.html" id="backLink">← Volver</a>
 
   <p class="top-eyebrow">Registro de ciudadanía</p>
   <h1>Hazte Ciudadano</h1>
@@ -167,6 +167,36 @@
       </div>
       <p class="hint">Formato del juego: signo, grados, dos decimales. Ej: +14.32, -21.96</p>
 
+      <div class="field-row">
+        <div class="field">
+          <label for="professionSelect">Profesión (opcional)</label>
+          <select id="professionSelect">
+            <option value="">Selecciona…</option>
+            <option>Arquitecto</option>
+            <option>Explorador</option>
+            <option>Guardián</option>
+            <option>Comerciante</option>
+            <option>Científico</option>
+            <option>Cazarrecompensas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="platformSelect">Plataforma (opcional)</label>
+          <select id="platformSelect">
+            <option value="">Selecciona…</option>
+            <option>PC</option>
+            <option>PlayStation</option>
+            <option>Xbox</option>
+            <option>Switch</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="friendCode">Código de amigo (opcional)</label>
+        <input type="text" id="friendCode" placeholder="0000-0000-00000">
+      </div>
+      <p class="hint">Estos tres se usan para autocompletar tu Tarjeta de Ciudadano más adelante.</p>
+
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="submitBtn">Ser Ciudadano</button>
       <p class="disclaimer">La comprobación de distancia usa un radio planetario aproximado, ya que el juego no expone el radio real de cada mundo — es una validación orientativa, no exacta al metro.</p>
@@ -174,7 +204,7 @@
 
     <!-- REGISTRY -->
     <div class="panel">
-      <h2>Ciudadanía en Netinostv</h2>
+      <h2 id="registryTitle">Ciudadanía</h2>
       <p class="sub">Prospectos y ciudadanos, visible para toda la comunidad.</p>
       <div id="registryList"></div>
     </div>
@@ -184,10 +214,13 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { PLANETS } from './mori01-data.js';
+  import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import {
     collection, addDoc, getDocs, query, where, orderBy, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
   const PLANET_RADIUS_M = 200000; // aproximación, el juego no expone el radio real
@@ -310,6 +343,9 @@
       const newEntry = {
         id: '#M01-' + Math.floor(1000 + Math.random()*9000),
         name, planetIndex, lat, lon,
+        profession: document.getElementById('professionSelect').value || '',
+        platform: document.getElementById('platformSelect').value || '',
+        friendCode: document.getElementById('friendCode').value.trim() || '',
         status: 'pending',
         ts: Date.now()
       };

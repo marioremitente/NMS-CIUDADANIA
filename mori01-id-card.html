@@ -520,6 +520,9 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       fName.value = data.name || '';
       fPlanet.value = PLANET_BY_INDEX[data.planetIndex] || '';
       fPlanet.disabled = true;
+      if(data.profession){ fProfession.value = data.profession; fProfession.disabled = true; }
+      if(data.platform){ fPlatform.value = data.platform; fPlatform.disabled = true; }
+      if(data.friendCode){ fCode.value = data.friendCode; fCode.disabled = true; }
       cardId.textContent = data.id;
 
       const isCitizen = data.status === 'citizen';
