@@ -1,35 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MORI-01 · Asentamiento planetario</title>
+    <style>
+        :root{
+            --bg-deep:#020205;
+            --accent-cyan:#7ef3ff;
+            --accent-cyan-dim:#1a5f7a;
+            --accent-gold:#f5b849;
+            --text-dim:#888;
+            --font-display: system-ui, sans-serif;
+            --font-mono: monospace;
+        }
+        *{box-sizing:border-box;}
+        body{ margin:0; overflow:hidden; background-color:var(--bg-deep); font-family:sans-serif; }
+        
+        #info-panel {
+            position: absolute; top: 20px; left: 20px; background: rgba(2, 2, 8, 0.85);
+            color: #7ef3ff; padding: 20px; border-radius: 8px; border: 1px solid #1a5f7a;
+            pointer-events: none; text-transform: uppercase; letter-spacing: 1px; z-index: 10;
+            box-shadow: 0 0 20px rgba(126, 243, 255, 0.2); max-width:280px;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; text-shadow: 0 0 10px #7ef3ff; font-family:var(--font-display); font-weight:400; letter-spacing:.03em; }
+        .stat { margin: 5px 0; font-size: 13px; font-family:var(--font-mono); }
+        .label { color: #888; }
+        
+        #loading{
+            position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+            background:var(--bg-deep); color:var(--accent-cyan); font-family:var(--font-mono);
+            font-size:12px; letter-spacing:.2em; text-transform:uppercase; transition:opacity .4s ease;
+        }
+        #loading.hidden{ opacity:0; pointer-events:none; }
+        
+        #poi-tooltip{
+            position:absolute; z-index:15; pointer-events:none;
+            background:rgba(2,2,8,.9); border:1px solid var(--accent-cyan-dim); border-radius:5px;
+            color:#fff; font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em;
+            text-transform:uppercase; padding:6px 10px; transform:translate(-50%,-130%);
+            white-space:nowrap; opacity:0; transition:opacity .12s ease;
+        }
+        #poi-tooltip.visible{ opacity:1; }
+        #poi-tooltip .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top:0; left:0; }
+    </style>
+</head>
+<body>
+
+<div id="loading">Generando terreno…</div>
+
 <div id="info-panel">
-    <h1>Aizinia</h1>
-    <div class="stat"><span class="label">Clima:</span> <span style="color: #55ff55;">Apacible</span></div>
-    <div class="stat"><span class="label">Centinelas:</span> <span style="color: #ffaa00;">Remoto</span></div>
-    <div class="stat"><span class="label">Flora:</span> Generoso</div>
-    <div class="stat"><span class="label">Fauna:</span> Abundante</div>
+    <h1 id="poiPlanetName">Aizinia</h1>
+    <div class="stat"><span class="label">Clima:</span> <span id="poiClima" style="color:#55ff55;">Apacible</span></div>
+    <div class="stat"><span class="label">Centinelas:</span> <span id="poiCentinelas" style="color:#ffaa00;">Remoto</span></div>
+    <div class="stat"><span class="label">Flora:</span> <span id="poiFlora">Generoso</span></div>
+    <div class="stat"><span class="label">Fauna:</span> <span id="poiFauna">Abundante</span></div>
+    <div class="stat" style="margin-top:10px;"><span class="label">Recursos:</span> <br><span id="poiRecursos" style="color:#fff; font-size:11px;">—</span></div>
 </div>
 
+<div id="poi-tooltip"><span class="dot"></span><span id="poi-tooltip-text"></span></div>
 <div id="canvas-container"></div>
 
-<style>
-    body { margin: 0; overflow: hidden; background-color: #020205; font-family: sans-serif; }
-    #info-panel {
-        position: absolute; top: 20px; left: 20px; background: rgba(2, 2, 8, 0.85);
-        color: #7ef3ff; padding: 20px; border-radius: 8px; border: 1px solid #1a5f7a;
-        pointer-events: none; text-transform: uppercase; letter-spacing: 1px; z-index: 10;
-        box-shadow: 0 0 20px rgba(126, 243, 255, 0.2);
-    }
-    h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; text-shadow: 0 0 10px #7ef3ff; }
-    .stat { margin: 5px 0; font-size: 13px; }
-    .label { color: #888; }
-    #canvas-container { width: 100vw; height: 100vh; position: absolute; top:0; left:0; }
-</style>
-
-<!-- Usamos librerías estables de Three.js -->
-<script src="https://jsdelivr.net"></script>
+<!-- CDNs Estables e independientes del protocolo local -->
+<script src="https://cloudflare.com"></script>
 <script src="https://jsdelivr.net"></script>
 
 <script>
+    // ------------------------------------------------------------------
+    // INTEGRACIÓN INTEGRAL DE TU DATA (Adiós problemas de importación)
+    // ------------------------------------------------------------------
+    const PLANETS = [
+      {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
+      {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
+      {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
+      {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},
+      {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
+      {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']}
+    ];
+
+    // Detectar qué planeta cargar por la URL (?planeta=Hibouri). Si no hay, carga Aizinia
+    const params = new URLSearchParams(window.location.search);
+    const requestedName = params.get('planeta') || 'Aizinia';
+    const planetData = PLANETS.find(p => p.name.toLowerCase() === requestedName.toLowerCase()) || PLANETS[0];
+
+    // Inyectar datos en la interfaz de usuario
+    document.getElementById('poiPlanetName').textContent = planetData.name + (planetData.capital ? ' ★' : '');
+    document.getElementById('poiClima').textContent = planetData.clima;
+    document.getElementById('poiCentinelas').textContent = planetData.centinela;
+    document.getElementById('poiFlora').textContent = planetData.flora;
+    document.getElementById('poiFauna').textContent = planetData.fauna;
+    document.getElementById('poiRecursos').textContent = planetData.rec.join(' · ');
+
+    // Marcadores preestablecidos para la demo
+    const defaultPois = [
+        { lat: 25, lon: 45, color: 0xff2a6d, label: 'Baliza de aterrizaje' },
+        { lat: -35, lon: -50, color: 0x05d9e8, label: 'Yacimiento de recursos' },
+        { lat: 5, lon: 130, color: 0xfcee0a, label: 'Estructura antigua' }
+    ];
+
+    // Paletas cromáticas adaptadas a tus climas
+    function paletteForClimate(climate = ''){
+        const c = climate.toLowerCase();
+        if (c.includes('ácido') || c.includes('acido')) {
+            return { land:['#2a4d12','#7ac93c'], sea:'#102b0c', glow:[0.55,1.0,0.35], bump: 0.05 };
+        }
+        if (c.includes('sobrecalentado') || c.includes('calor')) {
+            return { land:['#5a2e12','#a8632b'], sea:'#2b1405', glow:[1.0,0.55,0.2], bump: 0.06 };
+        }
+        if (c.includes('nubes perdidas') || c.includes('niebla')) {
+            return { land:['#3a4258','#6b7794'], sea:'#121824', glow:[0.55,0.65,0.85], bump: 0.03 };
+        }
+        if (c.includes('volátiles') || c.includes('volatiles')) {
+            return { land:['#3a1a4d','#7c4fa8'], sea:'#100720', glow:[0.65,0.4,1.0], bump: 0.05 };
+        }
+        if (c.includes('tóxico') || c.includes('toxico') || c.includes('vaho')) {
+            return { land:['#1f3d1a','#5ea832'], sea:'#071708', glow:[0.4,0.9,0.35], bump: 0.04 };
+        }
+        // Apacible (Aizinia) - El agua brilla espectacularmente aquí
+        return { land:['#154f24','#2d8c47'], sea:'#062d5e', glow:[0.3,0.6,1.0], bump: 0.04 };
+    }
+    const palette = paletteForClimate(planetData.clima);
+
+    // ------------------------------------------------------------------
+    // 1. MOTOR 3D Y CÁMARA
+    // ------------------------------------------------------------------
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 3.8);
 
@@ -41,196 +138,47 @@
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.minDistance = 2.2;
+    controls.maxDistance = 7;
 
-    // 1. ILUMINACIÓN ESPACIAL REALISTA
-    // Luz del sol direccional fuerte
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    // Resonancia de iluminación espacial profunda
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.8);
     sunLight.position.set(7, 3, 5);
     scene.add(sunLight);
 
-    // Luz ambiental muy baja (el espacio es oscuro, las sombras deben ser profundas)
-    const spaceLight = new THREE.AmbientLight(0x0a0a1a, 0.3); 
+    const spaceLight = new THREE.AmbientLight(0x080812, 0.4);
     scene.add(spaceLight);
+
+    // Campo de estrellas real en el espacio profundo
+    function addStarfield(count = 2500) {
+        const positions = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            const r = 50 + Math.random() * 100;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = r * Math.cos(phi);
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.7 });
+        const stars = new THREE.Points(geo, mat);
+        scene.add(stars);
+        return stars;
+    }
+    const starfield = addStarfield();
 
     const planetGroup = new THREE.Group();
     scene.add(planetGroup);
 
-    // 2. GENERADOR DE TEXTURAS AVANZADO (Color + Relieve + Brillo)
-    function generateAdvancedMaps() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 2048;
-        canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-
-        // Canvas para el mapa de relieve (Bump Map) - Blanco es alto, Negro es plano/mar
-        const bumpCanvas = document.createElement('canvas');
-        bumpCanvas.width = 2048; bumpCanvas.height = 1024;
-        const bumpCtx = bumpCanvas.getContext('2d');
-
-        // Fondo: Mar azul y relieve plano (negro)
-        ctx.fillStyle = '#062d5e'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        bumpCtx.fillStyle = '#000000'; 
-        bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height);
-
-        // Generar continentes con degradados para simular montañas y valles
-        for (let i = 0; i < 60; i++) {
-            let x = Math.random() * canvas.width;
-            let y = Math.random() * canvas.height;
-            let radius = 60 + Math.random() * 150;
-
-            // Textura visual (Color)
-            let grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            grad.addColorStop(0, '#12421f'); // Centros boscosos oscuros
-            grad.addColorStop(0.7, '#24753c'); // Llanuras verdes
-            grad.addColorStop(1, 'rgba(6,45,94,0)'); // Disolución en el mar
-            ctx.fillStyle = grad;
-            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
-
-            // Textura física (Relieve)
-            let bumpGrad = bumpCtx.createRadialGradient(x, y, 0, x, y, radius);
-            bumpGrad.addColorStop(0, '#ffffff'); // Cumbres altas (blanco)
-            bumpGrad.addColorStop(0.5, '#666666'); // Colinas (gris)
-            bumpGrad.addColorStop(1, 'rgba(0,0,0,0)'); // Nivel del mar
-            bumpCtx.fillStyle = bumpGrad;
-            bumpCtx.beginPath(); bumpCtx.arc(x, y, radius, 0, Math.PI * 2); bumpCtx.fill();
-        }
-
-        return {
-            colorMap: new THREE.CanvasTexture(canvas),
-            bumpMap: new THREE.CanvasTexture(bumpCanvas)
-        };
-    }
-
-    const maps = generateAdvancedMaps();
-
-    // 3. MATERIAL PLANETARIO REALISTA
-    const planetGeo = new THREE.SphereGeometry(1.5, 64, 64);
-    const planetMat = new THREE.MeshStandardMaterial({
-        map: maps.colorMap,
-        bumpMap: maps.bumpMap,
-        bumpScale: 0.04,          // Controla qué tan altas se ven las montañas al recibir luz
-        roughness: 0.8,           // La tierra es opaca y rugosa
-        metalness: 0.1
-    });
-
-    // Truco de realismo: Hacemos que los mares reflejen la luz del sol como agua real (Specular)
-    // Modificamos el material para que donde haya tierra (relieve alto) no brille, y en el mar sí
-    planetMat.onBeforeCompile = (shader) => {
-        shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <roughnessmap_fragment>',
-            `#include <roughnessmap_fragment>
-             // El mar (donde el bumpMap es 0) tendrá un brillo intenso (roughness bajo)
-             float bumpVal = texture2D(bumpMap, vUv).r;
-             roughnessFactor = mix(0.15, 0.85, bumpVal);`
-        );
-    };
-
-    const planetMesh = new THREE.Mesh(planetGeo, planetMat);
-    planetGroup.add(planetMesh);
-
-    // 4. ATMÓSFERA MEJORADA (Nubes con sombras propias)
-    function generateCloudMap() {
+    // ------------------------------------------------------------------
+    // 2. TEXTURIZACIÓN AVANZADA (Evita el look a plastilina)
+    // ------------------------------------------------------------------
+    function generateProceduralMaps() {
         const canvas = document.createElement('canvas');
         canvas.width = 2048; canvas.height = 1024;
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Nubes más realistas usando bordes suaves (difuminados)
-        for (let i = 0; i < 25; i++) {
-            let x = Math.random() * canvas.width;
-            let y = Math.random() * canvas.height;
-            let radius = 40 + Math.random() * 80;
 
-            let grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            grad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-            grad.addColorStop(0.6, 'rgba(255, 255, 255, 0.2)');
-            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-            ctx.fillStyle = grad;
-            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
-        }
-        return new THREE.CanvasTexture(canvas);
-    }
-
-    const cloudGeo = new THREE.SphereGeometry(1.518, 64, 64);
-    const cloudMat = new THREE.MeshStandardMaterial({
-        map: generateCloudMap(),
-        transparent: true,
-        blending: THREE.NormalBlending
-    });
-    const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
-    planetGroup.add(cloudMesh);
-
-    // 5. EFECTO GLOW (El resplandor azul de la atmósfera en el vacío del espacio)
-    const glowGeo = new THREE.SphereGeometry(1.54, 64, 64);
-    const glowMat = new THREE.ShaderMaterial({
-        vertexShader: `
-            varying vec3 vNormal;
-            void main() {
-                vNormal = normalize(normalMatrix * normal);
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            varying vec3 vNormal;
-            void main() {
-                // Calcula la intensidad basándose en el ángulo de la cámara
-                float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
-                gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
-            }
-        `,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-        transparent: true
-    });
-    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
-    planetGroup.add(glowMesh);
-
-    // 6. MARCADORES TIPO "PUNTO DE INTERÉS" (Destellos de baliza)
-    function addSciFiMarker(lat, lon, colorHex) {
-        const radius = 1.52;
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = (lon + 180) * (Math.PI / 180);
-
-        const x = -(radius * Math.sin(phi) * Math.sin(theta));
-        const y = radius * Math.cos(phi);
-        const z = radius * Math.sin(phi) * Math.cos(theta);
-
-        // Marcador holográfico (una pequeña esfera brillante)
-        const markerGeo = new THREE.SphereGeometry(0.02, 16, 16);
-        const markerMat = new THREE.MeshBasicMaterial({ 
-            color: colorHex,
-            transparent: true,
-            opacity: 0.9
-        });
-        const markerMesh = new THREE.Mesh(markerGeo, markerMat);
-        markerMesh.position.set(x, y, z);
-        
-        // Añadir una corona de luz parpadeante al marcador
-        const ringGeo = new THREE.RingGeometry(0.01, 0.05, 16);
-        const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.lookAt(new THREE.Vector3(0,0,0));
-        markerMesh.add(ringMesh);
-
-        planetGroup.add(markerMesh);
-        return markerMesh;
-    }
-
-    const m1 = addSciFiMarker(25, 45, 0xff2a6d);   // Baliza Alfa
-    const m2 = addSciFiMarker(-35, -50, 0x05d9e8); // Cápsula de Salvamento
-    const m3 = addSciFiMarker(5, 130, 0xfcee0a);   // Ruina Antigua
-
-    // 7. BUCLE PRINCIPAL DE ANIMACIÓN
-    let clock = new THREE.Clock();
-
-    function frame() {
-        requestAnimationFrame(frame);
-        const elapsedTime = clock.getElapsedTime();
-
-        // Rotación natural
-        planetMesh.rotation.y += 0.0006;
-        cloudMesh.rotation.y += 0.0008; 
-
-        // Efecto de parpadeo Sci-Fi en los marcadores (efecto pulsante de No Man's Sky)
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = 2048; bumpCanvas.height = 1024;
