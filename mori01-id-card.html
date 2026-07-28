@@ -6,14 +6,12 @@
 <title>Tarjeta de Ciudadano · MORI-01</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-/* =========================================================
-   VARIABLES
-========================================================= */
 :root{
   --bg-deep:#06080D; --bg-panel:#0E1222; --bg-panel-2:#141B34;
   --border-soft:#232842; --border-bright:#3a4270;
   --text-primary:#E8ECF5; --text-muted:#97A5C7; --text-dim:#565d80;
   --accent-cyan:#00D9FF; --accent-blue:#4BA8FF; --accent-gold:#f5b849; --accent-violet:#7c6cff;
+  --accent-green:#3ddc97; --accent-red:#e8546b;
   --font-display:"Orbitron","Michroma","Eurostile",system-ui,sans-serif;
   --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
   --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
@@ -24,9 +22,6 @@ a{color:inherit;}
 :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
 input,select,button{font-family:inherit; font-size:14px;}
 
-/* =========================================================
-   LAYOUT (page shell)
-========================================================= */
 .wrap{max-width:1160px; margin:0 auto; padding:44px 24px 80px;}
 .back-link{display:inline-flex; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:24px;}
 .back-link:hover{color:var(--accent-cyan);}
@@ -35,237 +30,180 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .lede{color:var(--text-muted); font-size:14.5px; max-width:560px; margin-bottom:36px;}
 
 .layout{display:grid; grid-template-columns:1fr; gap:32px;}
-@media(min-width:960px){ .layout{grid-template-columns:minmax(480px,620px) 1fr; align-items:start;} }
+@media(min-width:960px){ .layout{grid-template-columns:minmax(420px,560px) 1fr; align-items:start;} }
 
 .card-stage{display:flex; flex-direction:column; align-items:center; gap:18px; position:sticky; top:24px;}
 
 /* =========================================================
-   CARD — outer shell
+   CARD — proporción real de cédula (CR80 ≈ 1.586:1).
+   Todo el contenido interno usa unidades cqw (% del ancho de
+   la propia tarjeta) para que escale como una sola pieza en
+   cualquier tamaño de pantalla, sin apilarse ni recortarse.
 ========================================================= */
+.card-stage-inner{ width:100%; max-width:520px; }
 .card{
-  width:100%; max-width:600px; aspect-ratio:1.58/1;
-  background:
-    linear-gradient(160deg, #0c1024 0%, #05060c 75%);
+  container-type: inline-size;
+  width:100%;
+  aspect-ratio:1.586/1;
+  background:var(--bg-panel);
   border:1px solid var(--border-bright);
-  border-radius:14px;
+  border-radius:12px;
   position:relative; overflow:hidden;
   display:flex; flex-direction:column;
   box-shadow:0 30px 70px -20px rgba(0,0,0,.75);
-  padding:14px 16px 12px;
 }
 
-/* Background FX: hex dots + soft radial glows + faint grid lines. All CSS, no images, no blur/backdrop-filter. */
-.card-bg-fx{
-  position:absolute; inset:0; pointer-events:none; z-index:0;
+/* Fondo fotográfico de la comunidad, con velo oscuro encima para
+   que el texto se siga leyendo. Va detrás de todo (z-index 0). */
+.card-bg-photo{
+  position:absolute; inset:0; z-index:0;
+  background-image:url('./mori01-community-bg.png');
+  background-size:cover; background-position:center 30%;
+  opacity:.4; filter:saturate(.95) brightness(.9);
 }
-.card-bg-fx .glow-a{
-  position:absolute; top:-60px; right:-40px; width:280px; height:280px; border-radius:50%;
-  background:radial-gradient(circle, rgba(0,217,255,.16), rgba(0,217,255,0) 70%);
+.card-bg-scrim{
+  position:absolute; inset:0; z-index:0;
+  background:linear-gradient(175deg, rgba(6,8,13,.72) 0%, rgba(6,8,13,.6) 55%, rgba(6,8,13,.8) 100%);
 }
-.card-bg-fx .glow-b{
-  position:absolute; bottom:-80px; left:-60px; width:320px; height:320px; border-radius:50%;
-  background:radial-gradient(circle, rgba(124,108,255,.12), rgba(124,108,255,0) 70%);
-}
-.card-bg-fx .hexdots{
-  position:absolute; inset:0; opacity:.08;
-  background-image:radial-gradient(circle, var(--accent-cyan) 1px, transparent 1px);
-  background-size:16px 16px;
-}
-.card-bg-fx .ringline{
-  position:absolute; border:1px solid rgba(0,217,255,.14); border-radius:50%;
-}
-.card-bg-fx .ring1{ width:340px; height:340px; top:-120px; right:-100px; }
-.card-bg-fx .ring2{ width:220px; height:220px; top:-60px; right:-40px; }
 
-/* =========================================================
-   HEADER
-========================================================= */
+/* thin repeating pattern strip, like a security print */
+.card-topstrip{
+  flex-shrink:0; position:relative; z-index:1;
+  display:flex; align-items:center; gap:4cqw; overflow:hidden;
+  background:rgba(0,0,0,.5); padding:0.9cqw 3cqw; white-space:nowrap;
+}
+.card-topstrip span{
+  font-size:1.3cqw; letter-spacing:.2em; color:var(--text-dim); text-transform:uppercase;
+  display:flex; align-items:center; gap:0.6cqw; flex-shrink:0; font-family:var(--font-mono);
+}
+.card-topstrip span::before{content:"◆"; color:var(--accent-gold); font-size:1cqw;}
+
+/* header bar */
 .card-header{
-  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px;
-  padding:8px 6px 12px; border-bottom:1px solid var(--border-soft);
-  position:relative; z-index:1;
+  flex-shrink:0; position:relative; z-index:1;
+  display:flex; align-items:center; justify-content:space-between; gap:2cqw;
+  padding:2cqw 3cqw; background:linear-gradient(120deg, rgba(0,0,0,.65) 0%, rgba(11,14,28,.65) 100%);
+  border-bottom:0.35cqw solid var(--accent-gold);
 }
-.header-left{display:flex; align-items:center; gap:9px;}
+.header-left{display:flex; align-items:center; gap:1.4cqw;}
 .brand-mark{
-  width:34px; height:34px; border-radius:50%;
-  border:1.5px solid var(--accent-cyan);
+  width:6.2cqw; height:6.2cqw; border-radius:50%; flex-shrink:0;
+  border:0.28cqw solid var(--accent-cyan);
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 0 10px rgba(0,217,255,.35), inset 0 0 6px rgba(0,217,255,.25);
-  flex-shrink:0;
-}
-.brand-mark svg{width:18px; height:18px; color:var(--accent-cyan);}
-.brand-text{display:flex; flex-direction:column; line-height:1.15;}
-.brand-name{font-family:var(--font-display); font-size:15px; letter-spacing:.06em; color:var(--accent-cyan);}
-.brand-sub{font-family:var(--font-mono); font-size:8.5px; letter-spacing:.22em; color:var(--text-dim);}
-
-.header-center{text-align:center;}
-.doc-title{font-family:var(--font-display); font-size:12.5px; letter-spacing:.12em; color:var(--text-primary);}
-.doc-sub{font-family:var(--font-mono); font-size:8px; letter-spacing:.13em; color:var(--accent-gold); margin-top:3px; text-transform:uppercase;}
-
-.header-right{display:flex; justify-content:flex-end;}
-.official-seal{
-  border:1px solid rgba(245,184,73,.55);
-  border-radius:4px;
-  padding:6px 12px;
-  text-align:center; line-height:1.35;
-  position:relative;
-  background:linear-gradient(180deg, rgba(245,184,73,.08), transparent);
-}
-.official-seal::before{
-  content:""; position:absolute; top:-5px; right:-5px; width:9px; height:9px;
-  background:var(--accent-gold); transform:rotate(45deg);
-  box-shadow:0 0 6px rgba(245,184,73,.6);
-}
-.official-seal span{display:block; font-family:var(--font-mono); font-size:7.5px; letter-spacing:.14em; color:var(--accent-gold); text-transform:uppercase; white-space:nowrap;}
-.official-seal span:last-child{color:var(--text-muted); margin-top:2px;}
-
-/* =========================================================
-   MAIN BODY: portrait + info + emblem
-========================================================= */
-.card-main{
-  display:grid; grid-template-columns:auto 1fr auto; gap:16px;
-  padding:16px 6px; flex:1; position:relative; z-index:1;
-}
-
-/* ---- Portrait frame ---- */
-.portrait-frame{
-  position:relative; width:128px; height:128px; flex-shrink:0;
-  border:1px solid var(--border-bright); border-radius:8px;
-  background:var(--bg-panel-2);
-  box-shadow:inset 0 0 18px rgba(0,0,0,.55), 0 0 0 1px rgba(0,217,255,.08);
-  padding:4px;
-}
-.portrait-corner{
-  position:absolute; width:14px; height:14px; z-index:2;
-  border-color:var(--accent-cyan); border-style:solid; border-width:0;
-}
-.portrait-corner.tl{ top:-1px; left:-1px; border-top-width:2px; border-left-width:2px; border-top-left-radius:6px; }
-.portrait-corner.tr{ top:-1px; right:-1px; border-top-width:2px; border-right-width:2px; border-top-right-radius:6px; }
-.portrait-corner.bl{ bottom:-1px; left:-1px; border-bottom-width:2px; border-left-width:2px; border-bottom-left-radius:6px; }
-.portrait-corner.br{ bottom:-1px; right:-1px; border-bottom-width:2px; border-right-width:2px; border-bottom-right-radius:6px; }
-
-.card-portrait{
-  width:100%; height:100%; border-radius:5px;
-  background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-display); font-size:34px; color:var(--bg-deep);
-  background-repeat:no-repeat;
-}
-
-/* ---- Info rows ---- */
-.info-grid{display:flex; flex-direction:column; justify-content:space-between; min-width:0;}
-.info-row{
-  display:flex; align-items:flex-start; gap:9px;
-  padding:6px 0; border-bottom:1px solid var(--border-soft);
-}
-.info-row:last-child{border-bottom:none;}
-.info-icon{
-  width:20px; height:20px; flex-shrink:0; margin-top:1px;
-  color:var(--accent-blue);
-}
-.info-icon svg{width:100%; height:100%;}
-.info-text{min-width:0;}
-.info-label{font-family:var(--font-mono); font-size:8.5px; letter-spacing:.14em; color:var(--text-dim); text-transform:uppercase;}
-.info-value{font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;}
-.info-value.gold{color:var(--accent-gold);}
-.info-value.cyan{color:var(--accent-cyan);}
-
-/* ---- Emblem panel (logo slot) ---- */
-.emblem-panel{
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-  width:96px; flex-shrink:0;
-}
-.emblem-ring{
-  position:relative; width:78px; height:78px; border-radius:50%;
-  border:1.5px solid rgba(0,217,255,.55);
-  box-shadow:0 0 14px rgba(0,217,255,.3), inset 0 0 10px rgba(0,217,255,.18);
-  display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(circle, rgba(0,217,255,.08), transparent 70%);
+  box-shadow:0 0 1.8cqw rgba(0,217,255,.35), inset 0 0 1cqw rgba(0,217,255,.25);
   overflow:hidden;
 }
-/* Replace this inner content with <img src="tu-logo.png" style="width:100%;height:100%;object-fit:cover;"> when the real logo asset is available */
-.emblem-ring .emblem-fallback{
-  font-family:var(--font-display); font-size:10px; letter-spacing:.06em; color:var(--accent-cyan); text-align:center;
+.brand-mark svg{width:3.2cqw; height:3.2cqw; color:var(--accent-cyan);}
+.brand-text{display:flex; flex-direction:column; line-height:1.25;}
+.brand-name{font-family:var(--font-display); font-size:2.3cqw; letter-spacing:.06em; color:var(--accent-cyan);}
+.brand-sub{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.2em; color:var(--text-dim);}
+.header-right{text-align:right;}
+.doc-title{font-family:var(--font-display); font-size:2cqw; letter-spacing:.08em; color:var(--text-primary);}
+.doc-sub{font-family:var(--font-mono); font-size:1.15cqw; letter-spacing:.1em; color:var(--accent-gold); margin-top:0.4cqw; text-transform:uppercase;}
+
+/* body: hex-dot textured panel, fills remaining height */
+.card-body{
+  flex:1; min-height:0; position:relative; z-index:1; display:flex; flex-direction:column;
+  padding:2.6cqw 3cqw;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0,217,255,.08), transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(124,108,255,.08), transparent 45%),
+    linear-gradient(160deg, rgba(18,22,43,.5) 0%, rgba(8,10,20,.5) 100%);
 }
-.emblem-ring::before{
-  content:""; position:absolute; inset:6px; border-radius:50%; border:1px dashed rgba(0,217,255,.35);
+.card-body .hexdots{
+  position:absolute; inset:0; opacity:.07; pointer-events:none;
+  background-image:radial-gradient(circle, var(--accent-cyan) 1px, transparent 1px);
+  background-size:2.4cqw 2.4cqw;
 }
-.emblem-hex{
-  font-family:var(--font-mono); font-size:8px; letter-spacing:.1em; color:var(--text-dim);
-  border:1px solid var(--border-soft); border-radius:3px; padding:3px 8px;
+.card-corner{
+  position:absolute; width:2.6cqw; height:2.6cqw; z-index:2;
+  border-color:rgba(232,236,245,.55); border-style:solid; border-width:0;
+}
+.card-corner.tr{ top:1.3cqw; right:1.3cqw; border-top-width:0.3cqw; border-right-width:0.3cqw; }
+.card-corner.br{ bottom:1.3cqw; right:1.3cqw; border-bottom-width:0.3cqw; border-right-width:0.3cqw; }
+
+.body-grid{
+  flex:1; min-height:0; position:relative; z-index:1;
+  display:grid; grid-template-columns:19cqw 1fr 15cqw; gap:2.4cqw;
 }
 
-/* =========================================================
-   FOOTER
-========================================================= */
-.card-footer{
-  display:grid; grid-template-columns:1.1fr .8fr 1fr .8fr 1fr; gap:10px;
-  padding:12px 8px; border-top:1px solid var(--border-soft);
-  background:rgba(0,217,255,.03);
-  position:relative; z-index:1;
+/* ---- left: portrait + platform badge ---- */
+.id-left{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.4cqw; height:100%;}
+.portrait-frame{
+  position:relative; width:19cqw; height:19cqw; flex-shrink:0;
+  border:0.35cqw solid var(--accent-gold); border-radius:1.6cqw;
+  background:var(--bg-panel-2);
+  box-shadow:inset 0 0 2.6cqw rgba(0,0,0,.6), 0 0 2.2cqw rgba(245,184,73,.15);
+  padding:0.7cqw;
 }
-.footer-block{display:flex; flex-direction:column; gap:4px; min-width:0;}
-.footer-label{font-family:var(--font-mono); font-size:7px; letter-spacing:.12em; color:var(--text-dim); text-transform:uppercase;}
-
-.footer-value{font-size:13px; letter-spacing:.04em;}
-.footer-value.gold{color:var(--accent-gold);}
-.footer-value.mono{font-family:var(--font-mono);}
-
-/* CSS-only barcode, no images */
-.css-barcode{
-  margin-top:4px; height:16px; width:100%;
-  background:repeating-linear-gradient(90deg,
-    var(--text-muted) 0px, var(--text-muted) 1px,
-    transparent 1px, transparent 2px,
-    var(--text-muted) 2px, var(--text-muted) 4px,
-    transparent 4px, transparent 5px,
-    var(--text-muted) 5px, var(--text-muted) 6px,
-    transparent 6px, transparent 8px);
-  opacity:.8;
-}
-
-/* CSS-only QR placeholder */
-.qr-placeholder{
-  width:52px; height:52px; border-radius:3px; background:#e8ecf5;
-  padding:4px; display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:repeat(6,1fr); gap:2px;
-}
-.qr-placeholder span{background:#06080D;}
-.qr-placeholder span.off{background:transparent;}
-
-.status-seal{
-  display:inline-flex; align-items:center; gap:5px; width:fit-content;
-  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em;
-  padding:5px 9px; border-radius:20px; border:1px solid rgba(0,217,255,.45);
-  color:var(--accent-cyan); text-transform:uppercase;
-  background:rgba(0,217,255,.06);
-}
-.status-seal::before{
-  content:"●"; font-size:8px; color:var(--accent-cyan);
-}
-
-.level-value{
-  font-family:var(--font-display); font-size:13px; letter-spacing:.08em; color:var(--text-primary);
-  border:1px solid var(--border-bright); border-radius:3px; padding:4px 8px; width:fit-content;
-}
-
-.signature-script{
-  font-family:"Segoe Script","Brush Script MT",cursive; font-size:18px; color:var(--text-primary);
-  border-bottom:1px solid var(--border-bright); padding-bottom:3px;
-}
-.footer-sub{font-family:var(--font-mono); font-size:7px; color:var(--text-dim); letter-spacing:.06em;}
-
-/* =========================================================
-   BOTTOM STRIP
-========================================================= */
-.card-bottom-strip{
+.card-portrait{
+  width:100%; height:100%; border-radius:1.1cqw;
+  background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
   display:flex; align-items:center; justify-content:center;
-  padding:6px; border-top:1px solid var(--border-soft);
-  position:relative; z-index:1;
+  font-family:var(--font-display); font-size:6cqw; color:var(--bg-deep);
+  background-repeat:no-repeat;
 }
-.motto{font-family:var(--font-mono); font-size:7.5px; letter-spacing:.14em; color:var(--accent-blue); text-transform:uppercase; text-align:center;}
+.id-pill{
+  display:inline-flex; align-items:center; gap:0.8cqw;
+  font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.02em; color:var(--text-muted);
+  border:1px solid var(--border-bright); border-radius:4cqw; padding:0.6cqw 1.5cqw 0.6cqw 1.1cqw;
+  background:var(--bg-panel-2); white-space:nowrap; max-width:19cqw; overflow:hidden; text-overflow:ellipsis;
+}
+.id-pill svg{width:1.9cqw; height:1.9cqw; color:var(--accent-blue); flex-shrink:0;}
+
+/* ---- middle: fields ---- */
+.id-fields{display:flex; flex-direction:column; justify-content:center; gap:1.6cqw; min-width:0; height:100%;}
+.id-field .f-label{
+  font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.16em; color:var(--accent-gold);
+  text-transform:uppercase; margin-bottom:0.5cqw;
+}
+.id-field .f-value{
+  background:rgba(232,236,245,.06); border:1px solid var(--border-soft); border-radius:0.8cqw;
+  padding:1.2cqw 1.7cqw; font-size:2.6cqw; font-weight:600; color:var(--text-primary);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.id-field.name .f-value{font-size:3.1cqw; font-family:var(--font-display); letter-spacing:.02em;}
+.id-field .f-value.cyan{color:var(--accent-cyan);}
+
+/* ---- right: decorative shape + id/status ---- */
+.id-right{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6cqw; height:100%;}
+.diamond-shape{
+  width:9cqw; height:9cqw;
+  background:linear-gradient(135deg,#fff 0%, var(--accent-cyan) 45%, #0b0e1c 100%);
+  transform:rotate(45deg); border-radius:1cqw;
+  box-shadow:0 0 2.6cqw rgba(0,217,255,.35);
+}
+.id-status-block{
+  text-align:center; border:1px solid var(--border-bright); border-radius:0.9cqw;
+  padding:1cqw 0.8cqw; background:var(--bg-panel-2); width:100%;
+}
+.id-status-block .lbl{font-family:var(--font-mono); font-size:1.1cqw; letter-spacing:.1em; color:var(--text-dim); text-transform:uppercase;}
+.id-status-block .val{font-family:var(--font-mono); font-size:1.5cqw; color:var(--accent-gold); margin-top:0.4cqw; word-break:break-word;}
+.id-status-block .status-seal{
+  display:block; font-family:var(--font-mono); font-size:1.4cqw; color:var(--accent-cyan);
+  margin-top:0.4cqw; word-break:break-word; letter-spacing:.02em;
+}
+.id-status-block .status-seal.citizen{color:var(--accent-green);}
+.id-status-block .status-seal.rejected{color:var(--accent-red);}
+
+/* bottom strip: community badge slot */
+.card-bottom{
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between; gap:1.6cqw;
+  padding:1.6cqw 3cqw; border-top:1px solid var(--border-soft);
+  background:rgba(6,8,13,.55); position:relative; z-index:1;
+}
+.community-slot{display:flex; align-items:center; gap:1.2cqw;}
+.community-slot .icon{
+  width:3.6cqw; height:3.6cqw; border-radius:0.9cqw; border:1px solid var(--border-bright);
+  display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2); flex-shrink:0;
+}
+.community-slot .icon svg{width:2cqw; height:2cqw; color:var(--accent-cyan);}
+.community-slot span{font-family:var(--font-mono); font-size:1.4cqw; letter-spacing:.06em; color:var(--text-dim); white-space:nowrap;}
+.card-motto{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.08em; color:var(--accent-blue); text-transform:uppercase; text-align:right; white-space:nowrap;}
 
 /* =========================================================
-   FACE SELECTOR (unchanged behavior, restyled)
+   FACE SELECTOR / buttons / form panel — unchanged
 ========================================================= */
 .face-swatch{
   width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer; background-repeat:no-repeat;
@@ -281,9 +219,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .export-btn:hover{background:#31cbe6;}
 .export-hint{font-size:11.5px; color:var(--text-dim); font-family:var(--font-mono); text-align:center;}
 
-/* =========================================================
-   FORM PANEL (unchanged structure, palette aligned)
-========================================================= */
 .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;}
 .tabs{display:flex; border-bottom:1px solid var(--border-soft);}
 .tab{
@@ -310,23 +245,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   font-size:12.5px; color:var(--text-dim); background:var(--bg-panel-2); border:1px solid var(--border-soft);
   border-radius:6px; padding:12px 14px; font-family:var(--font-mono); line-height:1.6;
 }
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-@media(max-width:640px){
-  .card{max-width:100%;}
-  .card-header{grid-template-columns:1fr; text-align:center; gap:6px;}
-  .header-left{justify-content:center;}
-  .header-right{justify-content:center;}
-  .card-main{grid-template-columns:1fr; justify-items:center; text-align:center;}
-  .info-row{justify-content:center;}
-  .emblem-panel{width:100%; flex-direction:row; justify-content:center;}
-  .card-footer{grid-template-columns:1fr 1fr; row-gap:14px;}
-}
-@media(max-width:420px){
-  .card-footer{grid-template-columns:1fr;}
-}
 </style>
 </head>
 <body>
@@ -339,106 +257,94 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   <div class="layout">
 
     <div class="card-stage">
-      <div class="card" id="idCard">
-        <div class="card-bg-fx">
-          <div class="glow-a"></div>
-          <div class="glow-b"></div>
-          <div class="hexdots"></div>
-          <div class="ringline ring1"></div>
-          <div class="ringline ring2"></div>
-        </div>
+      <div class="card-stage-inner">
+        <div class="card" id="idCard">
+          <div class="card-bg-photo"></div>
+          <div class="card-bg-scrim"></div>
 
-        <div class="card-header">
-          <div class="header-left">
-            <div class="brand-mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
-            </div>
-            <div class="brand-text">
-              <span class="brand-name">MORI-01</span>
-              <span class="brand-sub">NETINOSTV</span>
-            </div>
-          </div>
-          <div class="header-center">
-            <div class="doc-title">CREDENCIAL DE CIUDADANO</div>
-            <div class="doc-sub">Unidos bajo un mismo cielo</div>
-          </div>
-          <div class="header-right">
-            <div class="official-seal">
-              <span>Documento oficial</span>
-              <span>Mori-01</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-main">
-          <div class="portrait-frame">
-            <div class="portrait-corner tl"></div>
-            <div class="portrait-corner tr"></div>
-            <div class="portrait-corner bl"></div>
-            <div class="portrait-corner br"></div>
-            <div class="card-portrait" id="cardInitial">?</div>
+          <div class="card-topstrip">
+            <span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span>
           </div>
 
-          <div class="info-grid">
-            <div class="info-row">
-              <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4S17.9 16.4 19.5 20"/></svg></div>
-              <div class="info-text"><div class="info-label">Nombre</div><div class="info-value" id="cardName">—</div></div>
+          <div class="card-header">
+            <div class="header-left">
+              <div class="brand-mark">
+                <!-- Reemplaza este SVG por el ícono de la comunidad cuando lo subas:
+                     <img src="tu-icono.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+              </div>
+              <div class="brand-text">
+                <span class="brand-name">MORI-01</span>
+                <span class="brand-sub">NETINOSTV</span>
+              </div>
             </div>
-            <div class="info-row">
-              <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="7.5" width="17" height="11" rx="1.6"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5"/></svg></div>
-              <div class="info-text"><div class="info-label">Profesión</div><div class="info-value gold" id="cardProfession">—</div></div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="12" cy="12" rx="9" ry="4"/><circle cx="12" cy="12" r="4.2"/></svg></div>
-              <div class="info-text"><div class="info-label">Asentamiento</div><div class="info-value cyan" id="cardPlanet">—</div></div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="8" width="19" height="9" rx="4"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="10" cy="12.5" r="1"/><circle cx="16.5" cy="11.3" r="1"/><circle cx="16.5" cy="13.7" r="1"/></svg></div>
-              <div class="info-text"><div class="info-label">Plataforma</div><div class="info-value" id="cardPlatform">—</div></div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="9" r="2.8"/><path d="M2.8 19c1.1-2.9 3-4.3 5.2-4.3s4.1 1.4 5.2 4.3"/><circle cx="17" cy="9.5" r="2.2"/><path d="M15.3 14.7c1.8.1 3.2 1.4 4 3.7"/></svg></div>
-              <div class="info-text"><div class="info-label">Código de amigo</div><div class="info-value" id="cardFriendCode">—</div></div>
+            <div class="header-right">
+              <div class="doc-title">CREDENCIAL DE CIUDADANO</div>
+              <div class="doc-sub">Unidos bajo un mismo cielo</div>
             </div>
           </div>
 
-          <div class="emblem-panel">
-            <div class="emblem-ring">
-              <!-- Cuando tengas el archivo del logo, reemplaza esta línea por:
-                   <img src="tu-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> -->
-              <span class="emblem-fallback">MORI<br>01</span>
+          <div class="card-body">
+            <div class="hexdots"></div>
+            <div class="card-corner tr"></div>
+            <div class="card-corner br"></div>
+
+            <div class="body-grid">
+
+              <div class="id-left">
+                <div class="portrait-frame">
+                  <div class="card-portrait" id="cardInitial">?</div>
+                </div>
+                <div class="id-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="8" width="19" height="9" rx="4"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="10" cy="12.5" r="1"/><circle cx="16.5" cy="11.3" r="1"/><circle cx="16.5" cy="13.7" r="1"/></svg>
+                  <span id="cardPlatform">—</span>
+                </div>
+                <div class="id-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="9" r="2.8"/><path d="M2.8 19c1.1-2.9 3-4.3 5.2-4.3s4.1 1.4 5.2 4.3"/><circle cx="17" cy="9.5" r="2.2"/><path d="M15.3 14.7c1.8.1 3.2 1.4 4 3.7"/></svg>
+                  <span id="cardFriendCode">—</span>
+                </div>
+              </div>
+
+              <div class="id-fields">
+                <div class="id-field name">
+                  <div class="f-label">Nombre</div>
+                  <div class="f-value" id="cardName">—</div>
+                </div>
+                <div class="id-field">
+                  <div class="f-label">Profesión</div>
+                  <div class="f-value" id="cardProfession">—</div>
+                </div>
+                <div class="id-field">
+                  <div class="f-label">Asentamiento</div>
+                  <div class="f-value cyan" id="cardPlanet">—</div>
+                </div>
+              </div>
+
+              <div class="id-right">
+                <div class="diamond-shape"></div>
+                <div class="id-status-block">
+                  <div class="lbl">ID</div>
+                  <div class="val" id="cardId">#M01-0000</div>
+                </div>
+                <div class="id-status-block">
+                  <div class="lbl">Estado</div>
+                  <div class="val status" id="cardStatus">Sin validar</div>
+                </div>
+              </div>
+
             </div>
-            <div class="emblem-hex">NETINOSTV</div>
           </div>
-        </div>
 
-        <div class="card-footer">
-          <div class="footer-block">
-            <div class="footer-label">ID de ciudadano</div>
-            <div class="footer-value gold mono" id="cardId">#M01-0000</div>
-            <div class="css-barcode"></div>
+          <div class="card-bottom">
+            <div class="community-slot">
+              <div class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+              </div>
+              <span>Consejo Superior MORI-01</span>
+            </div>
+            <div class="card-motto">Por la exploración</div>
           </div>
-          <div class="footer-block">
-            <div class="footer-label">QR</div>
-            <div class="qr-placeholder" id="qrPlaceholder"></div>
-          </div>
-          <div class="footer-block">
-            <div class="footer-label">Estado</div>
-            <div class="status-seal" id="cardStatus">Sin validar</div>
-          </div>
-          <div class="footer-block">
-            <div class="footer-label">Nivel de ciudadanía</div>
-            <div class="level-value">CIVIL</div>
-          </div>
-          <div class="footer-block">
-            <div class="footer-label">Firma del Consejo</div>
-            <div class="signature-script">Mori-01</div>
-            <div class="footer-sub">Consejo Superior MORI-01</div>
-          </div>
-        </div>
 
-        <div class="card-bottom-strip">
-          <div class="motto">Por la exploración · Por la descubierta · Por la comunidad</div>
         </div>
       </div>
       <button class="export-btn" id="exportBtn">Exportar como PNG</button>
@@ -539,6 +445,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const fProfession = document.getElementById('fProfession');
   const fPlatform = document.getElementById('fPlatform');
   const fPlanet = document.getElementById('fPlanet');
+  const fCode = document.getElementById('fCode');
   const fLookup = document.getElementById('fLookup');
   const lookupMsg = document.getElementById('lookupMsg');
 
@@ -546,11 +453,14 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const cardProfession = document.getElementById('cardProfession');
   const cardPlanet = document.getElementById('cardPlanet');
   const cardPlatform = document.getElementById('cardPlatform');
+  const cardFriendCode = document.getElementById('cardFriendCode');
   const cardInitial = document.getElementById('cardInitial');
   const faceGrid = document.getElementById('faceGrid');
+  const cardId = document.getElementById('cardId');
+  const cardStatus = document.getElementById('cardStatus');
 
   const SPRITE_URL = './mori01-faces-sprite.webp';
-  const SPRITE_COLS = 9, SPRITE_ROWS = 3, CELL = 220, TOTAL_FACES = 27;
+  const SPRITE_COLS = 9, SPRITE_ROWS = 3, TOTAL_FACES = 27;
   let selectedFace = null;
 
   for(let i=0;i<TOTAL_FACES;i++){
@@ -573,8 +483,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   function applyFaceToCard(){
     if(!selectedFace){
       cardInitial.style.backgroundImage = '';
-      cardInitial.textContent = document.getElementById('fName').value.trim()
-        ? document.getElementById('fName').value.trim()[0].toUpperCase() : '?';
+      cardInitial.textContent = fName.value.trim() ? fName.value.trim()[0].toUpperCase() : '?';
       return;
     }
     cardInitial.textContent = '';
@@ -583,17 +492,16 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     cardInitial.style.backgroundPosition = `${(selectedFace.col/(SPRITE_COLS-1))*100}% ${(selectedFace.row/(SPRITE_ROWS-1))*100}%`;
     cardInitial.style.backgroundRepeat = 'no-repeat';
   }
-  const cardId = document.getElementById('cardId');
-  const cardStatus = document.getElementById('cardStatus');
 
   function update(){
     cardName.textContent = fName.value.trim() || '—';
     cardProfession.textContent = fProfession.value || '—';
     cardPlanet.textContent = fPlanet.value || '—';
     cardPlatform.textContent = fPlatform.value || '—';
+    cardFriendCode.textContent = fCode.value.trim() || '—';
     applyFaceToCard();
   }
-  [fName, fProfession, fPlatform, fPlanet].forEach(el=>el.addEventListener('input', update));
+  [fName, fProfession, fPlatform, fPlanet, fCode].forEach(el=>el.addEventListener('input', update));
   update();
 
   document.getElementById('lookupBtn').addEventListener('click', async ()=>{
@@ -613,10 +521,21 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       fPlanet.value = PLANET_BY_INDEX[data.planetIndex] || '';
       fPlanet.disabled = true;
       cardId.textContent = data.id;
-      cardStatus.textContent = data.approved ? 'Ciudadano' : 'Esperando decisión del Arcade';
-      lookupMsg.textContent = data.approved
-        ? 'Ciudadanía verificada y aprobada.'
-        : 'Encontrada, pero aún en espera de aprobación del Arcade.';
+
+      const isCitizen = data.status === 'citizen';
+      const isRejected = data.status === 'rejected';
+      cardStatus.className = 'status-seal' + (isCitizen ? ' citizen' : isRejected ? ' rejected' : '');
+      cardStatus.textContent = isCitizen ? 'Ciudadano' : isRejected ? 'Rechazada' : 'Esperando decisión del Arcade';
+
+      if(isCitizen){
+        lookupMsg.textContent = 'Ciudadanía verificada y aprobada.';
+      }else if(isRejected){
+        lookupMsg.textContent = data.rejectionReason
+          ? `Solicitud rechazada. Motivo: ${data.rejectionReason}`
+          : 'Solicitud rechazada por el Arcade.';
+      }else{
+        lookupMsg.textContent = 'Encontrada, pero aún en espera de aprobación del Arcade.';
+      }
       update();
     }catch(e){
       lookupMsg.textContent = 'Error al consultar. Intenta de nuevo.';
@@ -647,21 +566,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   }
   document.getElementById('exportBtn').addEventListener('click', exportCard);
   document.getElementById('exportBtn2').addEventListener('click', exportCard);
-
-  // Fake QR pattern (design-only placeholder, no real QR logic)
-  (function renderFakeQr(){
-    const el = document.getElementById('qrPlaceholder');
-    if(!el) return;
-    const pattern = [
-      1,1,1,0,1,1, 1,0,1,0,0,1, 1,1,1,0,1,1, 0,0,0,1,0,0,
-      1,0,1,1,1,0, 1,1,0,0,1,1
-    ];
-    for(let i=0;i<36;i++){
-      const s = document.createElement('span');
-      if(!pattern[i]) s.className = 'off';
-      el.appendChild(s);
-    }
-  })();
 </script>
 </body>
 </html>

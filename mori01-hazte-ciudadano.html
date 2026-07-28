@@ -81,11 +81,10 @@
   .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); flex-shrink:0;}
   .status-pill{
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
-    white-space:nowrap;
+    background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold); white-space:nowrap;
   }
-  .status-pill.pending{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
-  .status-pill.approved{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
-  .status-pill.rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
+  .status-pill.citizen{background:rgba(61,220,151,.12); border-color:rgba(61,220,151,.4); color:#3ddc97;}
+  .status-pill.rejected{background:rgba(232,84,107,.1); border-color:rgba(232,84,107,.4); color:#ff8fa0;}
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
   .disclaimer{font-size:12px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
 
@@ -246,16 +245,9 @@
   }
 
   async function fetchSamePlanet(planetIndex){
-    // Solo choca con ciudadanos vigentes: pendientes o ya aprobados.
     const q = query(citizensCol, where('planetIndex', '==', planetIndex));
     const snap = await getDocs(q);
-    return snap.docs.map(d=>d.data()).filter(e=>e.status !== 'rejected');
-  }
-
-  function statusLabel(status){
-    if(status === 'approved') return { cls:'approved', text:'Ciudadano aprobado' };
-    if(status === 'rejected') return { cls:'rejected', text:'Solicitud rechazada' };
-    return { cls:'pending', text:'Esperando decisión del Arcade' };
+    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
   }
 
   function renderRegistry(entries){
@@ -266,13 +258,14 @@
     }
     list.innerHTML = entries.map(e=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
-      const st = statusLabel(e.status);
+      const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
+      const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
       return `
         <div class="registry-row">
           <span class="registry-id">${e.id}</span>
           <span class="registry-name">${escapeHtml(e.name)}</span>
           <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
-          <span class="status-pill ${st.cls}">${st.text}</span>
+          <span class="status-pill ${pillClass}">${pillText}</span>
         </div>`;
     }).join('');
   }
