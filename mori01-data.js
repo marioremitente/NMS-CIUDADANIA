@@ -2,16 +2,15 @@
 // Sin dependencias — index.html no necesita cargar Firebase solo para esto.
 export const SYSTEM_INFO = {
   tag: '[MRNG]',
-  name: 'Moringos PRIME_Disonante',
+  name: 'Moringos PRIME Disonante',
   shortName: 'Moringos PRIME',
-  region: 'Cuadrante Goffle',
-  regionDetail: 'Región en el cuadrante Delta',
+  region: 'Cuadrante Delta',
+  regionDetail: 'Zona periférica de la galaxia',
   race: 'Korvax',
   economy: 'Generación de Energía',
   conflict: '2 · Tempestuoso',
   galaxy: 'Galaxia de Euclides',
 };
-
 export const PLANETS = [
   {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
   {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
@@ -20,5 +19,4 @@ export const PLANETS = [
   {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
   {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
 ];
-
 export const SYSTEM_SIGNATURE = [2,7,13,11,7,16,8,5,8,3,1];

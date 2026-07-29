@@ -34,12 +34,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 
 .card-stage{display:flex; flex-direction:column; align-items:center; gap:18px; position:sticky; top:24px;}
 
-/* =========================================================
-   CARD — proporción real de cédula (CR80 ≈ 1.586:1).
-   Todo el contenido interno usa unidades cqw (% del ancho de
-   la propia tarjeta) para que escale como una sola pieza en
-   cualquier tamaño de pantalla, sin apilarse ni recortarse.
-========================================================= */
 .card-stage-inner{ width:100%; max-width:520px; }
 .card{
   container-type: inline-size;
@@ -53,8 +47,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   box-shadow:0 30px 70px -20px rgba(0,0,0,.75);
 }
 
-/* Fondo fotográfico de la comunidad, con velo oscuro encima para
-   que el texto se siga leyendo. Va detrás de todo (z-index 0). */
 .card-bg-photo{
   position:absolute; inset:0; z-index:0;
   background-image:url('./mori01-community-bg.png');
@@ -66,7 +58,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   background:linear-gradient(175deg, rgba(6,8,13,.72) 0%, rgba(6,8,13,.6) 55%, rgba(6,8,13,.8) 100%);
 }
 
-/* thin repeating pattern strip, like a security print */
 .card-topstrip{
   flex-shrink:0; position:relative; z-index:1;
   display:flex; align-items:center; gap:4cqw; overflow:hidden;
@@ -78,7 +69,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 }
 .card-topstrip span::before{content:"◆"; color:var(--accent-gold); font-size:1cqw;}
 
-/* header bar */
 .card-header{
   flex-shrink:0; position:relative; z-index:1;
   display:flex; align-items:center; justify-content:space-between; gap:2cqw;
@@ -101,7 +91,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .doc-title{font-family:var(--font-display); font-size:2cqw; letter-spacing:.08em; color:var(--text-primary);}
 .doc-sub{font-family:var(--font-mono); font-size:1.15cqw; letter-spacing:.1em; color:var(--accent-gold); margin-top:0.4cqw; text-transform:uppercase;}
 
-/* body: hex-dot textured panel, fills remaining height */
 .card-body{
   flex:1; min-height:0; position:relative; z-index:1; display:flex; flex-direction:column;
   padding:2.6cqw 3cqw;
@@ -127,7 +116,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   display:grid; grid-template-columns:19cqw 1fr 15cqw; gap:2.4cqw;
 }
 
-/* ---- left: portrait + platform badge ---- */
 .id-left{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.4cqw; height:100%;}
 .portrait-frame{
   position:relative; width:19cqw; height:19cqw; flex-shrink:0;
@@ -151,7 +139,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 }
 .id-pill svg{width:1.9cqw; height:1.9cqw; color:var(--accent-blue); flex-shrink:0;}
 
-/* ---- middle: fields ---- */
 .id-fields{display:flex; flex-direction:column; justify-content:center; gap:1.6cqw; min-width:0; height:100%;}
 .id-field .f-label{
   font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.16em; color:var(--accent-gold);
@@ -165,7 +152,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .id-field.name .f-value{font-size:3.1cqw; font-family:var(--font-display); letter-spacing:.02em;}
 .id-field .f-value.cyan{color:var(--accent-cyan);}
 
-/* ---- right: decorative shape + id/status ---- */
 .id-right{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6cqw; height:100%;}
 .diamond-shape{
   width:9cqw; height:9cqw;
@@ -186,7 +172,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .id-status-block .status-seal.citizen{color:var(--accent-green);}
 .id-status-block .status-seal.rejected{color:var(--accent-red);}
 
-/* bottom strip: community badge slot */
 .card-bottom{
   flex-shrink:0;
   display:flex; align-items:center; justify-content:space-between; gap:1.6cqw;
@@ -202,9 +187,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .community-slot span{font-family:var(--font-mono); font-size:1.4cqw; letter-spacing:.06em; color:var(--text-dim); white-space:nowrap;}
 .card-motto{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.08em; color:var(--accent-blue); text-transform:uppercase; text-align:right; white-space:nowrap;}
 
-/* =========================================================
-   FACE SELECTOR / buttons / form panel — unchanged
-========================================================= */
 .face-swatch{
   width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer; background-repeat:no-repeat;
   border:2px solid var(--border-soft); transition:border-color .15s, transform .15s;
@@ -245,11 +227,32 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   font-size:12.5px; color:var(--text-dim); background:var(--bg-panel-2); border:1px solid var(--border-soft);
   border-radius:6px; padding:12px 14px; font-family:var(--font-mono); line-height:1.6;
 }
+
+/* auth box */
+.auth-box{
+  background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
+  padding:14px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+}
+.auth-status{font-size:12.5px; color:var(--text-muted); display:flex; align-items:center; gap:10px;}
+.auth-avatar{width:28px; height:28px; border-radius:50%; border:1px solid var(--border-bright); flex-shrink:0;}
+.auth-status b{color:var(--text-primary);}
+.google-btn{
+  display:inline-flex; align-items:center; gap:10px; background:#fff; color:#1f1f1f;
+  font-weight:600; font-size:13px; padding:9px 16px; border-radius:4px; border:none; cursor:pointer;
+  transition:background .2s;
+}
+.google-btn:hover{background:#f1f1f1;}
+.google-btn svg{width:15px; height:15px;}
+.signout-btn{
+  font-family:var(--font-mono); font-size:11.5px; color:var(--text-muted); background:none; border:1px solid var(--border-bright);
+  border-radius:4px; padding:7px 12px; cursor:pointer;
+}
+.signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <a class="back-link" href="./index.html" id="backLink">← Volver</a>
   <p class="top-eyebrow">Documento de identidad</p>
   <h1>Tarjeta de Ciudadano</h1>
   <p class="lede">Vista previa en vivo de tu credencial. Completa tus datos y expórtala en PNG para compartirla o guardarla.</p>
@@ -262,20 +265,16 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
           <div class="card-bg-photo"></div>
           <div class="card-bg-scrim"></div>
 
-          <div class="card-topstrip">
-            <span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span><span>Mori-01</span><span>Netinostv</span>
-          </div>
+          <div class="card-topstrip" id="topStrip"></div>
 
           <div class="card-header">
             <div class="header-left">
               <div class="brand-mark">
-                <!-- Reemplaza este SVG por el ícono de la comunidad cuando lo subas:
-                     <img src="tu-icono.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
               </div>
               <div class="brand-text">
                 <span class="brand-name">MORI-01</span>
-                <span class="brand-sub">NETINOSTV</span>
+                <span class="brand-sub" id="brandSub">—</span>
               </div>
             </div>
             <div class="header-right">
@@ -358,6 +357,11 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       </div>
 
       <div class="tab-panel active" id="tab-data">
+
+        <div class="auth-box" id="authBox">
+          <div class="auth-status">Inicia sesión con la misma cuenta de Google con la que enviaste tu solicitud.</div>
+        </div>
+
         <div class="field" style="background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px; padding:14px; margin-bottom:22px;">
           <label for="fLookup">Cargar mi ciudadanía real</label>
           <div style="display:flex; gap:8px;">
@@ -365,6 +369,8 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
             <button class="export-btn" id="lookupBtn" style="padding:11px 18px; white-space:nowrap;">Buscar</button>
           </div>
           <p id="lookupMsg" style="font-size:12px; font-family:var(--font-mono); margin-top:9px; color:var(--text-dim);">Usa el ID que recibiste al enviar tu solicitud en "Hazte Ciudadano".</p>
+          <button class="export-btn" id="saveBtn" style="width:100%; margin-top:12px; display:none;">Guardar en mi tarjeta pública</button>
+          <p id="saveMsg" style="font-size:12px; font-family:var(--font-mono); margin-top:8px; color:var(--text-dim);"></p>
         </div>
 
         <div class="field">
@@ -434,9 +440,14 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 </div>
 
 <script type="module">
-  import { db } from './firebase-config.js';
-  import { PLANETS } from './mori01-data.js';
-  import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
+  import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
+  import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.getElementById('brandSub').textContent = SYSTEM_INFO.shortName.toUpperCase();
+  document.getElementById('topStrip').innerHTML =
+    Array(4).fill(`<span>Mori-01</span><span>${SYSTEM_INFO.tag.replace(/[\[\]]/g,'')}</span>`).join('');
 
   const citizensCol = collection(db, 'citizens');
   const PLANET_BY_INDEX = Object.fromEntries(PLANETS.map(p=>[p.i, p.name]));
@@ -458,10 +469,63 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const faceGrid = document.getElementById('faceGrid');
   const cardId = document.getElementById('cardId');
   const cardStatus = document.getElementById('cardStatus');
+  const saveBtn = document.getElementById('saveBtn');
+  const authBox = document.getElementById('authBox');
 
   const SPRITE_URL = './mori01-faces-sprite.webp';
   const SPRITE_COLS = 9, SPRITE_ROWS = 3, TOTAL_FACES = 27;
   let selectedFace = null;
+  let currentDocId = null;
+  let currentOwnerUid = null;
+  let currentUser = null;
+
+  // ---------- AUTH ----------
+  function renderAuthBox(){
+    if(currentUser){
+      authBox.innerHTML = `
+        <div class="auth-status">
+          <img class="auth-avatar" src="${currentUser.photoURL || ''}" alt="">
+          Sesión iniciada como <b>${escapeHtml(currentUser.displayName || currentUser.email || 'jugador')}</b>
+        </div>
+        <button class="signout-btn" id="signoutBtn">Cerrar sesión</button>`;
+      document.getElementById('signoutBtn').addEventListener('click', ()=> signOutPlayer());
+    }else{
+      authBox.innerHTML = `
+        <div class="auth-status">Inicia sesión con la misma cuenta de Google con la que enviaste tu solicitud.</div>
+        <button class="google-btn" id="googleBtn">
+          <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+          Iniciar sesión con Google
+        </button>`;
+      document.getElementById('googleBtn').addEventListener('click', async ()=>{
+        try{ await signInWithGoogle(); }
+        catch(e){ /* el usuario cerró la ventana o falló el login */ }
+      });
+    }
+  }
+
+  onAuthStateChanged(auth, user=>{
+    currentUser = user;
+    renderAuthBox();
+    updateSaveAvailability();
+  });
+
+  function updateSaveAvailability(){
+    if(!currentDocId){ saveBtn.style.display = 'none'; return; }
+    const isOwner = currentUser && currentOwnerUid && currentUser.uid === currentOwnerUid;
+    saveBtn.style.display = isOwner ? 'block' : 'none';
+    if(currentOwnerUid && currentUser && !isOwner){
+      lookupMsg.textContent = 'Esta ciudadanía pertenece a otra cuenta de Google. Inicia sesión con la cuenta con la que la registraste para poder editarla.';
+    }else if(currentOwnerUid && !currentUser){
+      lookupMsg.textContent = 'Inicia sesión con la cuenta de Google con la que registraste esta ciudadanía para poder editarla.';
+    }
+  }
+
+  function selectFaceByIndex(idx){
+    if(idx===null || idx===undefined){ selectedFace = null; return; }
+    const col = idx % SPRITE_COLS, row = Math.floor(idx / SPRITE_COLS);
+    selectedFace = {col,row};
+    document.querySelectorAll('.face-swatch').forEach((s,i)=> s.classList.toggle('selected', i===idx));
+  }
 
   for(let i=0;i<TOTAL_FACES;i++){
     const col = i % SPRITE_COLS, row = Math.floor(i / SPRITE_COLS);
@@ -504,6 +568,12 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   [fName, fProfession, fPlatform, fPlanet, fCode].forEach(el=>el.addEventListener('input', update));
   update();
 
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
   document.getElementById('lookupBtn').addEventListener('click', async ()=>{
     const raw = fLookup.value.trim();
     if(!raw){ lookupMsg.textContent = 'Escribe tu ID de ciudadano.'; return; }
@@ -514,20 +584,24 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       const snap = await getDocs(q);
       if(snap.empty){
         lookupMsg.textContent = 'No se encontró esa ciudadanía. Revisa el ID o sigue en modo previsualización.';
+        currentDocId = null; currentOwnerUid = null;
+        updateSaveAvailability();
         return;
       }
       const data = snap.docs[0].data();
+      currentDocId = snap.docs[0].id;
+      currentOwnerUid = data.ownerUid || null;
       fName.value = data.name || '';
       fPlanet.value = PLANET_BY_INDEX[data.planetIndex] || '';
       fPlanet.disabled = true;
-      if(data.profession){ fProfession.value = data.profession; fProfession.disabled = true; }
-      if(data.platform){ fPlatform.value = data.platform; fPlatform.disabled = true; }
-      if(data.friendCode){ fCode.value = data.friendCode; fCode.disabled = true; }
+      fProfession.value = data.profession || '';
+      fPlatform.value = data.platform || '';
+      selectFaceByIndex(typeof data.faceIndex === 'number' ? data.faceIndex : null);
       cardId.textContent = data.id;
 
       const isCitizen = data.status === 'citizen';
       const isRejected = data.status === 'rejected';
-      cardStatus.className = 'status-seal' + (isCitizen ? ' citizen' : isRejected ? ' rejected' : '');
+      cardStatus.className = 'val status' + (isCitizen ? ' citizen' : isRejected ? ' rejected' : '');
       cardStatus.textContent = isCitizen ? 'Ciudadano' : isRejected ? 'Rechazada' : 'Esperando decisión del Arcade';
 
       if(isCitizen){
@@ -539,15 +613,31 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       }else{
         lookupMsg.textContent = 'Encontrada, pero aún en espera de aprobación del Arcade.';
       }
+      updateSaveAvailability();
       update();
     }catch(e){
       lookupMsg.textContent = 'Error al consultar. Intenta de nuevo.';
     }
   });
 
+  saveBtn.addEventListener('click', async ()=>{
+    if(!currentDocId || !currentUser || currentUser.uid !== currentOwnerUid) return;
+    const saveMsg = document.getElementById('saveMsg');
+    saveMsg.textContent = 'Guardando…';
+    try{
+      const faceIndex = selectedFace ? (selectedFace.row * SPRITE_COLS + selectedFace.col) : null;
+      await updateDoc(doc(db,'citizens',currentDocId), {
+        profession: fProfession.value || '',
+        platform: fPlatform.value || '',
+        faceIndex
+      });
+      saveMsg.textContent = 'Guardado — ya aparece así en la galería pública.';
+    }catch(e){
+      saveMsg.textContent = 'No se pudo guardar. Verifica tu sesión e intenta de nuevo.';
+    }
+  });
 </script>
 <script>
-
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));

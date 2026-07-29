@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MORI-01 · NETINOSTV</title>
+<title>MORI-01 · Moringos PRIME</title>
 <style>
   :root{
     --bg-deep:#07080d;
@@ -76,6 +76,7 @@
     border-radius:2px; transition:all .2s; white-space:nowrap;
   }
   .nav-cta:hover{background:var(--accent-cyan); color:var(--bg-deep);}
+  .navlinks-mobile{display:none;}
 
   /* HERO */
   .hero{
@@ -105,6 +106,10 @@
     line-height:1; margin-bottom:14px;
     background:linear-gradient(180deg, var(--text-primary) 30%, var(--accent-cyan) 130%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .community-name{
+    font-family:var(--font-mono); font-size:14px; letter-spacing:.1em;
+    color:var(--accent-gold); text-transform:uppercase; margin-bottom:18px;
   }
   .hero-sub{
     font-size:15px; color:var(--text-muted); max-width:560px; margin-bottom:6px;
@@ -239,6 +244,7 @@
       <a href="#mundos">Mundos</a>
       <a href="./mori01-hazte-ciudadano.html">Hazte Ciudadano</a>
       <a href="./mori01-id-card.html">Mi Tarjeta</a>
+      <a href="./mori01-galeria.html">Ciudadanos</a>
     </nav>
     <a class="nav-cta" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">Entrar al Discord</a>
   </div>
@@ -265,13 +271,10 @@
     </div>
 
     <h1>NETINOSTV</h1>
-    <p class="hero-sub">Un sistema estelar, seis mundos, una sociedad Korvax construida por jugadores de No Man&rsquo;s Sky. Esto no es un servidor — es un lugar del que puedes ser ciudadano.</p>
+    <p class="community-name" id="communityName">—</p>
+    <p class="hero-sub" id="heroSub">Un sistema estelar, seis mundos, una sociedad Korvax construida por jugadores de No Man&rsquo;s Sky. Esto no es un servidor — es un lugar del que puedes ser ciudadano.</p>
 
-    <div class="hero-tags">
-      <span class="tag violet">Raza · Korvax</span>
-      <span class="tag gold">Economía · Generación de Energía</span>
-      <span class="tag">Conflicto · Tempestuoso II</span>
-    </div>
+    <div class="hero-tags" id="heroTags"></div>
 
     <div class="signature">
       <div class="signature-label"><span>Firma del sistema · Dirección de portal compartida</span><span>11 glifos</span></div>
@@ -292,10 +295,10 @@
       <p class="section-desc">Mori-01 no es un asentamiento de paso. Es una comunidad con identidad propia, un sistema fijo y reglas claras de convivencia entre bases.</p>
     </div>
     <div class="society-grid">
-      <div class="society-cell"><div class="k">Sistema</div><div class="v cyan">NETINOSTV</div></div>
-      <div class="society-cell"><div class="k">Raza dominante</div><div class="v violet">Korvax</div></div>
-      <div class="society-cell"><div class="k">Economía</div><div class="v gold">Generación de Energía</div></div>
-      <div class="society-cell"><div class="k">Nivel de conflicto</div><div class="v">2 · Tempestuoso</div></div>
+      <div class="society-cell"><div class="k">Sistema</div><div class="v cyan" id="socSystem">—</div></div>
+      <div class="society-cell"><div class="k">Raza dominante</div><div class="v violet" id="socRace">—</div></div>
+      <div class="society-cell"><div class="k">Economía</div><div class="v gold" id="socEconomy">—</div></div>
+      <div class="society-cell"><div class="k">Nivel de conflicto</div><div class="v" id="socConflict">—</div></div>
       <div class="society-cell"><div class="k">Cuerpos habitables</div><div class="v">5 planetas + 1 luna</div></div>
       <div class="society-cell"><div class="k">Estado del registro</div><div class="v cyan">Abierto</div></div>
     </div>
@@ -336,7 +339,7 @@
     <div class="cta-panel">
       <div>
         <h3>La sociedad se organiza en Discord</h3>
-        <p>Antes de reclamar tu parcela en NETINOSTV, únete al servidor. Ahí se valida cada misión y el Arcade decide las ciudadanías.</p>
+        <p id="ctaText">Antes de reclamar tu parcela, únete al servidor. Ahí se valida cada misión y el Arcade decide las ciudadanías.</p>
       </div>
       <a class="btn btn-primary" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">Unirme al Discord</a>
     </div>
@@ -345,14 +348,37 @@
 </main>
 
 <footer>
-  <p>MORI-01 · SISTEMA NETINOSTV · GALAXIA DE EUCLIDES</p>
+  <p id="footerLine">MORI-01</p>
   <p style="margin-top:10px;">
     <a href="./mori01-admin.html" aria-label="Panel de administración" style="color:var(--text-dim); font-size:11px; opacity:.35; transition:opacity .2s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='.35'">⚙</a>
   </p>
 </footer>
 
 <script type="module">
-  import { PLANETS, SYSTEM_SIGNATURE } from './mori01-data.js';
+  import { PLANETS, SYSTEM_SIGNATURE, SYSTEM_INFO } from './mori01-data.js';
+
+  document.title = `MORI-01 · ${SYSTEM_INFO.shortName}`;
+
+  document.getElementById('communityName').textContent = `${SYSTEM_INFO.tag} ${SYSTEM_INFO.name}`;
+
+  document.getElementById('heroSub').innerHTML =
+    `Un sistema estelar, seis mundos, una sociedad ${SYSTEM_INFO.race} construida por jugadores de No Man&rsquo;s Sky. Esto no es un servidor — es un lugar del que puedes ser ciudadano.`;
+
+  document.getElementById('heroTags').innerHTML = `
+    <span class="tag violet">Raza · ${SYSTEM_INFO.race}</span>
+    <span class="tag gold">Economía · ${SYSTEM_INFO.economy}</span>
+    <span class="tag">Conflicto · ${SYSTEM_INFO.conflict}</span>`;
+
+  document.getElementById('socSystem').textContent = SYSTEM_INFO.name;
+  document.getElementById('socRace').textContent = SYSTEM_INFO.race;
+  document.getElementById('socEconomy').textContent = SYSTEM_INFO.economy;
+  document.getElementById('socConflict').textContent = SYSTEM_INFO.conflict;
+
+  document.getElementById('ctaText').textContent =
+    `Antes de reclamar tu parcela en ${SYSTEM_INFO.shortName}, únete al servidor. Ahí se valida cada misión y el Arcade decide las ciudadanías.`;
+
+  document.getElementById('footerLine').textContent =
+    `MORI-01 · SISTEMA ${SYSTEM_INFO.name.toUpperCase()} · ${SYSTEM_INFO.galaxy.toUpperCase()}`;
 
   // --- Custom Mori glyph marks (1-16), original line-art, not game assets ---
   const glyphPaths = {
@@ -394,7 +420,7 @@
     card.className = 'planet-card';
     card.innerHTML = `
       <div class="planet-top">
-        <div class="planet-name">${p.name}</div>
+        <div class="planet-name">${p.name}${p.capital ? ' <span style="color:var(--accent-gold); font-size:11px; font-family:var(--font-mono); letter-spacing:.08em; vertical-align:middle;">★ CAPITAL</span>' : ''}</div>
         <div class="planet-index">GLIFO&nbsp;${p.i}</div>
       </div>
       <div class="planet-meta">

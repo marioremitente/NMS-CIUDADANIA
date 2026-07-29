@@ -85,6 +85,8 @@
   .status-pill.citizen{background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
   .status-pill.rejected{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
   .reg-meta{font-size:12.5px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:12px;}
+  .reg-extra{font-size:12px; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:12px; display:flex; gap:14px; flex-wrap:wrap;}
+  .reg-extra span b{color:var(--text-muted); font-weight:600;}
   .reg-reason{font-size:12.5px; color:var(--accent-red); font-family:var(--font-mono); margin-bottom:12px; font-style:italic;}
   .reg-actions{display:flex; gap:8px; flex-wrap:wrap;}
   .act-btn{
@@ -114,7 +116,7 @@
 
 <!-- LOGIN -->
 <div class="wrap" id="loginView">
-  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <a class="back-link" href="./index.html" id="backLinkLogin">← Volver</a>
   <p class="top-eyebrow">Acceso restringido</p>
   <h1>Panel de Administración</h1>
   <p class="lede">Inicia sesión con tu correo de administrador para gestionar las solicitudes de ciudadanía.</p>
@@ -139,7 +141,7 @@
 
 <!-- ADMIN -->
 <div class="wrap wide" id="adminView">
-  <a class="back-link" href="./index.html">← Volver a NETINOSTV</a>
+  <a class="back-link" href="./index.html" id="backLinkAdmin">← Volver</a>
   <p class="top-eyebrow">Panel de Administración</p>
   <h1>Solicitudes de Ciudadanía</h1>
   <p class="lede">Revisa, aprueba, rechaza o edita cada solicitud registrada en Mori-01.</p>
@@ -163,13 +165,17 @@
 
 <script type="module">
   import { db, auth } from './firebase-config.js';
-  import { PLANETS } from './mori01-data.js';
+  import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import {
     collection, doc, updateDoc, deleteDoc, orderBy, query, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  document.title = `Panel de Administración · ${SYSTEM_INFO.shortName}`;
+  document.getElementById('backLinkLogin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.getElementById('backLinkAdmin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
   const loginView = document.getElementById('loginView');
@@ -273,6 +279,12 @@
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       const reasonHtml = (status === 'rejected' && e.rejectionReason)
         ? `<div class="reg-reason">Motivo: ${escapeHtml(e.rejectionReason)}</div>` : '';
+      const extraHtml = `
+        <div class="reg-extra">
+          <span><b>Profesión</b> · ${e.profession ? escapeHtml(e.profession) : '—'}</span>
+          <span><b>Plataforma</b> · ${e.platform ? escapeHtml(e.platform) : '—'}</span>
+          <span><b>Código de amigo</b> · ${e.friendCode ? escapeHtml(e.friendCode) : '—'}</span>
+        </div>`;
       return `
         <div class="reg-row" data-doc="${e.docId}">
           <div class="reg-top">
@@ -281,6 +293,7 @@
             <span class="status-pill ${status}">${status==='citizen'?'Aprobado':status==='rejected'?'Rechazado':'Pendiente'}</span>
           </div>
           <div class="reg-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</div>
+          ${extraHtml}
           ${reasonHtml}
           <div class="reg-actions">
             <button class="act-btn approve" data-action="approve">Aprobar</button>
@@ -342,6 +355,15 @@
     }
   }
 
+  const PROFESSIONS = ['Arquitecto','Explorador','Guardián','Comerciante','Científico','Cazarrecompensas'];
+  const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
+
+  function selectOptions(list, selected){
+    const opts = ['<option value="">—</option>']
+      .concat(list.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`));
+    return opts.join('');
+  }
+
   function openEdit(row, entry){
     row.innerHTML = `
       <div class="edit-grid">
@@ -349,6 +371,9 @@
         <select class="edit-planet">${planetOptions(entry.planetIndex)}</select>
         <input type="text" class="edit-lat" value="${entry.lat}" placeholder="Latitud">
         <input type="text" class="edit-lon" value="${entry.lon}" placeholder="Longitud">
+        <select class="edit-profession">${selectOptions(PROFESSIONS, entry.profession)}</select>
+        <select class="edit-platform">${selectOptions(PLATFORMS, entry.platform)}</select>
+        <input type="text" class="edit-friendcode full" value="${escapeHtml(entry.friendCode || '')}" placeholder="Código de amigo">
       </div>
       <div class="reg-actions">
         <button class="act-btn approve" data-action="save-edit">Guardar</button>
@@ -361,9 +386,12 @@
       const planetIndex = parseInt(row.querySelector('.edit-planet').value, 10);
       const lat = parseFloat(row.querySelector('.edit-lat').value.replace(',', '.'));
       const lon = parseFloat(row.querySelector('.edit-lon').value.replace(',', '.'));
+      const profession = row.querySelector('.edit-profession').value;
+      const platform = row.querySelector('.edit-platform').value;
+      const friendCode = row.querySelector('.edit-friendcode').value.trim();
       if(!name || isNaN(lat) || isNaN(lon)){ showAdminAlert('Datos inválidos.', 'error'); return; }
       try{
-        await updateDoc(doc(db, 'citizens', entry.docId), { name, planetIndex, lat, lon });
+        await updateDoc(doc(db, 'citizens', entry.docId), { name, planetIndex, lat, lon, profession, platform, friendCode });
         showAdminAlert('Solicitud actualizada.', 'ok');
       }catch(err){
         showAdminAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');

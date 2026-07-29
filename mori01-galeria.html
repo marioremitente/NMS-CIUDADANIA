@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galería de Ciudadanos · MORI-01</title>
+<style>
+  :root{
+    --bg-deep:#07080d; --bg-panel:#0c0f1c; --bg-panel-2:#10142a;
+    --border-soft:#232842; --border-bright:#3a4270;
+    --text-primary:#e8eaf2; --text-muted:#8b93b3; --text-dim:#565d80;
+    --accent-cyan:#06b6d4; --accent-gold:#f5b849; --accent-violet:#7c6cff;
+    --font-display:"Eurostile","Michroma","Orbitron",system-ui,sans-serif;
+    --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
+    --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg-deep); color:var(--text-primary); font-family:var(--font-body); min-height:100vh;}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
+  input{font-family:inherit; font-size:14px;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:44px 24px 80px;}
+  .back-link{display:inline-flex; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:24px;}
+  .back-link:hover{color:var(--accent-cyan);}
+  .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px;}
+  h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,40px); letter-spacing:.03em; margin-bottom:10px;}
+  .lede{color:var(--text-muted); font-size:14.5px; max-width:600px; margin-bottom:8px;}
+  .count{font-family:var(--font-mono); font-size:12.5px; color:var(--accent-cyan); margin-bottom:28px;}
+
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px;}
+  .search-input{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:10px 14px; border-radius:4px; font-size:13.5px; min-width:220px; flex:1; max-width:320px;
+  }
+  .search-input:focus{border-color:var(--accent-cyan);}
+  .filter-select{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:10px 14px; border-radius:4px; font-size:13.5px; font-family:inherit;
+  }
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:18px;}
+
+  .mini-card{
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:10px;
+    padding:18px; transition:border-color .2s, transform .2s;
+  }
+  .mini-card:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
+  .mini-top{display:flex; gap:14px; align-items:center; margin-bottom:14px;}
+  .mini-portrait{
+    width:56px; height:56px; border-radius:8px; flex-shrink:0;
+    background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
+    background-repeat:no-repeat;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:20px; color:var(--bg-deep);
+    border:1px solid var(--border-bright);
+  }
+  .mini-name{font-family:var(--font-display); font-size:16px; letter-spacing:.02em; margin-bottom:3px;}
+  .mini-id{font-family:var(--font-mono); font-size:11px; color:var(--accent-gold);}
+  .mini-meta{display:flex; flex-direction:column; gap:6px; font-size:12.5px; color:var(--text-muted);}
+  .mini-meta b{color:var(--text-primary); font-weight:600;}
+  .mini-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:12px;}
+  .mini-tag{
+    font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border-radius:20px;
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-muted);
+  }
+  .mini-tag.cyan{border-color:rgba(6,182,212,.4); color:var(--accent-cyan);}
+
+  .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:60px 0; font-family:var(--font-mono);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="./index.html" id="backLink">← Volver</a>
+  <p class="top-eyebrow">Registro público</p>
+  <h1>Galería de Ciudadanos</h1>
+  <p class="lede">Todos los jugadores que ya obtuvieron su ciudadanía, con la tarjeta tal como la personalizaron.</p>
+  <p class="count" id="countLine">Cargando…</p>
+
+  <div class="toolbar">
+    <input class="search-input" id="searchInput" placeholder="Buscar por nombre…">
+    <select class="filter-select" id="planetFilter">
+      <option value="">Todos los planetas</option>
+    </select>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">Ningún ciudadano coincide con la búsqueda.</div>
+</div>
+
+<script type="module">
+  import { db } from './firebase-config.js';
+  import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
+  import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.title = `Galería de Ciudadanos · ${SYSTEM_INFO.shortName}`;
+
+  const PLANET_BY_INDEX = Object.fromEntries(PLANETS.map(p=>[p.i, p.name]));
+  const planetFilter = document.getElementById('planetFilter');
+  PLANETS.forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value = p.i;
+    opt.textContent = p.name;
+    planetFilter.appendChild(opt);
+  });
+
+  const SPRITE_URL = './mori01-faces-sprite.webp';
+  const SPRITE_COLS = 9, SPRITE_ROWS = 3;
+
+  const citizensCol = collection(db, 'citizens');
+  let citizens = [];
+
+  function faceStyle(faceIndex){
+    if(typeof faceIndex !== 'number') return '';
+    const col = faceIndex % SPRITE_COLS, row = Math.floor(faceIndex / SPRITE_COLS);
+    return `background-image:url(${SPRITE_URL}); background-size:${SPRITE_COLS*100}% ${SPRITE_ROWS*100}%; background-position:${(col/(SPRITE_COLS-1))*100}% ${(row/(SPRITE_ROWS-1))*100}%;`;
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function render(){
+    const term = document.getElementById('searchInput').value.trim().toLowerCase();
+    const planetVal = planetFilter.value;
+
+    const rows = citizens.filter(c=>{
+      if(term && !(c.name||'').toLowerCase().includes(term)) return false;
+      if(planetVal && String(c.planetIndex)!==planetVal) return false;
+      return true;
+    });
+
+    document.getElementById('countLine').textContent = `${citizens.length} ciudadano${citizens.length===1?'':'s'} en total`;
+    document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = rows.map(c=>{
+      const planetName = PLANET_BY_INDEX[c.planetIndex] || '—';
+      const initial = c.name ? c.name[0].toUpperCase() : '?';
+      const style = faceStyle(c.faceIndex);
+      return `
+        <div class="mini-card">
+          <div class="mini-top">
+            <div class="mini-portrait" style="${style}">${style ? '' : initial}</div>
+            <div>
+              <div class="mini-name">${escapeHtml(c.name||'—')}</div>
+              <div class="mini-id">${c.id||''}</div>
+            </div>
+          </div>
+          <div class="mini-meta">
+            <span><b>Asentamiento</b> · ${planetName}</span>
+          </div>
+          <div class="mini-tags">
+            ${c.profession ? `<span class="mini-tag cyan">${escapeHtml(c.profession)}</span>` : ''}
+            ${c.platform ? `<span class="mini-tag">${escapeHtml(c.platform)}</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  const q = query(citizensCol, where('status','==','citizen'));
+  onSnapshot(q, snap=>{
+    citizens = snap.docs.map(d=>d.data());
+    render();
+  }, err=>{
+    document.getElementById('countLine').textContent = 'No se pudo cargar la galería.';
+  });
+
+  document.getElementById('searchInput').addEventListener('input', render);
+  planetFilter.addEventListener('change', render);
+</script>
+</body>
+</html>
