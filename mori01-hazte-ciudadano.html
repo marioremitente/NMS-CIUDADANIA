@@ -135,7 +135,7 @@
     <div class="panel">
 
       <div class="auth-box" id="authBox">
-        <div class="auth-status" id="authStatus">Debes iniciar sesión con Google para enviar tu solicitud.</div>
+        <div class="auth-status">Debes iniciar sesión con Google para enviar tu solicitud.</div>
         <button class="google-btn" id="googleBtn">
           <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
           Iniciar sesión con Google
@@ -257,25 +257,24 @@
   const MIN_DISTANCE_M = 1000;
 
   // ---------- AUTH ----------
+  // Cada vez que cambia el estado de sesión se vuelve a dibujar el auth-box
+  // Y se re-engancha el listener al botón nuevo (el nodo viejo se destruyó).
   const authBox = document.getElementById('authBox');
-  const authStatus = document.getElementById('authStatus');
-  const googleBtn = document.getElementById('googleBtn');
   let currentUser = null;
 
-  onAuthStateChanged(auth, user=>{
-    currentUser = user;
-    if(user){
+  function renderAuthBox(){
+    if(currentUser){
       authBox.innerHTML = `
         <div class="auth-status">
-          <img class="auth-avatar" src="${user.photoURL || ''}" alt="">
-          Sesión iniciada como <b>${escapeHtml(user.displayName || user.email || 'jugador')}</b>
+          <img class="auth-avatar" src="${currentUser.photoURL || ''}" alt="">
+          Sesión iniciada como <b>${escapeHtml(currentUser.displayName || currentUser.email || 'jugador')}</b>
         </div>
         <button class="signout-btn" id="signoutBtn">Cerrar sesión</button>
       `;
       document.getElementById('signoutBtn').addEventListener('click', ()=> signOutPlayer());
     }else{
       authBox.innerHTML = `
-        <div class="auth-status" id="authStatus">Debes iniciar sesión con Google para enviar tu solicitud.</div>
+        <div class="auth-status">Debes iniciar sesión con Google para enviar tu solicitud.</div>
         <button class="google-btn" id="googleBtn">
           <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
           Iniciar sesión con Google
@@ -286,11 +285,12 @@
         catch(e){ showAlert('No se pudo iniciar sesión con Google.', 'error'); }
       });
     }
+  }
+
+  onAuthStateChanged(auth, user=>{
+    currentUser = user;
+    renderAuthBox();
     updateProgress();
-  });
-  googleBtn.addEventListener('click', async ()=>{
-    try{ await signInWithGoogle(); }
-    catch(e){ showAlert('No se pudo iniciar sesión con Google.', 'error'); }
   });
 
   const planetSelect = document.getElementById('planetSelect');
@@ -308,5 +308,133 @@
   function updateProgress(){
     const checked = checkboxes.filter(c=>c.checked).length;
     progressFill.style.width = (checked/checkboxes.length*100)+'%';
+    // FIX: ahora también exige sesión iniciada, no solo el checklist completo.
     submitBtn.disabled = checked < checkboxes.length || !currentUser;
   }
+  checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
+  updateProgress();
+
+  function toRad(d){ return d*Math.PI/180; }
+  function distanceMeters(lat1,lon1,lat2,lon2){
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return PLANET_RADIUS_M * c;
+  }
+
+  function showAlert(msg, type){
+    const box = document.getElementById('alertBox');
+    box.textContent = msg;
+    box.className = 'alert show ' + (type==='error' ? 'alert-error' : 'alert-ok');
+  }
+  function clearAlert(){
+    const box = document.getElementById('alertBox');
+    box.className = 'alert';
+  }
+
+  let currentEntries = [];
+
+  function subscribeRegistry(){
+    const q = query(citizensCol, orderBy('ts', 'desc'));
+    onSnapshot(q, snap=>{
+      currentEntries = snap.docs.map(d=>({ docId: d.id, ...d.data() }));
+      renderRegistry(currentEntries);
+    }, err=>{
+      document.getElementById('registryList').innerHTML =
+        '<div class="empty-state">No se pudo cargar el registro. Revisa las reglas de Firestore.</div>';
+    });
+  }
+
+  async function fetchSamePlanet(planetIndex){
+    const q = query(citizensCol, where('planetIndex', '==', planetIndex));
+    const snap = await getDocs(q);
+    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
+  }
+
+  function renderRegistry(entries){
+    const list = document.getElementById('registryList');
+    if(!entries.length){
+      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
+      return;
+    }
+    list.innerHTML = entries.map(e=>{
+      const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
+      const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+      return `
+        <div class="registry-row">
+          <span class="registry-id">${e.id}</span>
+          <span class="registry-name">${escapeHtml(e.name)}</span>
+          <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+          <span class="status-pill ${pillClass}">${pillText}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
+  function parseCoord(v){
+    const n = parseFloat(String(v).replace(',', '.').trim());
+    return isNaN(n) ? null : n;
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    clearAlert();
+
+    // FIX: aunque el botón se deshabilita sin sesión, se valida de nuevo
+    // por si el estado de auth cambió justo antes del click.
+    if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
+
+    const name = document.getElementById('playerName').value.trim();
+    const planetIndex = parseInt(planetSelect.value, 10);
+    const lat = parseCoord(document.getElementById('lat').value);
+    const lon = parseCoord(document.getElementById('lon').value);
+
+    if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
+    if(!planetIndex){ showAlert('Selecciona un planeta.', 'error'); return; }
+    if(lat===null || lon===null){ showAlert('Coordenadas inválidas. Usa el formato +14.32, -21.96.', 'error'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verificando…';
+
+    try{
+      const sameplanet = await fetchSamePlanet(planetIndex);
+      for(const e of sameplanet){
+        const d = distanceMeters(lat, lon, e.lat, e.lon);
+        if(d < MIN_DISTANCE_M){
+          showAlert(`Ese punto está ocupado por ${e.name} (~${Math.round(d)}m de distancia). Debes moverte al menos ${MIN_DISTANCE_M}m para poder construir.`, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Ser Ciudadano';
+          return;
+        }
+      }
+
+      const newEntry = {
+        id: '#M01-' + Math.floor(1000 + Math.random()*9000),
+        name, planetIndex, lat, lon,
+        profession: document.getElementById('professionSelect').value || '',
+        platform: document.getElementById('platformSelect').value || '',
+        friendCode: document.getElementById('friendCode').value.trim() || '',
+        status: 'pending',
+        ts: Date.now(),
+        // FIX: sin esto, el dueño nunca puede editar su propia tarjeta después
+        // (la Tarjeta de Ciudadano compara currentUser.uid contra ownerUid).
+        ownerUid: currentUser.uid
+      };
+      await addDoc(citizensCol, newEntry);
+      showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
+    }catch(e){
+      showAlert('No se pudo enviar el registro. Revisa las reglas de Firestore o tu conexión.', 'error');
+    }
+    submitBtn.disabled = checkboxes.some(c=>!c.checked) || !currentUser;
+    submitBtn.textContent = 'Ser Ciudadano';
+  });
+
+  subscribeRegistry();
+</script>
+</body>
+</html>
