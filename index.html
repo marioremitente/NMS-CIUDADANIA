@@ -185,8 +185,10 @@
   .planet-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;}
   .planet-index{
     font-family:var(--font-mono); font-size:12px; color:var(--accent-cyan);
-    border:1px solid rgba(6,182,212,.35); border-radius:20px; padding:2px 9px;
+    border:1px solid rgba(6,182,212,.35); border-radius:20px; padding:3px 10px 3px 7px;
+    display:inline-flex; align-items:center; gap:5px;
   }
+  .planet-index svg{width:13px; height:13px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6; flex-shrink:0;}
   .planet-name{font-family:var(--font-display); font-size:17px; letter-spacing:.02em; margin-bottom:2px;}
   .planet-meta{font-size:12.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:3px; margin-bottom:14px;}
   .planet-meta b{color:var(--text-primary); font-weight:600;}
@@ -355,7 +357,7 @@
 </footer>
 
 <script type="module">
-  import { PLANETS, SYSTEM_SIGNATURE, SYSTEM_INFO } from './mori01-data.js';
+  import { PLANETS, SYSTEM_SIGNATURE, SYSTEM_INFO, glyphSVG } from './mori01-data.js';
 
   document.title = `MORI-01 · ${SYSTEM_INFO.shortName}`;
 
@@ -380,30 +382,6 @@
   document.getElementById('footerLine').textContent =
     `MORI-01 · SISTEMA ${SYSTEM_INFO.name.toUpperCase()} · ${SYSTEM_INFO.galaxy.toUpperCase()}`;
 
-  // --- Custom Mori glyph marks (1-16), original line-art, not game assets ---
-  const glyphPaths = {
-    1:'M4 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0', // onda
-    2:'M4 12l6-6 3 3 4-4 3 3M4 12l7 2',    // ala
-    3:'M6 4v14M14 4v14M6 9h8M6 14h8',      // puerta
-    4:'M12 4c3 2 3 12 0 15',               // cresta
-    5:'M8 4a8 8 0 100 16 8 8 0 010-16z M13 5a7 7 0 010 14',// eclipse
-    6:'M12 3l6 15H6z',                     // gota
-    7:'M5 15h14l-2 3H7zM8 15V8h1v7M12 15V6h1v9M16 15V9h1v6', // nave
-    8:'M12 6v6M8 8l-2-2M16 8l2-2M8 16l-2 2M16 16l2 2M8 12H4M16 12h4', // insecto
-    9:'M12 6v12M6 8c3 1 4 3 6 4M18 8c-3 1-4 3-6 4M6 16c3-1 4-3 6-4M18 16c-3-1-4-3-6-4', // libélula
-   10:'M12 12c2-4 6-4 8 0-2 4-6 4-8 0zM12 12c-2-4-6-4-8 0 2 4 6 4 8 0', // galaxia
-   11:'M12 4l7 4v8l-7 4-7-4V8zM12 4v16M5 8l7 4 7-4M5 16l7-4 7 4', // voxel
-   12:'M4 12c4-5 12-5 16 0-4 3-8 3-11 1M17 9l3-2', // pez
-   13:'M12 5l4 14H8zM12 5l-2 3M12 5l2 3',   // tienda
-   14:'M12 3c2 3 2 9 0 13-2-4-2-10 0-13zM10 16l-2 4M14 16l2 4', // cohete
-   15:'M12 4v16M12 8L7 4M12 8l5-4M12 13l-5 4M12 13l5 4', // árbol
-   16:'M12 4l4 7H8zM12 11l4 7H8zM8 11l4 7-4-7z' // atlas
-  };
-  function glyphSVG(n){
-    const d = glyphPaths[n] || glyphPaths[1];
-    return `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
-  }
-
   const glyphRow = document.getElementById('glyphRow');
   SYSTEM_SIGNATURE.forEach((n,i)=>{
     const el = document.createElement('div');
@@ -421,7 +399,7 @@
     card.innerHTML = `
       <div class="planet-top">
         <div class="planet-name">${p.name}${p.capital ? ' <span style="color:var(--accent-gold); font-size:11px; font-family:var(--font-mono); letter-spacing:.08em; vertical-align:middle;">★ CAPITAL</span>' : ''}</div>
-        <div class="planet-index">GLIFO&nbsp;${p.i}</div>
+        <div class="planet-index">${glyphSVG(p.i)}GLIFO&nbsp;${p.i}</div>
       </div>
       <div class="planet-meta">
         <span><b>Clima</b> · ${p.clima}</span>

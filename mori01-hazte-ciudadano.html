@@ -81,6 +81,19 @@
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
 
+  /* selector visual de planetas */
+  .planet-picker{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;}
+  @media(min-width:480px){ .planet-picker{grid-template-columns:repeat(3,1fr);} }
+  .planet-choice{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
+    padding:10px; cursor:pointer; text-align:center; transition:border-color .15s, transform .15s;
+  }
+  .planet-choice:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
+  .planet-choice.selected{border-color:var(--accent-gold); background:rgba(245,184,73,.08);}
+  .planet-choice svg{width:20px; height:20px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6; margin-bottom:4px;}
+  .planet-choice .pname{font-size:12.5px; font-weight:600;}
+  .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
+
   .btn{font-weight:600; letter-spacing:.03em; padding:13px 24px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
   .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
   .btn-primary:hover:not(:disabled){background:#31cbe6;}
@@ -179,10 +192,9 @@
       </div>
 
       <div class="field">
-        <label for="planetSelect">Planeta elegido</label>
-        <select id="planetSelect">
-          <option value="">Selecciona un planeta…</option>
-        </select>
+        <label>Planeta elegido</label>
+        <div class="planet-picker" id="planetPicker"></div>
+        <select id="planetSelect" style="display:none"></select>
       </div>
 
       <div class="field-row">
@@ -244,7 +256,7 @@
 
 <script type="module">
   import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
+  import { PLANETS, SYSTEM_INFO, glyphSVG } from './mori01-data.js';
   import {
     collection, addDoc, getDocs, query, where, orderBy, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -257,8 +269,6 @@
   const MIN_DISTANCE_M = 1000;
 
   // ---------- AUTH ----------
-  // Cada vez que cambia el estado de sesión se vuelve a dibujar el auth-box
-  // Y se re-engancha el listener al botón nuevo (el nodo viejo se destruyó).
   const authBox = document.getElementById('authBox');
   let currentUser = null;
 
@@ -293,12 +303,25 @@
     updateProgress();
   });
 
+  // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
+  const planetPicker = document.getElementById('planetPicker');
+
   PLANETS.forEach(p=>{
     const opt = document.createElement('option');
     opt.value = p.i;
     opt.textContent = `${p.name} (glifo ${p.i})`;
     planetSelect.appendChild(opt);
+
+    const card = document.createElement('div');
+    card.className = 'planet-choice';
+    card.innerHTML = `${glyphSVG(p.i)}<div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+    card.addEventListener('click', ()=>{
+      planetSelect.value = p.i;
+      document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+    planetPicker.appendChild(card);
   });
 
   const checkboxes = ['m1','m2','m3','m4','m5'].map(id=>document.getElementById(id));
@@ -308,7 +331,6 @@
   function updateProgress(){
     const checked = checkboxes.filter(c=>c.checked).length;
     progressFill.style.width = (checked/checkboxes.length*100)+'%';
-    // FIX: ahora también exige sesión iniciada, no solo el checklist completo.
     submitBtn.disabled = checked < checkboxes.length || !currentUser;
   }
   checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
@@ -384,9 +406,6 @@
 
   submitBtn.addEventListener('click', async ()=>{
     clearAlert();
-
-    // FIX: aunque el botón se deshabilita sin sesión, se valida de nuevo
-    // por si el estado de auth cambió justo antes del click.
     if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
 
     const name = document.getElementById('playerName').value.trim();
@@ -421,8 +440,6 @@
         friendCode: document.getElementById('friendCode').value.trim() || '',
         status: 'pending',
         ts: Date.now(),
-        // FIX: sin esto, el dueño nunca puede editar su propia tarjeta después
-        // (la Tarjeta de Ciudadano compara currentUser.uid contra ownerUid).
         ownerUid: currentUser.uid
       };
       await addDoc(citizensCol, newEntry);
