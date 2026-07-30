@@ -146,7 +146,7 @@
     background:var(--bg-panel-2);
     animation:glyphIn .5s ease backwards;
   }
-  .glyph svg{width:18px; height:18px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6;}
+  .glyph img{width:22px; height:22px; object-fit:contain;}
   @keyframes glyphIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 
   .hero-actions{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; justify-content:center;}
@@ -188,7 +188,7 @@
     border:1px solid rgba(6,182,212,.35); border-radius:20px; padding:3px 10px 3px 7px;
     display:inline-flex; align-items:center; gap:5px;
   }
-  .planet-index svg{width:13px; height:13px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6; flex-shrink:0;}
+  .planet-index img{width:16px; height:16px; object-fit:contain; flex-shrink:0;}
   .planet-name{font-family:var(--font-display); font-size:17px; letter-spacing:.02em; margin-bottom:2px;}
   .planet-meta{font-size:12.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:3px; margin-bottom:14px;}
   .planet-meta b{color:var(--text-primary); font-weight:600;}
@@ -226,7 +226,7 @@
     .society-grid, .planet-grid{grid-template-columns:1fr;}
     .cta-panel{flex-direction:column; align-items:flex-start; padding:32px 24px;}
     .glyph{width:30px; height:30px;}
-    .glyph svg{width:14px; height:14px;}
+    .glyph img{width:18px; height:18px;}
   }
 </style>
 </head>
