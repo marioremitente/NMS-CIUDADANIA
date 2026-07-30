@@ -66,6 +66,13 @@
   }
   .mini-tag.cyan{border-color:rgba(6,182,212,.4); color:var(--accent-cyan);}
 
+  .badge-row{display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;}
+  .badge-chip{
+    font-size:10.5px; padding:3px 8px; border-radius:20px;
+    background:rgba(245,184,73,.1); border:1px solid rgba(245,184,73,.35); color:var(--accent-gold);
+    display:inline-flex; align-items:center; gap:4px; white-space:nowrap;
+  }
+
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:60px 0; font-family:var(--font-mono);}
 </style>
 </head>
@@ -92,6 +99,7 @@
   import { db } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { computeBadges } from './mori01-badges.js';
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.title = `Galería de Ciudadanos · ${SYSTEM_INFO.shortName}`;
@@ -110,6 +118,7 @@
 
   const citizensCol = collection(db, 'citizens');
   let citizens = [];
+  let badgesById = new Map();
 
   function faceStyle(faceIndex){
     if(typeof faceIndex !== 'number') return '';
@@ -141,6 +150,10 @@
       const planetName = PLANET_BY_INDEX[c.planetIndex] || '—';
       const initial = c.name ? c.name[0].toUpperCase() : '?';
       const style = faceStyle(c.faceIndex);
+      const badges = badgesById.get(c.id) || [];
+      const badgeHtml = badges.length
+        ? `<div class="badge-row">${badges.map(b=>`<span class="badge-chip" title="${escapeHtml(b.title)}">${b.icon} ${escapeHtml(b.label)}</span>`).join('')}</div>`
+        : '';
       return `
         <div class="mini-card">
           <div class="mini-top">
@@ -157,6 +170,7 @@
             ${c.profession ? `<span class="mini-tag cyan">${escapeHtml(c.profession)}</span>` : ''}
             ${c.platform ? `<span class="mini-tag">${escapeHtml(c.platform)}</span>` : ''}
           </div>
+          ${badgeHtml}
         </div>`;
     }).join('');
   }
@@ -164,6 +178,7 @@
   const q = query(citizensCol, where('status','==','citizen'));
   onSnapshot(q, snap=>{
     citizens = snap.docs.map(d=>d.data());
+    badgesById = computeBadges(citizens);
     render();
   }, err=>{
     document.getElementById('countLine').textContent = 'No se pudo cargar la galería.';

@@ -248,6 +248,14 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   border-radius:4px; padding:7px 12px; cursor:pointer;
 }
 .signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
+
+/* insignias */
+.badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; justify-content:center;}
+.badge-chip{
+  font-size:10px; padding:3px 8px; border-radius:20px;
+  background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);
+  font-family:var(--font-mono);
+}
 </style>
 </head>
 <body>
@@ -329,6 +337,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
                   <div class="lbl">Estado</div>
                   <div class="val status" id="cardStatus">Sin validar</div>
                 </div>
+                <div class="badge-row" id="cardBadges"></div>
               </div>
 
             </div>
@@ -443,6 +452,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { computeBadges } from './mori01-badges.js';
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('brandSub').textContent = SYSTEM_INFO.shortName.toUpperCase();
@@ -469,6 +479,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const faceGrid = document.getElementById('faceGrid');
   const cardId = document.getElementById('cardId');
   const cardStatus = document.getElementById('cardStatus');
+  const cardBadges = document.getElementById('cardBadges');
   const saveBtn = document.getElementById('saveBtn');
   const authBox = document.getElementById('authBox');
 
@@ -579,6 +590,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     if(!raw){ lookupMsg.textContent = 'Escribe tu ID de ciudadano.'; return; }
     const id = raw.startsWith('#') ? raw : '#'+raw;
     lookupMsg.textContent = 'Buscando…';
+    cardBadges.innerHTML = '';
     try{
       const q = query(citizensCol, where('id','==', id));
       const snap = await getDocs(q);
@@ -606,6 +618,18 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 
       if(isCitizen){
         lookupMsg.textContent = 'Ciudadanía verificada y aprobada.';
+        // Insignias: se calculan contra todos los ciudadanos aprobados.
+        try{
+          const allSnap = await getDocs(query(citizensCol, where('status','==','citizen')));
+          const allCitizens = allSnap.docs.map(d => d.data());
+          const badgesById = computeBadges(allCitizens);
+          const myBadges = badgesById.get(data.id) || [];
+          cardBadges.innerHTML = myBadges
+            .map(b => `<span class="badge-chip" title="${escapeHtml(b.title)}">${b.icon} ${escapeHtml(b.label)}</span>`)
+            .join('');
+        }catch(e){
+          // si falla el cálculo de insignias, no bloquea el resto de la tarjeta
+        }
       }else if(isRejected){
         lookupMsg.textContent = data.rejectionReason
           ? `Solicitud rechazada. Motivo: ${data.rejectionReason}`
