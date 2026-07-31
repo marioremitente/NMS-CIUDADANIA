@@ -151,6 +151,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 }
 .id-field.name .f-value{font-size:3.1cqw; font-family:var(--font-display); letter-spacing:.02em;}
 .id-field .f-value.cyan{color:var(--accent-cyan);}
+.id-field .f-value.violet{color:var(--accent-violet);}
 
 .id-right{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6cqw; height:100%;}
 .diamond-shape{
@@ -321,6 +322,10 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
                   <div class="f-label">Profesión</div>
                   <div class="f-value" id="cardProfession">—</div>
                 </div>
+                <div class="id-field" id="roleField" style="display:none;">
+                  <div class="f-label">Rol</div>
+                  <div class="f-value violet" id="cardRole">—</div>
+                </div>
                 <div class="id-field">
                   <div class="f-label">Asentamiento</div>
                   <div class="f-value cyan" id="cardPlanet">—</div>
@@ -480,6 +485,8 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const cardId = document.getElementById('cardId');
   const cardStatus = document.getElementById('cardStatus');
   const cardBadges = document.getElementById('cardBadges');
+  const roleField = document.getElementById('roleField');
+  const cardRole = document.getElementById('cardRole');
   const saveBtn = document.getElementById('saveBtn');
   const authBox = document.getElementById('authBox');
 
@@ -591,6 +598,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     const id = raw.startsWith('#') ? raw : '#'+raw;
     lookupMsg.textContent = 'Buscando…';
     cardBadges.innerHTML = '';
+    roleField.style.display = 'none';
     try{
       const q = query(citizensCol, where('id','==', id));
       const snap = await getDocs(q);
@@ -610,6 +618,11 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       fPlatform.value = data.platform || '';
       selectFaceByIndex(typeof data.faceIndex === 'number' ? data.faceIndex : null);
       cardId.textContent = data.id;
+
+      if(data.role){
+        cardRole.textContent = data.role;
+        roleField.style.display = '';
+      }
 
       const isCitizen = data.status === 'citizen';
       const isRejected = data.status === 'rejected';
