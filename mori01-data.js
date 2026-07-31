@@ -19,7 +19,7 @@ export const PLANETS = [
   {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
   {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
 ];
-export const SYSTEM_SIGNATURE = [2,7,13,11,7,16,8,5,8,3,1];
+export const SYSTEM_SIGNATURE = [4,2,7,13,11,7,16,8,5,8,3,1];
 
 // Glifos: imágenes numeradas 1.webp a 16.webp, en la raíz del repositorio.
 // Compartido por index.html y el selector visual de mori01-hazte-ciudadano.
