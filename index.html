@@ -149,34 +149,6 @@
   .glyph img{width:22px; height:22px; object-fit:contain;}
   @keyframes glyphIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 
-  /* Fila de glifos por planeta — mismo lenguaje visual que .signature,
-     pero cada casilla lleva su nombre debajo. Se reutiliza en el Hero
-     y también dentro de la sección "Mundos". */
-  .planet-glyphs{
-    background:var(--bg-panel);
-    border:1px solid var(--border-soft);
-    border-radius:6px;
-    padding:22px 28px;
-    max-width:640px; width:100%;
-    margin-top:14px;
-  }
-  .planet-glyph-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
-  .planet-glyph{
-    width:76px; display:flex; flex-direction:column; align-items:center; gap:6px;
-    animation:glyphIn .5s ease backwards;
-  }
-  .planet-glyph .pg-icon{
-    width:38px; height:38px; border:1px solid var(--border-bright);
-    border-radius:4px; display:flex; align-items:center; justify-content:center;
-    background:var(--bg-panel-2);
-  }
-  .planet-glyph .pg-icon svg{width:22px; height:22px;}
-  .planet-glyph .pg-name{
-    font-family:var(--font-mono); font-size:10px; color:var(--text-muted);
-    text-align:center; line-height:1.3;
-  }
-  .planet-glyph .pg-name b{display:block; color:var(--accent-gold); font-size:10px;}
-
   .hero-actions{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; justify-content:center;}
   .btn{
     font-family:var(--font-body); font-size:14px; font-weight:600; letter-spacing:.03em;
@@ -255,7 +227,6 @@
     .cta-panel{flex-direction:column; align-items:flex-start; padding:32px 24px;}
     .glyph{width:30px; height:30px;}
     .glyph img{width:18px; height:18px;}
-    .planet-glyph{width:64px;}
   }
 </style>
 </head>
@@ -312,11 +283,6 @@
       <div class="glyph-row" id="glyphRow"></div>
     </div>
 
-    <div class="planet-glyphs">
-      <div class="signature-label"><span>Glifos de los seis mundos</span><span>1 por planeta</span></div>
-      <div class="planet-glyph-row" id="planetGlyphRow"></div>
-    </div>
-
     <div class="hero-actions">
       <a class="btn btn-primary" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">Unirme al Discord</a>
       <a class="btn btn-ghost" href="./mori01-hazte-ciudadano.html">Hazte Ciudadano</a>
@@ -346,11 +312,6 @@
       <p class="section-eyebrow">Los seis mundos</p>
       <h2 class="section-title">Elige dónde vas a asentarte</h2>
       <p class="section-desc">Cada cuerpo del sistema tiene su propio glifo, clima y recursos. Tu base solo puede ir en uno de estos seis — y en un punto que nadie más haya reclamado.</p>
-    </div>
-
-    <div class="planet-glyphs" style="margin:0 auto 36px;">
-      <div class="signature-label"><span>Glifos de los seis mundos</span><span>1 por planeta</span></div>
-      <div class="planet-glyph-row" id="planetGlyphRowMundos"></div>
     </div>
 
     <div class="planet-grid" id="planetGrid"></div>
@@ -434,26 +395,6 @@
     el.title = 'Glifo '+n;
     glyphRow.appendChild(el);
   });
-
-  // Fila con el glifo de cada uno de los 6 planetas, mismo estilo que la
-  // firma. Función reutilizable: se llama una vez para el Hero y otra vez
-  // para la sección "Mundos", sin duplicar la lógica de armado.
-  function renderPlanetGlyphRow(containerId){
-    const container = document.getElementById(containerId);
-    if(!container) return;
-    PLANETS.forEach((p,i)=>{
-      const el = document.createElement('div');
-      el.className = 'planet-glyph';
-      el.style.animationDelay = (i*0.05)+'s';
-      el.innerHTML = `
-        <div class="pg-icon">${glyphSVG(p.i)}</div>
-        <div class="pg-name">${p.name}<b>Glifo ${p.i}</b></div>
-      `;
-      container.appendChild(el);
-    });
-  }
-  renderPlanetGlyphRow('planetGlyphRow');
-  renderPlanetGlyphRow('planetGlyphRowMundos');
 
   const grid = document.getElementById('planetGrid');
   PLANETS.forEach(p=>{
