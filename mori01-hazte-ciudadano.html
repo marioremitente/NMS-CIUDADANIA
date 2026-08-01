@@ -90,7 +90,11 @@
   }
   .planet-choice:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
   .planet-choice.selected{border-color:var(--accent-gold); background:rgba(245,184,73,.08);}
-  .planet-choice svg{width:20px; height:20px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6; margin-bottom:4px;}
+  .planet-choice .pimg{
+    width:100%; aspect-ratio:1; border-radius:5px; overflow:hidden; margin-bottom:8px;
+    background:var(--bg-panel); border:1px solid var(--border-soft);
+  }
+  .planet-choice .pimg img{width:100%; height:100%; object-fit:cover; display:block;}
   .planet-choice .pname{font-size:12.5px; font-weight:600;}
   .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
@@ -256,7 +260,7 @@
 
 <script type="module">
   import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, glyphSVG } from './mori01-data.js';
+  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
     collection, addDoc, getDocs, query, where, orderBy, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -315,7 +319,7 @@
 
     const card = document.createElement('div');
     card.className = 'planet-choice';
-    card.innerHTML = `${glyphSVG(p.i)}<div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+    card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
     card.addEventListener('click', ()=>{
       planetSelect.value = p.i;
       document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
