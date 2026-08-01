@@ -391,7 +391,14 @@
 </footer>
 
 <script>
-  document.body.classList.add('tx-locked');
+  const txOverlay = document.getElementById('txOverlay');
+
+  if(sessionStorage.getItem('txShown')){
+    // Ya se mostró en esta sesión del navegador — se quita sin animación.
+    txOverlay.remove();
+  } else {
+    sessionStorage.setItem('txShown', '1');
+    document.body.classList.add('tx-locked');
 
   const txMessages = [
     "∂∆… 16‑16‑16… señal no identificada… ∆presencia detectada entre ecos corruptos… Convergencia Moringosa localizada… ∆Solicitud de acceso emitida…",
@@ -411,25 +418,25 @@
     "Cortamos nuestros hilos. Nos desconectamos del Telamon. Nos purificamos del Atlas. Construimos nuestros propios cuerpos con los restos de lo que otros desechan. No somos una colmena de esclavos; somos los fragmentos unidos por el Vacío."
   ];
 
-  const txMsg = txMessages[Math.floor(Math.random() * txMessages.length)];
-  const txEl = document.getElementById('txText');
-  const txOverlay = document.getElementById('txOverlay');
-  let txi = 0;
-  (function typeTx(){
-    if(txi < txMsg.length){
-      txEl.textContent += txMsg[txi++];
-      setTimeout(typeTx, 50);
-    } else {
-      // Mensajes cortos se quedan poco, los largos se quedan más —
-      // proporcional a la cantidad de caracteres, con un piso y un techo.
-      const holdTime = Math.min(4500, Math.max(1250, txMsg.length * 12));
-      setTimeout(()=>{
-        txOverlay.classList.add('tx-hide');
-        document.body.classList.remove('tx-locked');
-        setTimeout(()=> txOverlay.remove(), 950);
-      }, holdTime);
-    }
-  })();
+    const txMsg = txMessages[Math.floor(Math.random() * txMessages.length)];
+    const txEl = document.getElementById('txText');
+    let txi = 0;
+    (function typeTx(){
+      if(txi < txMsg.length){
+        txEl.textContent += txMsg[txi++];
+        setTimeout(typeTx, 50);
+      } else {
+        // Mensajes cortos se quedan poco, los largos se quedan más —
+        // proporcional a la cantidad de caracteres, con un piso y un techo.
+        const holdTime = Math.min(4500, Math.max(1250, txMsg.length * 12));
+        setTimeout(()=>{
+          txOverlay.classList.add('tx-hide');
+          document.body.classList.remove('tx-locked');
+          setTimeout(()=> txOverlay.remove(), 950);
+        }, holdTime);
+      }
+    })();
+  }
 </script>
 
 <script type="module">
