@@ -90,7 +90,7 @@
   }
   .planet-choice:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
   .planet-choice.selected{border-color:var(--accent-gold); background:rgba(245,184,73,.08);}
-  .planet-choice svg{width:20px; height:20px; stroke:var(--accent-cyan); fill:none; stroke-width:1.6; margin-bottom:4px;}
+  .planet-choice img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px; margin-bottom:8px;}
   .planet-choice .pname{font-size:12.5px; font-weight:600;}
   .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
@@ -108,11 +108,15 @@
   .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
 
   /* registry */
-  .registry-row{display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
+  .registry-row{display:flex; flex-direction:column; gap:5px; padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
   .registry-row:last-child{border-bottom:none;}
-  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; width:78px; flex-shrink:0;}
-  .registry-name{font-weight:600; flex:1; min-width:0;}
-  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); flex-shrink:0;}
+  .registry-top{display:flex; align-items:center; gap:10px;}
+  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
+  .registry-name{
+    font-weight:600; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono);}
   .status-pill{
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
     background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold); white-space:nowrap;
@@ -256,7 +260,7 @@
 
 <script type="module">
   import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, glyphSVG } from './mori01-data.js';
+  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
     collection, addDoc, getDocs, query, where, orderBy, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -315,7 +319,7 @@
 
     const card = document.createElement('div');
     card.className = 'planet-choice';
-    card.innerHTML = `${glyphSVG(p.i)}<div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+    card.innerHTML = `${planetImg(p)}<div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
     card.addEventListener('click', ()=>{
       planetSelect.value = p.i;
       document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
@@ -385,10 +389,12 @@
       const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
       return `
         <div class="registry-row">
-          <span class="registry-id">${e.id}</span>
-          <span class="registry-name">${escapeHtml(e.name)}</span>
+          <div class="registry-top">
+            <span class="registry-id">${e.id}</span>
+            <span class="registry-name">${escapeHtml(e.name)}</span>
+            <span class="status-pill ${pillClass}">${pillText}</span>
+          </div>
           <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
-          <span class="status-pill ${pillClass}">${pillText}</span>
         </div>`;
     }).join('');
   }
