@@ -228,9 +228,43 @@
     .glyph{width:30px; height:30px;}
     .glyph img{width:18px; height:18px;}
   }
+
+  /* TRANSMISIÓN — pantalla de entrada */
+  #txOverlay{
+    position:fixed; inset:0; z-index:999;
+    background:var(--bg-deep);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px; text-align:center;
+    transition:opacity .9s ease;
+  }
+  #txOverlay.tx-hide{opacity:0; pointer-events:none;}
+  #txOverlay .bg-grid{opacity:.22;}
+  .tx-box{
+    position:relative; z-index:1; max-width:620px;
+    font-family:var(--font-mono);
+    font-size:clamp(13px,2.4vw,16px);
+    line-height:1.9; letter-spacing:.03em;
+    color:var(--accent-cyan);
+    text-shadow:0 0 8px rgba(6,182,212,.45);
+  }
+  .tx-label{
+    font-size:11px; letter-spacing:.25em; color:var(--accent-gold);
+    text-transform:uppercase; margin-bottom:18px; opacity:.85;
+  }
+  .tx-cursor{display:inline-block; width:8px; background:var(--accent-cyan); margin-left:2px; animation:txBlink 1s step-end infinite;}
+  @keyframes txBlink{50%{opacity:0;}}
+  body.tx-locked{overflow:hidden;}
 </style>
 </head>
 <body>
+
+<div id="txOverlay">
+  <div class="bg-grid"></div>
+  <div class="tx-box">
+    <div class="tx-label">Transmisión entrante</div>
+    <span id="txText"></span><span class="tx-cursor"></span>
+  </div>
+</div>
 
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
@@ -355,6 +389,35 @@
     <a href="./mori01-admin.html" aria-label="Panel de administración" style="color:var(--text-dim); font-size:11px; opacity:.35; transition:opacity .2s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='.35'">⚙</a>
   </p>
 </footer>
+
+<script>
+  document.body.classList.add('tx-locked');
+
+  const txMessages = [
+    "∂∆… 16‑16‑16… señal no identificada… ∆presencia detectada entre ecos corruptos… Convergencia Moringosa localizada… ∆Solicitud de acceso emitida…",
+    "∂∆… nave detectada en el perímetro… escaneando firma biológica… ∆visitante no registrado… acceso a Convergencia Moringosa: pendiente…",
+    "∆… coordenadas confirmadas… sistema MORI-01 localizado… ∂six mundos, una sociedad… ∆el Arcade observa tu llegada…",
+    "∂∆… eco recibido desde el Nexo Korvax… ∆ningún territorio permanece sin reclamar… iniciando protocolo de inmigración… ∆solicitud de ciudadanía disponible…",
+    "∆… fragmento de memoria recuperado… ∂los primeros colonos hablaban de esto… ∆la Convergencia no olvida… ∆transmisión estabilizándose…"
+  ];
+
+  const txMsg = txMessages[Math.floor(Math.random() * txMessages.length)];
+  const txEl = document.getElementById('txText');
+  const txOverlay = document.getElementById('txOverlay');
+  let txi = 0;
+  (function typeTx(){
+    if(txi < txMsg.length){
+      txEl.textContent += txMsg[txi++];
+      setTimeout(typeTx, 32);
+    } else {
+      setTimeout(()=>{
+        txOverlay.classList.add('tx-hide');
+        document.body.classList.remove('tx-locked');
+        setTimeout(()=> txOverlay.remove(), 950);
+      }, 3750);
+    }
+  })();
+</script>
 
 <script type="module">
   import { PLANETS, SYSTEM_SIGNATURE, SYSTEM_INFO, glyphSVG } from './mori01-data.js';
