@@ -27,18 +27,3 @@ export function glyphSVG(n){
   const valid = (n >= 1 && n <= 16) ? n : 1;
   return `<img src="./${valid}.webp" alt="Glifo ${valid}" loading="lazy">`;
 }
-
-// Cargos ministeriales que el admin puede asignar a un ciudadano.
-// Solo se asignan desde mori01-admin — el propio ciudadano nunca puede
-// escribir este campo (las reglas de Firestore solo permiten que el
-// dueño edite profession/platform/faceIndex, no role).
-export const ROLES = [
-  'Ministerio del Interior (Gobierno)',
-  'Ministerio de Relaciones Exteriores',
-  'Ministerio de Defensa',
-  'Ministerio de Hacienda',
-  'Ministerio de Justicia',
-  'Ministerio de Inteligencia',
-  'Ministerio de Educación',
-];
-
