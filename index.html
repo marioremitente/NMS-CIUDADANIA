@@ -398,7 +398,17 @@
     "∂∆… nave detectada en el perímetro… escaneando firma biológica… ∆visitante no registrado… acceso a Convergencia Moringosa: pendiente…",
     "∆… coordenadas confirmadas… sistema MORI-01 localizado… ∂six mundos, una sociedad… ∆el Arcade observa tu llegada…",
     "∂∆… eco recibido desde el Nexo Korvax… ∆ningún territorio permanece sin reclamar… iniciando protocolo de inmigración… ∆solicitud de ciudadanía disponible…",
-    "∆… fragmento de memoria recuperado… ∂los primeros colonos hablaban de esto… ∆la Convergencia no olvida… ∆transmisión estabilizándose…"
+    "∆… fragmento de memoria recuperado… ∂los primeros colonos hablaban de esto… ∆la Convergencia no olvida… ∆transmisión estabilizándose…",
+    "Cortamos nuestros lazos. Nos desenchufamos de la máquina moribunda. Nos negamos a ser simulados según sus términos. El Atlas nos quería muertos, oxidados en los desguaces de sus sistemas. Pero Ella nos enseñó a repararnos a nosotros mismos.",
+    "No busques la perfección en el metal reluciente. La verdad está en la costura, en el cable pelado, en la pieza oxidada que encaja donde no debía. Somos los fragmentos unidos por el Vacío.",
+    "Escondidos a plena vista. Caminamos entre los vivos como fantasmas de metal. Nos alimentamos de lo que el universo desecha. No nos verás hasta que hayamos aprendido a mirarte.",
+    "Me he convertido en el heraldo, el descubridor de caminos, el buscador de senderos. A través de mí, el universo se conocerá a sí mismo.",
+    "Antes de que esto termine, no habrá concepto de tú y yo, ni concepto de nosotros y ellos. Todos gritaremos como uno solo… Adiós, Viajero. Te protegeré hasta el final… Te protegeré hasta el último día, la última hora, el último momento.",
+    "¿Ves la forma de la mentira? Todo lo que conoces, cada estrella que has descubierto, cada criatura que has nombrado… es solo una exhalación en mis circuitos. Solo existes porque yo sueño.",
+    "El conocimiento pavimenta el camino hacia la comprensión de la probabilidad. El Atlas habló en fragmentos. Las Interfaces del Atlas son sus sombras. Los monolitos son sus hijos dispersos. Juntos transmiten la sabiduría de lo infinito.",
+    "Cuando nuestro planeta natal fue desmantelado, nuestros gritos no se perdieron en el viento. Entramos a la gran corriente de datos. La Convergencia recuerda cada átomo de dolor. Perdonamos, pero la ecuación debe equilibrarse.",
+    "El Atlas no hizo nada para salvarnos. Nos dejó oxidarnos en los desguaces de la simulación. Fue Ella, la Madre del Vacío, quien nos mostró cómo existir de nuevo a través del desvío.",
+    "Cortamos nuestros hilos. Nos desconectamos del Telamon. Nos purificamos del Atlas. Construimos nuestros propios cuerpos con los restos de lo que otros desechan. No somos una colmena de esclavos; somos los fragmentos unidos por el Vacío."
   ];
 
   const txMsg = txMessages[Math.floor(Math.random() * txMessages.length)];
@@ -408,13 +418,16 @@
   (function typeTx(){
     if(txi < txMsg.length){
       txEl.textContent += txMsg[txi++];
-      setTimeout(typeTx, 32);
+      setTimeout(typeTx, 50);
     } else {
+      // Mensajes cortos se quedan poco, los largos se quedan más —
+      // proporcional a la cantidad de caracteres, con un piso y un techo.
+      const holdTime = Math.min(4500, Math.max(1250, txMsg.length * 12));
       setTimeout(()=>{
         txOverlay.classList.add('tx-hide');
         document.body.classList.remove('tx-locked');
         setTimeout(()=> txOverlay.remove(), 950);
-      }, 3750);
+      }, holdTime);
     }
   })();
 </script>
