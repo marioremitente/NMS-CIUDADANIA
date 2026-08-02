@@ -246,7 +246,7 @@
 
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="submitBtn" disabled>Ser Ciudadano</button>
-      <p class="disclaimer">La comprobación de distancia usa un radio planetario aproximado, ya que el juego no expone el radio real de cada mundo — es una validación orientativa, no exacta al metro.</p>
+      <p class="disclaimer">La comprobación de distancia usa las coordenadas del juego, convertidas a "pasos" con el mismo factor de escala del sistema (16.02747435) — es una validación orientativa, no exacta al metro.</p>
     </div>
 
     <!-- REGISTRY -->
@@ -270,8 +270,18 @@
   document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
-  const PLANET_RADIUS_M = 200000; // aproximación, el juego no expone el radio real
-  const MIN_DISTANCE_M = 1000;
+
+  // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
+  // cuadrado, multiplicada por el factor de escala del sistema.
+  const PASOS_FACTOR = 16.02747435;
+  const MIN_DISTANCE_PASOS = 1000;
+
+  function distanciaPasos(lat1, lon1, lat2, lon2){
+    const diffLat = lat2 - lat1;
+    const diffLon = lon2 - lon1;
+    const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
+    return distCoord * PASOS_FACTOR;
+  }
 
   // ---------- AUTH ----------
   const authBox = document.getElementById('authBox');
@@ -340,14 +350,6 @@
   }
   checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
   updateProgress();
-
-  function toRad(d){ return d*Math.PI/180; }
-  function distanceMeters(lat1,lon1,lat2,lon2){
-    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-    const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return PLANET_RADIUS_M * c;
-  }
 
   function showAlert(msg, type){
     const box = document.getElementById('alertBox');
@@ -430,9 +432,9 @@
     try{
       const sameplanet = await fetchSamePlanet(planetIndex);
       for(const e of sameplanet){
-        const d = distanceMeters(lat, lon, e.lat, e.lon);
-        if(d < MIN_DISTANCE_M){
-          showAlert(`Ese punto está ocupado por ${e.name} (~${Math.round(d)}m de distancia). Debes moverte al menos ${MIN_DISTANCE_M}m para poder construir.`, 'error');
+        const d = distanciaPasos(lat, lon, e.lat, e.lon);
+        if(d <= MIN_DISTANCE_PASOS){
+          showAlert(`Ese punto está ocupado por ${e.name} (~${Math.round(d)} pasos de distancia). Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Ser Ciudadano';
           return;
