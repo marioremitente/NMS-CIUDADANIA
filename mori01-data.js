@@ -20,14 +20,12 @@ export const PLANETS = [
   {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
 ];
 export const SYSTEM_SIGNATURE = [4,2,7,13,11,7,16,8,5,8,3,1];
-
 // Glifos: imágenes numeradas 1.webp a 16.webp, en la raíz del repositorio.
 // Compartido por index.html y el selector visual de mori01-hazte-ciudadano.
 export function glyphSVG(n){
   const valid = (n >= 1 && n <= 16) ? n : 1;
   return `<img src="./${valid}.webp" alt="Glifo ${valid}" loading="lazy">`;
 }
-
 // Imágenes reales de cada planeta: nombre del planeta en minúsculas y sin
 // espacios (ej. "Agforn Sigma" -> agfornsigma.webp), en la raíz del repo.
 export function planetImageSlug(name){
@@ -36,7 +34,6 @@ export function planetImageSlug(name){
 export function planetImg(p){
   return `<img src="./${planetImageSlug(p.name)}.webp" alt="${p.name}" loading="lazy">`;
 }
-
 // Cargos ministeriales que el admin puede asignar a un ciudadano.
 // Solo se asignan desde mori01-admin — el propio ciudadano nunca puede
 // escribir este campo (las reglas de Firestore solo permiten que el
@@ -49,4 +46,22 @@ export const ROLES = [
   'Ministerio de Justicia',
   'Ministerio de Inteligencia',
   'Ministerio de Educación',
+  'Ministerio de Comercio y Recursos',
+  'Ministerio de Ciencia y Tecnología',
+  'Ministerio de Comunicaciones',
+  'Ministerio de Infraestructura y Asentamientos',
+  'Ministerio de Cultura',
+  'Ministerio de Salud',
+  'Ministerio de Trabajo',
+  'Ministerio de Exploración Estelar',
+  'Ministerio de Arqueología Xenológica',
+  'Ministerio de Cartografía Galáctica',
+  'Ministerio de Xenobiología',
+  'Ministerio de Ingeniería de Naves',
+  'Ministerio de Relaciones Interraciales',
+  'Ministerio de Minería y Extracción',
+  'Consejo del Arcade',
+  'Guardia de Sentinelas',
+  'Cronista de Mori-01',
+  'CIUDADANO',
 ];
