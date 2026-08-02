@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -182,7 +183,15 @@
   document.getElementById('backLinkLogin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('backLinkAdmin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
 
-  const PROFESSIONS = ['Arquitecto','Explorador','Guardián','Comerciante','Científico','Cazarrecompensas'];
+  const PROFESSIONS = [
+    'Arquitecto','Explorador','Guardián','Comerciante','Científico','Cazarrecompensas',
+    'Consejo del Arcade','Guardia de Sentinelas','Cronista de Mori-01',
+    'Ministerio de Comercio y Recursos','Ministerio de Ciencia y Tecnología','Ministerio de Comunicaciones',
+    'Ministerio de Infraestructura y Asentamientos','Ministerio de Cultura','Ministerio de Salud',
+    'Ministerio de Trabajo','Ministerio de Exploración Estelar','Ministerio de Arqueología Xenológica',
+    'Ministerio de Cartografía Galáctica','Ministerio de Xenobiología','Ministerio de Ingeniería de Naves',
+    'Ministerio de Relaciones Interraciales','Ministerio de Minería y Extracción'
+  ];
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
 
   const citizensCol = collection(db, 'citizens');
