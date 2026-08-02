@@ -177,7 +177,12 @@
   .society-cell .v.cyan{color:var(--accent-cyan);}
 
   /* ROLES */
-  .roles-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;}
+  .roles-subtitle{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--text-dim); margin:0 0 14px; padding-top:8px;
+  }
+  .roles-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:36px;}
+  .roles-grid:last-of-type{margin-bottom:0;}
   .role-card{
     background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:6px;
     padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -365,7 +370,11 @@
       <h2 class="section-title">Roles y cupos disponibles</h2>
       <p class="section-desc">Cada ministerio tiene un máximo de 2 cupos ocupados. La ciudadanía general no tiene límite — el cupo se actualiza en tiempo real según lo asigne el Arcade.</p>
     </div>
-    <div class="roles-grid" id="rolesGrid"></div>
+    <h3 class="roles-subtitle">Ministerios de gobierno</h3>
+    <div class="roles-grid" id="rolesGridGov"></div>
+
+    <h3 class="roles-subtitle">Otros roles</h3>
+    <div class="roles-grid" id="rolesGridOther"></div>
   </section>
 
   <!-- MUNDOS -->
@@ -530,26 +539,35 @@
 
   // ---------- ROLES Y CUPOS ----------
   const ROLE_CAP = 2; // cupo máximo por ministerio; CIUDADANO no tiene tope
-  const rolesGrid = document.getElementById('rolesGrid');
+  // Roles que no son ministerios de gobierno — se muestran en su propio grupo.
+  const NON_GOV_ROLES = ['Consejo del Arcade', 'Guardia de Sentinelas', 'Cronista de Mori-01', 'CIUDADANO'];
+  const govRoles = ROLES.filter(r => !NON_GOV_ROLES.includes(r));
+  const otherRoles = ROLES.filter(r => NON_GOV_ROLES.includes(r));
+
+  const rolesGridGov = document.getElementById('rolesGridGov');
+  const rolesGridOther = document.getElementById('rolesGridOther');
+
+  function roleCardHtml(role, counts){
+    const count = counts[role] || 0;
+    const isCitizen = role === 'CIUDADANO';
+    let pillClass, pillText;
+    if(isCitizen){
+      pillClass = 'unlimited';
+      pillText = `${count} ciudadano${count === 1 ? '' : 's'}`;
+    }else{
+      pillClass = count >= ROLE_CAP ? 'full' : 'open';
+      pillText = `${count}/${ROLE_CAP}`;
+    }
+    return `
+      <div class="role-card">
+        <span class="role-name">${role}</span>
+        <span class="role-count ${pillClass}">${pillText}</span>
+      </div>`;
+  }
 
   function renderRoles(counts){
-    rolesGrid.innerHTML = ROLES.map(role=>{
-      const count = counts[role] || 0;
-      const isCitizen = role === 'CIUDADANO';
-      let pillClass, pillText;
-      if(isCitizen){
-        pillClass = 'unlimited';
-        pillText = `${count} ciudadano${count === 1 ? '' : 's'}`;
-      }else{
-        pillClass = count >= ROLE_CAP ? 'full' : 'open';
-        pillText = `${count}/${ROLE_CAP}`;
-      }
-      return `
-        <div class="role-card">
-          <span class="role-name">${role}</span>
-          <span class="role-count ${pillClass}">${pillText}</span>
-        </div>`;
-    }).join('');
+    rolesGridGov.innerHTML = govRoles.map(role => roleCardHtml(role, counts)).join('');
+    rolesGridOther.innerHTML = otherRoles.map(role => roleCardHtml(role, counts)).join('');
   }
 
   const citizensRoleQuery = query(collection(db, 'citizens'), where('status', '==', 'citizen'));
@@ -561,7 +579,9 @@
     });
     renderRoles(counts);
   }, err=>{
-    rolesGrid.innerHTML = '<div class="roles-empty">No se pudo cargar la ocupación de roles. Revisa las reglas de Firestore.</div>';
+    const errMsg = '<div class="roles-empty">No se pudo cargar la ocupación de roles. Revisa las reglas de Firestore.</div>';
+    rolesGridGov.innerHTML = errMsg;
+    rolesGridOther.innerHTML = errMsg;
   });
 </script>
 
