@@ -46,6 +46,8 @@ export const ROLES = [
   'Ministerio de Justicia',
   'Ministerio de Inteligencia',
   'Ministerio de Educación',
+  'Ministerio de Vivienda',
+  'Ministerio de Salud',
   'Consejo del Arcade',
   'Guardia de Sentinelas',
   'Cronista de Mori-01',
