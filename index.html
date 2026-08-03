@@ -183,6 +183,14 @@
   }
   .roles-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:36px;}
   .roles-grid:last-of-type{margin-bottom:0;}
+  .roles-info-link{margin-top:28px;}
+  .roles-info-link a{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:13px; color:var(--accent-cyan);
+    border:1px solid rgba(6,182,212,.35); background:rgba(6,182,212,.06);
+    border-radius:6px; padding:12px 18px; transition:all .2s;
+  }
+  .roles-info-link a:hover{border-color:var(--accent-cyan); background:rgba(6,182,212,.12);}
   .role-card{
     background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:6px;
     padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -304,6 +312,7 @@
       <a href="./mori01-hazte-ciudadano.html">Hazte Ciudadano</a>
       <a href="./mori01-id-card.html">Mi Tarjeta</a>
       <a href="./mori01-galeria.html">Ciudadanos</a>
+      <a href="./mori01-roles.html">Ministerios</a>
     </nav>
     <a class="nav-cta" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">Entrar al Discord</a>
   </div>
@@ -375,6 +384,10 @@
 
     <h3 class="roles-subtitle">Otros roles</h3>
     <div class="roles-grid" id="rolesGridOther"></div>
+
+    <div class="roles-info-link">
+      <a href="./mori01-roles.html">¿Qué hace cada ministerio o rol? Ver el detalle completo →</a>
+    </div>
   </section>
 
   <!-- MUNDOS -->
