@@ -292,10 +292,17 @@
   // cuadrado, multiplicada por el factor de escala del sistema.
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
+  // La fórmula de pasos solo tiene sentido para puntos cercanos. Si la
+  // diferencia en grados ya es grande, los puntos están lejos de sobra —
+  // se descarta el choque sin necesidad de calcular pasos.
+  const MAX_DELTA_DEG = 2;
 
   function distanciaPasos(lat1, lon1, lat2, lon2){
     const diffLat = lat2 - lat1;
     const diffLon = lon2 - lon1;
+    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
+      return Infinity; // demasiado lejos, ni se calcula
+    }
     const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
     return distCoord * PASOS_FACTOR;
   }
