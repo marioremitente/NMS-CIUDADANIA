@@ -451,7 +451,7 @@
       for(const e of sameplanet){
         const d = distanciaPasos(lat, lon, e.lat, e.lon);
         if(d <= MIN_DISTANCE_PASOS){
-          showAlert(`Ese punto está ocupado por ${e.name} (~${Math.round(d)} pasos de distancia). Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
+          showAlert(`Ese punto está ocupado por ${e.name} (${e.id}) — a ~${Math.round(d)} pasos de distancia. Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Ser Ciudadano';
           return;
