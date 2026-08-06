@@ -40,6 +40,16 @@
   a{color:inherit;text-decoration:none;}
   :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:3px;}
 
+  .bg-logo{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    display:flex; align-items:center; justify-content:center;
+    opacity:.22;
+  }
+  .bg-logo img{
+    width:min(60vw, 820px);
+    -webkit-mask-image:radial-gradient(circle at center, black 45%, transparent 78%);
+    mask-image:radial-gradient(circle at center, black 45%, transparent 78%);
+  }
   .bg-grid{
     position:fixed; inset:0; z-index:0; pointer-events:none;
     background-image:
@@ -296,6 +306,7 @@
   </div>
 </div>
 
+<div class="bg-logo"><img src="./mori01-community-bg.png" alt=""></div>
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
