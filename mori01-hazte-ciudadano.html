@@ -102,6 +102,11 @@
   .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
   .btn-primary:hover:not(:disabled){background:#31cbe6;}
   .btn-primary:disabled{opacity:.35; cursor:not-allowed;}
+  .btn-ghost{
+    background:transparent; border-color:var(--border-bright); color:var(--text-primary);
+    width:100%; font-size:14px; text-align:center; display:block; text-decoration:none; box-sizing:border-box;
+  }
+  .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
   .alert{padding:13px 16px; border-radius:5px; font-size:13.5px; margin-bottom:18px; display:none;}
   .alert.show{display:block;}
@@ -111,12 +116,22 @@
   .progress-track{height:4px; background:var(--border-soft); border-radius:2px; overflow:hidden; margin-bottom:24px;}
   .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
 
-  /* registry */
-  .registry-row{padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
-  .registry-row:last-child{border-bottom:none;}
+  /* registry — agrupado por correo de Google (mismo correo = mismo ciudadano) */
+  .registry-group{padding:16px 0; border-bottom:1px solid var(--border-soft);}
+  .registry-group:last-child{border-bottom:none;}
+  .registry-group-name{
+    display:flex; align-items:center; gap:10px; font-weight:600; font-size:14.5px; margin-bottom:10px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .base-count{
+    font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border-radius:20px;
+    background:rgba(124,108,255,.12); border:1px solid rgba(124,108,255,.4); color:var(--accent-violet);
+    white-space:nowrap; flex-shrink:0;
+  }
+  .registry-row{padding:8px 0 8px 14px; border-left:2px solid var(--border-soft); font-size:13.5px; margin-bottom:6px;}
+  .registry-row:last-child{margin-bottom:0;}
   .registry-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:5px;}
   .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
-  .registry-name{font-weight:600; flex:1; min-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); display:block;}
   .status-pill{
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
@@ -143,7 +158,7 @@
 
   <p class="top-eyebrow">Registro de ciudadanía</p>
   <h1>Hazte Ciudadano</h1>
-  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade.</p>
+  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
 
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
 
@@ -263,13 +278,14 @@
 
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="submitBtn" disabled>Ser Ciudadano</button>
+      <a class="btn btn-ghost" href="./mori01-id-card.html" style="margin-top:10px;">Ver mi Tarjeta de Ciudadano</a>
       <p class="disclaimer">La comprobación de distancia usa las coordenadas del juego, convertidas a "pasos" con el mismo factor de escala del sistema (16.02747435) — es una validación orientativa, no exacta al metro.</p>
     </div>
 
     <!-- REGISTRY -->
     <div class="panel">
       <h2 id="registryTitle">Ciudadanía</h2>
-      <p class="sub">Prospectos y ciudadanos, visible para toda la comunidad.</p>
+      <p class="sub">Prospectos y ciudadanos, agrupados por correo de Google. Cada uno puede tener varias bases.</p>
       <div id="registryList"></div>
     </div>
 
@@ -404,24 +420,47 @@
     return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
   }
 
+  // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
+  // = mismo jugador, así que sus bases se muestran juntas. Si por alguna
+  // razón una solicitud antigua no tiene ownerEmail, se agrupa por su
+  // ownerUid, y como último recurso por nombre — para no perder registros
+  // viejos del listado.
+  function groupByPlayer(entries){
+    const map = new Map();
+    entries.forEach(e=>{
+      const key = e.ownerEmail || e.ownerUid || (e.name || '').trim().toLowerCase();
+      if(!map.has(key)) map.set(key, { name: e.name, bases: [] });
+      map.get(key).bases.push(e);
+    });
+    return Array.from(map.values());
+  }
+
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
     if(!entries.length){
       list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
       return;
     }
-    list.innerHTML = entries.map(e=>{
-      const planet = PLANETS.find(p=>p.i===e.planetIndex);
-      const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
-      const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+    const groups = groupByPlayer(entries);
+    list.innerHTML = groups.map(g=>{
+      const basesHtml = g.bases.map(e=>{
+        const planet = PLANETS.find(p=>p.i===e.planetIndex);
+        const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
+        const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+        return `
+          <div class="registry-row">
+            <div class="registry-top">
+              <span class="registry-id">${e.id}</span>
+              <span class="status-pill ${pillClass}">${pillText}</span>
+            </div>
+            <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+          </div>`;
+      }).join('');
+      const countBadge = g.bases.length > 1 ? `<span class="base-count">${g.bases.length} bases</span>` : '';
       return `
-        <div class="registry-row">
-          <div class="registry-top">
-            <span class="registry-id">${e.id}</span>
-            <span class="registry-name">${escapeHtml(e.name)}</span>
-            <span class="status-pill ${pillClass}">${pillText}</span>
-          </div>
-          <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+        <div class="registry-group">
+          <div class="registry-group-name">${escapeHtml(g.name)}${countBadge}</div>
+          ${basesHtml}
         </div>`;
     }).join('');
   }
@@ -473,7 +512,8 @@
         friendCode: document.getElementById('friendCode').value.trim() || '',
         status: 'pending',
         ts: Date.now(),
-        ownerUid: currentUser.uid
+        ownerUid: currentUser.uid,
+        ownerEmail: currentUser.email || ''
       };
       await addDoc(citizensCol, newEntry);
       showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
