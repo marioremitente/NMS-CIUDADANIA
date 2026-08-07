@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -310,6 +309,7 @@
         ? `<div class="reg-reason">Motivo: ${escapeHtml(e.rejectionReason)}</div>` : '';
       const extraHtml = `
         <div class="reg-extra">
+          <span><b>Correo</b> · ${e.ownerEmail ? escapeHtml(e.ownerEmail) : '—'}</span>
           <span><b>Profesión</b> · ${e.profession ? escapeHtml(e.profession) : '—'}</span>
           <span><b>Plataforma</b> · ${e.platform ? escapeHtml(e.platform) : '—'}</span>
           <span><b>Código de amigo</b> · ${e.friendCode ? escapeHtml(e.friendCode) : '—'}</span>
