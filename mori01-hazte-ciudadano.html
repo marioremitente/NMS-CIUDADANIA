@@ -98,6 +98,20 @@
   .planet-choice .pname{font-size:12.5px; font-weight:600;}
   .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
+  /* foto de la base (opcional, al registrar) */
+  .file-btn{
+    font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
+    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-primary);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .file-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .photo-preview{
+    width:110px; height:110px; border-radius:6px; overflow:hidden; margin-top:10px;
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); display:none;
+  }
+  .photo-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-preview.show{display:block;}
+
   .btn{font-weight:600; letter-spacing:.03em; padding:13px 24px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
   .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
   .btn-primary:hover:not(:disabled){background:#31cbe6;}
@@ -276,10 +290,20 @@
       </div>
       <p class="hint">Estos tres se usan para autocompletar tu Tarjeta de Ciudadano más adelante.</p>
 
+      <div class="field">
+        <label>Foto de tu base (opcional)</label>
+        <label class="file-btn" for="basePhotoInput">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+          Elegir imagen
+        </label>
+        <input type="file" id="basePhotoInput" accept="image/*" style="display:none">
+        <div class="photo-preview" id="photoPreview"><img id="photoPreviewImg" alt=""></div>
+        <p class="hint">JPG o PNG, máximo 5MB. Queda pendiente de aprobación del Arcade antes de salir en la galería pública — puedes agregarla o cambiarla luego desde tu Tarjeta de Ciudadano.</p>
+      </div>
+
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="submitBtn" disabled>Ser Ciudadano</button>
       <a class="btn btn-ghost" href="./mori01-id-card.html" style="margin-top:10px;">Ver mi Tarjeta de Ciudadano</a>
-      <p class="disclaimer">La comprobación de distancia usa las coordenadas del juego, convertidas a "pasos" con el mismo factor de escala del sistema (16.02747435) — es una validación orientativa, no exacta al metro.</p>
     </div>
 
     <!-- REGISTRY -->
@@ -293,16 +317,20 @@
 </div>
 
 <script type="module">
-  import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
+  import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
-    collection, addDoc, getDocs, query, where, orderBy, onSnapshot
+    collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    ref, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
+  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
 
   // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
   // cuadrado, multiplicada por el factor de escala del sistema.
@@ -358,6 +386,20 @@
     updateProgress();
   });
 
+  // ---------- CONTADOR DE USO DE STORAGE ----------
+  async function addStorageUsage(bytes){
+    const usageRef = doc(db, 'meta', 'storageUsage');
+    try{
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(usageRef);
+        const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
+        tx.update(usageRef, { bytesUsed: current + bytes });
+      });
+    }catch(e){
+      console.warn('No se pudo actualizar el contador de uso de Storage', e);
+    }
+  }
+
   // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
   const planetPicker = document.getElementById('planetPicker');
@@ -377,6 +419,30 @@
       card.classList.add('selected');
     });
     planetPicker.appendChild(card);
+  });
+
+  // ---------- FOTO OPCIONAL ----------
+  const basePhotoInput = document.getElementById('basePhotoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  const photoPreviewImg = document.getElementById('photoPreviewImg');
+  let selectedPhotoFile = null;
+
+  basePhotoInput.addEventListener('change', ()=>{
+    const file = basePhotoInput.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      showAlert('Solo se permiten imágenes.', 'error');
+      basePhotoInput.value = '';
+      return;
+    }
+    if(file.size > MAX_FILE_BYTES){
+      showAlert('La imagen pesa más de 5MB. Usa una más liviana.', 'error');
+      basePhotoInput.value = '';
+      return;
+    }
+    selectedPhotoFile = file;
+    photoPreviewImg.src = URL.createObjectURL(file);
+    photoPreview.classList.add('show');
   });
 
   const checkboxes = ['m1','m2','m3','m4','m5'].map(id=>document.getElementById(id));
@@ -421,10 +487,7 @@
   }
 
   // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
-  // = mismo jugador, así que sus bases se muestran juntas. Si por alguna
-  // razón una solicitud antigua no tiene ownerEmail, se agrupa por su
-  // ownerUid, y como último recurso por nombre — para no perder registros
-  // viejos del listado.
+  // = mismo jugador, así que sus bases se muestran juntas.
   function groupByPlayer(entries){
     const map = new Map();
     entries.forEach(e=>{
@@ -515,8 +578,26 @@
         ownerUid: currentUser.uid,
         ownerEmail: currentUser.email || ''
       };
-      await addDoc(citizensCol, newEntry);
-      showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
+      const docRef = await addDoc(citizensCol, newEntry);
+
+      // Si eligió foto, se sube después de crear el registro (necesitamos
+      // el ID del documento para nombrar el archivo). Si esto falla, la
+      // base ya quedó registrada de todas formas — solo avisamos.
+      if(selectedPhotoFile){
+        try{
+          const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+          const storageRef = ref(storage, `bases/${docRef.id}.${ext}`);
+          await uploadBytes(storageRef, selectedPhotoFile);
+          const url = await getDownloadURL(storageRef);
+          await updateDoc(doc(db, 'citizens', docRef.id), { photoUrl: url, photoStatus: 'pending' });
+          addStorageUsage(selectedPhotoFile.size);
+          showAlert(`Solicitud enviada como ${newEntry.id}, con foto pendiente de aprobación. Esperando decisión del Arcade.`, 'ok');
+        }catch(photoErr){
+          showAlert(`Solicitud enviada como ${newEntry.id}, pero la foto no se pudo subir. Puedes intentarlo de nuevo desde tu Tarjeta de Ciudadano.`, 'error');
+        }
+      }else{
+        showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
+      }
     }catch(e){
       showAlert('No se pudo enviar el registro. Revisa las reglas de Firestore o tu conexión.', 'error');
     }
