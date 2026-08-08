@@ -3,6 +3,7 @@
 // de Firestore y, para el panel de admin, la autenticación por correo.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -19,6 +20,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+// Fotos de bases (galería). Requiere que Storage esté activado en la
+// consola de Firebase y que las reglas de Storage permitan la subida
+// (ver mori01-galeria.html para el detalle de qué reglas necesita).
+export const storage = getStorage(app);
 
 const googleProvider = new GoogleAuthProvider();
 
