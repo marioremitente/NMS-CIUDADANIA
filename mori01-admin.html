@@ -236,6 +236,14 @@
   const loginView = document.getElementById('loginView');
   const adminView = document.getElementById('adminView');
 
+  // Mismos correos que reconoce isAdmin() en firestore.rules. Esto NO es lo
+  // que protege los datos (eso lo hacen las reglas del servidor) — es solo
+  // para decidir qué pantalla mostrar. Si alguien con sesión de Google ya
+  // iniciada (por ejemplo desde "Hazte Ciudadano") entra a esta página, no
+  // debe ver el panel aunque las reglas igual le bloquearían cualquier
+  // intento de editar algo.
+  const ADMIN_EMAILS = ['remitente2008@gmail.com', 'moringostv@gmail.com'];
+
   let allEntries = [];
   let currentFilter = 'all';
   let unsubscribe = null;
@@ -268,17 +276,24 @@
   });
 
   onAuthStateChanged(auth, user=>{
-    if(user){
+    if(user && ADMIN_EMAILS.includes(user.email)){
       loginView.style.display = 'none';
       adminView.style.display = 'block';
       document.getElementById('whoami').textContent = user.email;
       subscribeRegistry();
       subscribeUsage();
     }else{
-      loginView.style.display = 'block';
-      adminView.style.display = 'none';
       if(unsubscribe){ unsubscribe(); unsubscribe = null; }
       if(unsubscribeUsage){ unsubscribeUsage(); unsubscribeUsage = null; }
+      loginView.style.display = 'block';
+      adminView.style.display = 'none';
+      if(user){
+        // Sesión válida (ej. Google, de otra página del sitio) pero no es
+        // un correo admin — la cerramos para que el formulario de abajo
+        // pueda iniciar sesión limpio con correo/contraseña.
+        signOut(auth);
+        showLoginAlert('Esta cuenta no tiene acceso al panel de administración.');
+      }
     }
   });
 
