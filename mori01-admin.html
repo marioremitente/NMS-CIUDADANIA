@@ -244,7 +244,7 @@
     signInWithEmailAndPassword, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    ref, uploadBytes, getDownloadURL
+    ref, uploadBytes, getDownloadURL, deleteObject, getMetadata
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   document.title = `Panel de Administración · ${SYSTEM_INFO.shortName}`;
@@ -533,6 +533,7 @@
   function baseItemHtml({kind, docId, planetName, lat, lon, photoUrl, photoStatus, label}){
     const thumb = photoUrl ? `<div class="bi-thumb"><img src="${photoUrl}" alt=""></div>` : '';
     const pill = photoUrl ? photoStatusPillHtml(photoStatus) : '';
+    const deleteBtn = photoUrl ? `<button class="act-btn delete bi-delete">Eliminar foto</button>` : '';
     return `
       <div class="base-item" data-upload-target data-kind="${kind}" data-doc="${docId}">
         <div class="bi-meta"><b>${label}</b> · ${planetName} · ${lat}, ${lon} ${pill}</div>
@@ -540,6 +541,7 @@
         <div class="upload-row" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <label class="act-btn" style="cursor:pointer;">Elegir imagen<input type="file" accept="image/*" style="display:none" class="bi-file"></label>
           <button class="act-btn approve bi-upload" disabled>${photoUrl ? 'Cambiar foto' : 'Subir foto'}</button>
+          ${deleteBtn}
         </div>
       </div>`;
   }
@@ -594,6 +596,50 @@
         uploadBtn.textContent = 'Subir foto';
       }
     });
+
+    const deleteBtn = row.querySelector('.bi-delete');
+    if(deleteBtn){
+      deleteBtn.addEventListener('click', async ()=>{
+        if(!confirm('¿Eliminar esta foto? Deja de verse en la galería pública. Esta acción no se puede deshacer.')) return;
+        const kind = row.dataset.kind;
+        const docId = row.dataset.doc;
+        const targetCol = kind === 'citizen' ? 'citizens' : 'citizenBases';
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Eliminando…';
+        try{
+          const imgSrc = row.querySelector('.bi-thumb img')?.getAttribute('src');
+          let freedBytes = 0;
+          if(imgSrc){
+            const fileRef = ref(storage, imgSrc);
+            try{
+              const meta = await getMetadata(fileRef);
+              freedBytes = meta.size || 0;
+            }catch(metaErr){
+              console.warn('No se pudo leer el tamaño del archivo antes de borrarlo', metaErr);
+            }
+            try{ await deleteObject(fileRef); }
+            catch(storageErr){
+              // El archivo puede ya no existir en Storage (borrado a mano
+              // desde la consola, por ejemplo) — no bloqueamos por eso,
+              // igual limpiamos los campos en Firestore.
+              console.warn('No se pudo borrar el archivo en Storage (puede que ya no exista):', storageErr);
+            }
+          }
+          await updateDoc(doc(db, targetCol, docId), { photoUrl: null, photoStatus: null });
+          if(freedBytes > 0){
+            // Solo el admin puede bajar este contador (ver isAdmin() en
+            // la regla de meta/storageUsage) — por eso este descuento
+            // solo ocurre desde este panel.
+            addStorageUsage(-freedBytes);
+          }
+          showAdminAlert('Foto eliminada.', 'ok');
+        }catch(e){
+          showAdminAlert('No se pudo eliminar la foto. Revisa las reglas de Firestore.', 'error');
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = 'Eliminar foto';
+        }
+      });
+    }
   }
 
   function newBaseFormHtml(citizen){
