@@ -61,6 +61,7 @@
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
+  const basesCol = collection(db, 'citizenBases');
 
   function escapeHtml(s){
     const d = document.createElement('div');
@@ -74,7 +75,8 @@
       grid.innerHTML = '<div class="empty-state">Todavía no hay fotos aprobadas. ¡Sube la tuya desde tu Tarjeta de Ciudadano!</div>';
       return;
     }
-    grid.innerHTML = entries.map(e=>{
+    const sorted = [...entries].sort((a,b)=> (b.ts||0) - (a.ts||0));
+    grid.innerHTML = sorted.map(e=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       return `
         <div class="gallery-card">
@@ -87,14 +89,31 @@
     }).join('');
   }
 
-  // Solo fotos aprobadas por el admin — no basta con que existan.
-  const q = query(citizensCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
-  onSnapshot(q, snap=>{
-    const entries = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
-    renderGallery(entries);
+  // Se combinan las fotos aprobadas de ambas colecciones: la ciudadanía
+  // original (citizens) y las bases adicionales (citizenBases) — cada
+  // jugador puede tener más de una base con foto propia.
+  let citizenPhotos = [];
+  let basePhotos = [];
+
+  function repaint(){
+    renderGallery([...citizenPhotos, ...basePhotos]);
+  }
+
+  const q1 = query(citizensCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
+  onSnapshot(q1, snap=>{
+    citizenPhotos = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
+    repaint();
   }, err=>{
     document.getElementById('galleryGrid').innerHTML =
       '<div class="empty-state">No se pudo cargar la galería. Revisa las reglas o el índice de Firestore.</div>';
+  });
+
+  const q2 = query(basesCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
+  onSnapshot(q2, snap=>{
+    basePhotos = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
+    repaint();
+  }, err=>{
+    console.warn('No se pudieron cargar las fotos de bases adicionales', err);
   });
 </script>
 </body>
