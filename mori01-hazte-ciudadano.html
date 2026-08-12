@@ -126,12 +126,16 @@
   .progress-track{height:4px; background:var(--border-soft); border-radius:2px; overflow:hidden; margin-bottom:24px;}
   .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
 
-  /* registry */
-  .registry-row{display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
+  /* registry — diseño de dos líneas para que no se encime nada */
+  .registry-row{display:flex; flex-direction:column; gap:5px; padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
   .registry-row:last-child{border-bottom:none;}
-  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; width:78px; flex-shrink:0;}
-  .registry-name{font-weight:600; flex:1; min-width:0;}
-  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); flex-shrink:0;}
+  .registry-top{display:flex; align-items:center; gap:10px;}
+  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
+  .registry-name{
+    font-weight:600; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono);}
   .status-pill{
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
     background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold); white-space:nowrap;
@@ -507,10 +511,12 @@
       const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
       return `
         <div class="registry-row">
-          <span class="registry-id">${e.id}</span>
-          <span class="registry-name">${escapeHtml(e.name)}</span>
+          <div class="registry-top">
+            <span class="registry-id">${e.id}</span>
+            <span class="registry-name">${escapeHtml(e.name)}</span>
+            <span class="status-pill ${pillClass}">${pillText}</span>
+          </div>
           <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
-          <span class="status-pill ${pillClass}">${pillText}</span>
         </div>`;
     }).join('');
   }
