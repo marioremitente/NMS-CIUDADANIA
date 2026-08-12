@@ -30,7 +30,7 @@
   .gallery-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:18px;}
   .gallery-card{
     background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:6px; overflow:hidden;
-    transition:border-color .2s, transform .2s;
+    transition:border-color .2s, transform .2s; cursor:pointer;
   }
   .gallery-card:hover{border-color:var(--accent-cyan); transform:translateY(-3px);}
   .gallery-card .gimg{width:100%; aspect-ratio:1; background:var(--bg-panel-2); overflow:hidden;}
@@ -39,6 +39,29 @@
   .gallery-card .gname{font-weight:600; font-size:13.5px; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .gallery-card .gplanet{font-size:11.5px; color:var(--accent-cyan); font-family:var(--font-mono);}
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:60px 0; font-family:var(--font-mono);}
+
+  /* visor (lightbox) */
+  .lightbox{
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(4,5,9,.92); backdrop-filter:blur(4px);
+    align-items:center; justify-content:center; padding:32px;
+    flex-direction:column; gap:16px;
+  }
+  .lightbox.show{display:flex;}
+  .lightbox img{
+    max-width:min(90vw, 900px); max-height:75vh; object-fit:contain;
+    border-radius:8px; border:1px solid var(--border-bright);
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.8);
+  }
+  .lightbox-info{text-align:center;}
+  .lightbox-info .gname{font-weight:600; font-size:16px;}
+  .lightbox-info .gplanet{font-size:12.5px; color:var(--accent-cyan); font-family:var(--font-mono); margin-top:2px;}
+  .lightbox-close{
+    position:absolute; top:20px; right:24px; background:none; border:1px solid var(--border-bright);
+    color:var(--text-primary); width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:18px;
+    display:flex; align-items:center; justify-content:center; transition:all .15s;
+  }
+  .lightbox-close:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 </style>
 </head>
 <body>
@@ -47,10 +70,19 @@
   <a class="back-link" href="./index.html" id="backLink">← Volver</a>
   <p class="top-eyebrow">Galería de la comunidad</p>
   <h1>Ciudadanos y sus bases</h1>
-  <p class="lede">Fotos de las bases de la comunidad, aprobadas por el Arcade. ¿Quieres subir la tuya? Ve a "Mi Tarjeta de Ciudadano" y busca tu base por su ID.</p>
+  <p class="lede">Fotos de las bases de la comunidad, aprobadas por el Arcade. Haz clic en cualquiera para verla en grande. ¿Quieres subir la tuya? Ve a "Mi Tarjeta de Ciudadano" y busca tu base por su ID.</p>
 
   <div id="galleryGrid" class="gallery-grid"></div>
 
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">✕</button>
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-info">
+    <div class="gname" id="lightboxName"></div>
+    <div class="gplanet" id="lightboxPlanet"></div>
+  </div>
 </div>
 
 <script type="module">
@@ -69,6 +101,27 @@
     return d.innerHTML;
   }
 
+  // ---------- VISOR (LIGHTBOX) ----------
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxName = document.getElementById('lightboxName');
+  const lightboxPlanet = document.getElementById('lightboxPlanet');
+
+  function openLightbox(photoUrl, name, planetName){
+    lightboxImg.src = photoUrl;
+    lightboxImg.alt = `Base de ${name}`;
+    lightboxName.textContent = name;
+    lightboxPlanet.textContent = planetName;
+    lightbox.classList.add('show');
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('show');
+    lightboxImg.src = '';
+  }
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e=>{ if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeLightbox(); });
+
   function renderGallery(entries){
     const grid = document.getElementById('galleryGrid');
     if(!entries.length){
@@ -76,10 +129,10 @@
       return;
     }
     const sorted = [...entries].sort((a,b)=> (b.ts||0) - (a.ts||0));
-    grid.innerHTML = sorted.map(e=>{
+    grid.innerHTML = sorted.map((e,i)=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       return `
-        <div class="gallery-card">
+        <div class="gallery-card" data-idx="${i}">
           <div class="gimg"><img src="${e.photoUrl}" alt="Base de ${escapeHtml(e.name)}" loading="lazy"></div>
           <div class="ginfo">
             <div class="gname">${escapeHtml(e.name)}</div>
@@ -87,11 +140,14 @@
           </div>
         </div>`;
     }).join('');
+
+    grid.querySelectorAll('.gallery-card').forEach(card=>{
+      const e = sorted[parseInt(card.dataset.idx, 10)];
+      const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      card.addEventListener('click', ()=> openLightbox(e.photoUrl, e.name, planet ? planet.name : '—'));
+    });
   }
 
-  // Se combinan las fotos aprobadas de ambas colecciones: la ciudadanía
-  // original (citizens) y las bases adicionales (citizenBases) — cada
-  // jugador puede tener más de una base con foto propia.
   let citizenPhotos = [];
   let basePhotos = [];
 
