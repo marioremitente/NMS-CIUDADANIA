@@ -56,16 +56,6 @@
   }
   .signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
-  /* banner de ciudadanía existente */
-  .citizenship-banner{
-    display:none;
-    background:rgba(6,182,212,.07); border:1px solid rgba(6,182,212,.35); border-radius:6px;
-    padding:16px 18px; margin-bottom:24px; font-size:13px; color:var(--text-muted); line-height:1.6;
-  }
-  .citizenship-banner.show{display:block;}
-  .citizenship-banner b{color:var(--text-primary);}
-  .citizenship-banner .cb-id{font-family:var(--font-mono); color:var(--accent-gold);}
-
   /* checklist */
   .mission{display:flex; align-items:flex-start; gap:14px; padding:14px 0; border-bottom:1px solid var(--border-soft);}
   .mission:last-child{border-bottom:none;}
@@ -108,6 +98,20 @@
   .planet-choice .pname{font-size:12.5px; font-weight:600;}
   .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
+  /* foto de la base (opcional, al registrar) */
+  .file-btn{
+    font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
+    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-primary);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .file-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .photo-preview{
+    width:110px; height:110px; border-radius:6px; overflow:hidden; margin-top:10px;
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); display:none;
+  }
+  .photo-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-preview.show{display:block;}
+
   .btn{font-weight:600; letter-spacing:.03em; padding:13px 24px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
   .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
   .btn-primary:hover:not(:disabled){background:#31cbe6;}
@@ -126,16 +130,23 @@
   .progress-track{height:4px; background:var(--border-soft); border-radius:2px; overflow:hidden; margin-bottom:24px;}
   .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
 
-  /* registry — diseño de dos líneas para que no se encime nada */
-  .registry-row{display:flex; flex-direction:column; gap:5px; padding:14px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;}
-  .registry-row:last-child{border-bottom:none;}
-  .registry-top{display:flex; align-items:center; gap:10px;}
-  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
-  .registry-name{
-    font-weight:600; flex:1; min-width:0;
+  /* registry — agrupado por correo de Google (mismo correo = mismo ciudadano) */
+  .registry-group{padding:16px 0; border-bottom:1px solid var(--border-soft);}
+  .registry-group:last-child{border-bottom:none;}
+  .registry-group-name{
+    display:flex; align-items:center; gap:10px; font-weight:600; font-size:14.5px; margin-bottom:10px;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono);}
+  .base-count{
+    font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border-radius:20px;
+    background:rgba(124,108,255,.12); border:1px solid rgba(124,108,255,.4); color:var(--accent-violet);
+    white-space:nowrap; flex-shrink:0;
+  }
+  .registry-row{padding:8px 0 8px 14px; border-left:2px solid var(--border-soft); font-size:13.5px; margin-bottom:6px;}
+  .registry-row:last-child{margin-bottom:0;}
+  .registry-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:5px;}
+  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
+  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); display:block;}
   .status-pill{
     font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
     background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold); white-space:nowrap;
@@ -161,9 +172,9 @@
 
   <p class="top-eyebrow">Registro de ciudadanía</p>
   <h1>Hazte Ciudadano</h1>
-  <p class="lede" id="pageLede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade.</p>
+  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
 
-  <div class="progress-track" id="progressWrap"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
 
   <div class="layout">
 
@@ -178,42 +189,38 @@
         </button>
       </div>
 
-      <div class="citizenship-banner" id="citizenshipBanner"></div>
+      <h2>Checklist de misiones</h2>
+      <p class="sub">Sistema de honor: márcalas cuando ya las hayas completado en el juego.</p>
 
-      <div id="missionsSection">
-        <h2>Checklist de misiones</h2>
-        <p class="sub">Sistema de honor: márcalas cuando ya las hayas completado en el juego.</p>
-
-        <div class="mission">
-          <input type="checkbox" id="m1">
-          <label for="m1"><b>1. Entra al Discord del canal</b><span>Es requisito para todo lo demás. <a class="inline-link" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">discord.gg/EhDc6ydhMq</a></span></label>
-        </div>
-        <div class="mission">
-          <input type="checkbox" id="m2">
-          <label for="m2"><b>2. Elige uno de los 6 planetas</b><span>Lo seleccionas abajo, en el formulario.</span></label>
-        </div>
-        <div class="mission">
-          <input type="checkbox" id="m3">
-          <label for="m3"><b>3. Reporta la ubicación de tu base</b><span>Coordenadas exactas, abajo.</span></label>
-        </div>
-        <div class="mission">
-          <input type="checkbox" id="m4">
-          <label for="m4"><b>4. Construye tu base</b><span>En el planeta y punto que registraste.</span></label>
-        </div>
-        <div class="mission">
-          <input type="checkbox" id="m5">
-          <label for="m5"><b>5. Publica la base en la red</b><span>Desde la computadora de base, en el juego.</span></label>
-        </div>
-
-        <div style="height:24px"></div>
+      <div class="mission">
+        <input type="checkbox" id="m1">
+        <label for="m1"><b>1. Entra al Discord del canal</b><span>Es requisito para todo lo demás. <a class="inline-link" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">discord.gg/EhDc6ydhMq</a></span></label>
+      </div>
+      <div class="mission">
+        <input type="checkbox" id="m2">
+        <label for="m2"><b>2. Elige uno de los 6 planetas</b><span>Lo seleccionas abajo, en el formulario.</span></label>
+      </div>
+      <div class="mission">
+        <input type="checkbox" id="m3">
+        <label for="m3"><b>3. Reporta la ubicación de tu base</b><span>Coordenadas exactas, abajo.</span></label>
+      </div>
+      <div class="mission">
+        <input type="checkbox" id="m4">
+        <label for="m4"><b>4. Construye tu base</b><span>En el planeta y punto que registraste.</span></label>
+      </div>
+      <div class="mission">
+        <input type="checkbox" id="m5">
+        <label for="m5"><b>5. Publica la base en la red</b><span>Desde la computadora de base, en el juego.</span></label>
       </div>
 
-      <h2 id="settlementTitle">Datos del asentamiento</h2>
-      <p class="sub" id="settlementSub">Se validan contra la base de datos para evitar choques con otro ciudadano.</p>
+      <div style="height:24px"></div>
+
+      <h2>Datos del asentamiento</h2>
+      <p class="sub">Se validan contra la base de datos para evitar choques con otro ciudadano.</p>
 
       <div id="alertBox" class="alert"></div>
 
-      <div class="field" id="playerNameField">
+      <div class="field">
         <label for="playerName">Nombre de jugador</label>
         <input type="text" id="playerName" placeholder="Tu nombre en el juego">
       </div>
@@ -236,7 +243,7 @@
       </div>
       <p class="hint">Formato del juego: signo, grados, dos decimales. Ej: +14.32, -21.96</p>
 
-      <div class="field-row" id="extraFieldsRow">
+      <div class="field-row">
         <div class="field">
           <label for="professionSelect">Profesión (opcional)</label>
           <select id="professionSelect">
@@ -277,22 +284,32 @@
           </select>
         </div>
       </div>
-      <div class="field" id="friendCodeField">
+      <div class="field">
         <label for="friendCode">Código de amigo (opcional)</label>
         <input type="text" id="friendCode" placeholder="0000-0000-00000">
       </div>
-      <p class="hint" id="extraHint">Estos tres se usan para autocompletar tu Tarjeta de Ciudadano más adelante.</p>
+      <p class="hint">Estos tres se usan para autocompletar tu Tarjeta de Ciudadano más adelante.</p>
+
+      <div class="field">
+        <label>Foto de tu base (opcional)</label>
+        <label class="file-btn" for="basePhotoInput">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+          Elegir imagen
+        </label>
+        <input type="file" id="basePhotoInput" accept="image/*" style="display:none">
+        <div class="photo-preview" id="photoPreview"><img id="photoPreviewImg" alt=""></div>
+        <p class="hint">JPG o PNG, máximo 5MB. Queda pendiente de aprobación del Arcade antes de salir en la galería pública — puedes agregarla o cambiarla luego desde tu Tarjeta de Ciudadano.</p>
+      </div>
 
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="submitBtn" disabled>Ser Ciudadano</button>
       <a class="btn btn-ghost" href="./mori01-id-card.html" style="margin-top:10px;">Ver mi Tarjeta de Ciudadano</a>
-      <p class="disclaimer">La distancia se calcula en pasos del juego a partir de la diferencia de coordenadas — es una validación orientativa, no exacta al paso.</p>
     </div>
 
     <!-- REGISTRY -->
     <div class="panel">
       <h2 id="registryTitle">Ciudadanía</h2>
-      <p class="sub">Prospectos y ciudadanos, visible para toda la comunidad.</p>
+      <p class="sub">Prospectos y ciudadanos, agrupados por correo de Google. Cada uno puede tener varias bases.</p>
       <div id="registryList"></div>
     </div>
 
@@ -300,32 +317,35 @@
 </div>
 
 <script type="module">
-  import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
+  import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
-    collection, addDoc, getDocs, query, where, orderBy, onSnapshot, limit
+    collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    ref, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
-  // Bases adicionales de un ciudadano ya registrado — documento aparte, no
-  // toca nunca el registro original en `citizens`.
-  const basesCol = collection(db, 'citizenBases');
+  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
 
-  // Distancia en "pasos" del juego: raíz cuadrada de la diferencia de
-  // coordenadas al cuadrado, multiplicada por el factor de escala del
-  // sistema. Reemplaza el cálculo anterior en metros.
+  // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
+  // cuadrado, multiplicada por el factor de escala del sistema.
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
+  // La fórmula de pasos solo tiene sentido para puntos cercanos. Si la
+  // diferencia en grados ya es grande, los puntos están lejos de sobra —
+  // se descarta el choque sin necesidad de calcular pasos.
   const MAX_DELTA_DEG = 2;
 
   function distanciaPasos(lat1, lon1, lat2, lon2){
     const diffLat = lat2 - lat1;
     const diffLon = lon2 - lon1;
     if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
-      return Infinity;
+      return Infinity; // demasiado lejos, ni se calcula
     }
     const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
     return distCoord * PASOS_FACTOR;
@@ -334,7 +354,6 @@
   // ---------- AUTH ----------
   const authBox = document.getElementById('authBox');
   let currentUser = null;
-  let myCitizenship = null; // doc de `citizens` con ownerUid == currentUser.uid, si existe
 
   function renderAuthBox(){
     if(currentUser){
@@ -361,72 +380,43 @@
     }
   }
 
-  // ---------- DETECCIÓN DE CIUDADANÍA EXISTENTE ----------
-  const banner = document.getElementById('citizenshipBanner');
-  const missionsSection = document.getElementById('missionsSection');
-  const progressWrap = document.getElementById('progressWrap');
-  const playerNameField = document.getElementById('playerNameField');
-  const extraFieldsRow = document.getElementById('extraFieldsRow');
-  const friendCodeField = document.getElementById('friendCodeField');
-  const extraHint = document.getElementById('extraHint');
-  const settlementTitle = document.getElementById('settlementTitle');
-  const settlementSub = document.getElementById('settlementSub');
-
-  async function checkExistingCitizenship(uid){
-    const q = query(citizensCol, where('ownerUid', '==', uid), orderBy('ts', 'asc'), limit(1));
-    const snap = await getDocs(q);
-    myCitizenship = snap.empty ? null : { docId: snap.docs[0].id, ...snap.docs[0].data() };
-    applyCitizenshipMode();
-  }
-
-  function applyCitizenshipMode(){
-    if(myCitizenship){
-      const planet = PLANETS.find(p=>p.i===myCitizenship.planetIndex);
-      const statusText = myCitizenship.status==='citizen' ? 'Ciudadano'
-        : myCitizenship.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
-      banner.innerHTML = `
-        Ya tienes una ciudadanía registrada como <b>${escapeHtml(myCitizenship.name)}</b>
-        en <b>${planet ? planet.name : '—'}</b> — ID <span class="cb-id">${myCitizenship.id}</span> ·
-        Estado: <b>${statusText}</b>.<br>
-        Tus datos originales no se van a modificar. Si construiste otra base, completa solo el
-        planeta y las coordenadas de abajo para agregarla a tu registro.
-      `;
-      banner.classList.add('show');
-
-      missionsSection.style.display = 'none';
-      progressWrap.style.display = 'none';
-      playerNameField.style.display = 'none';
-      extraFieldsRow.style.display = 'none';
-      friendCodeField.style.display = 'none';
-      extraHint.style.display = 'none';
-      settlementTitle.textContent = 'Agregar otra base';
-      settlementSub.textContent = 'Se valida contra la base de datos para evitar choques con otro ciudadano.';
-      document.getElementById('submitBtn').textContent = 'Agregar esta base';
-    }else{
-      banner.classList.remove('show');
-      missionsSection.style.display = '';
-      progressWrap.style.display = '';
-      playerNameField.style.display = '';
-      extraFieldsRow.style.display = '';
-      friendCodeField.style.display = '';
-      extraHint.style.display = '';
-      settlementTitle.textContent = 'Datos del asentamiento';
-      settlementSub.textContent = 'Se validan contra la base de datos para evitar choques con otro ciudadano.';
-      document.getElementById('submitBtn').textContent = 'Ser Ciudadano';
-    }
-    updateProgress();
-  }
-
-  onAuthStateChanged(auth, async user=>{
+  onAuthStateChanged(auth, user=>{
     currentUser = user;
-    myCitizenship = null;
     renderAuthBox();
-    if(user){
-      await checkExistingCitizenship(user.uid);
-    }else{
-      applyCitizenshipMode();
-    }
+    updateProgress();
+    if(user) redirectIfAlreadyCitizen(user.uid);
   });
+
+  // Si esta cuenta de Google ya tiene alguna base registrada, este
+  // formulario ya no es el lugar — lo mandamos a "Mi Ciudadanía", donde
+  // puede agregar otra base sin repetir el checklist. Si nunca ha
+  // registrado nada, se queda aquí para hacerlo por primera vez.
+  async function redirectIfAlreadyCitizen(uid){
+    try{
+      const q = query(citizensCol, where('ownerUid', '==', uid));
+      const snap = await getDocs(q);
+      if(!snap.empty){
+        window.location.href = './mori01-mi-ciudadania.html';
+      }
+    }catch(e){
+      // Si falla la consulta, no bloqueamos nada — se queda en el
+      // formulario normal como si fuera su primer registro.
+    }
+  }
+
+  // ---------- CONTADOR DE USO DE STORAGE ----------
+  async function addStorageUsage(bytes){
+    const usageRef = doc(db, 'meta', 'storageUsage');
+    try{
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(usageRef);
+        const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
+        tx.update(usageRef, { bytesUsed: current + bytes });
+      });
+    }catch(e){
+      console.warn('No se pudo actualizar el contador de uso de Storage', e);
+    }
+  }
 
   // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
@@ -449,15 +439,35 @@
     planetPicker.appendChild(card);
   });
 
+  // ---------- FOTO OPCIONAL ----------
+  const basePhotoInput = document.getElementById('basePhotoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  const photoPreviewImg = document.getElementById('photoPreviewImg');
+  let selectedPhotoFile = null;
+
+  basePhotoInput.addEventListener('change', ()=>{
+    const file = basePhotoInput.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      showAlert('Solo se permiten imágenes.', 'error');
+      basePhotoInput.value = '';
+      return;
+    }
+    if(file.size > MAX_FILE_BYTES){
+      showAlert('La imagen pesa más de 5MB. Usa una más liviana.', 'error');
+      basePhotoInput.value = '';
+      return;
+    }
+    selectedPhotoFile = file;
+    photoPreviewImg.src = URL.createObjectURL(file);
+    photoPreview.classList.add('show');
+  });
+
   const checkboxes = ['m1','m2','m3','m4','m5'].map(id=>document.getElementById(id));
   const progressFill = document.getElementById('progressFill');
   const submitBtn = document.getElementById('submitBtn');
 
   function updateProgress(){
-    if(myCitizenship){
-      submitBtn.disabled = !currentUser;
-      return;
-    }
     const checked = checkboxes.filter(c=>c.checked).length;
     progressFill.style.width = (checked/checkboxes.length*100)+'%';
     submitBtn.disabled = checked < checkboxes.length || !currentUser;
@@ -488,15 +498,22 @@
     });
   }
 
-  // Choques de distancia: se revisan tanto las ciudadanías (`citizens`) como
-  // las bases adicionales (`citizenBases`) en el mismo planeta.
   async function fetchSamePlanet(planetIndex){
-    const q1 = query(citizensCol, where('planetIndex', '==', planetIndex));
-    const q2 = query(basesCol, where('planetIndex', '==', planetIndex));
-    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const citizenPoints = snap1.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
-    const basePoints = snap2.docs.map(d=>d.data());
-    return [...citizenPoints, ...basePoints];
+    const q = query(citizensCol, where('planetIndex', '==', planetIndex));
+    const snap = await getDocs(q);
+    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
+  }
+
+  // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
+  // = mismo jugador, así que sus bases se muestran juntas.
+  function groupByPlayer(entries){
+    const map = new Map();
+    entries.forEach(e=>{
+      const key = e.ownerEmail || e.ownerUid || (e.name || '').trim().toLowerCase();
+      if(!map.has(key)) map.set(key, { name: e.name, bases: [] });
+      map.get(key).bases.push(e);
+    });
+    return Array.from(map.values());
   }
 
   function renderRegistry(entries){
@@ -505,18 +522,26 @@
       list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
       return;
     }
-    list.innerHTML = entries.map(e=>{
-      const planet = PLANETS.find(p=>p.i===e.planetIndex);
-      const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
-      const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+    const groups = groupByPlayer(entries);
+    list.innerHTML = groups.map(g=>{
+      const basesHtml = g.bases.map(e=>{
+        const planet = PLANETS.find(p=>p.i===e.planetIndex);
+        const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
+        const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+        return `
+          <div class="registry-row">
+            <div class="registry-top">
+              <span class="registry-id">${e.id}</span>
+              <span class="status-pill ${pillClass}">${pillText}</span>
+            </div>
+            <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+          </div>`;
+      }).join('');
+      const countBadge = g.bases.length > 1 ? `<span class="base-count">${g.bases.length} bases</span>` : '';
       return `
-        <div class="registry-row">
-          <div class="registry-top">
-            <span class="registry-id">${e.id}</span>
-            <span class="registry-name">${escapeHtml(e.name)}</span>
-            <span class="status-pill ${pillClass}">${pillText}</span>
-          </div>
-          <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+        <div class="registry-group">
+          <div class="registry-group-name">${escapeHtml(g.name)}${countBadge}</div>
+          ${basesHtml}
         </div>`;
     }).join('');
   }
@@ -536,14 +561,12 @@
     clearAlert();
     if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
 
+    const name = document.getElementById('playerName').value.trim();
     const planetIndex = parseInt(planetSelect.value, 10);
     const lat = parseCoord(document.getElementById('lat').value);
     const lon = parseCoord(document.getElementById('lon').value);
 
-    if(!myCitizenship){
-      const name = document.getElementById('playerName').value.trim();
-      if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
-    }
+    if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
     if(!planetIndex){ showAlert('Selecciona un planeta.', 'error'); return; }
     if(lat===null || lon===null){ showAlert('Coordenadas inválidas. Usa el formato +14.32, -21.96.', 'error'); return; }
 
@@ -555,46 +578,49 @@
       for(const e of sameplanet){
         const d = distanciaPasos(lat, lon, e.lat, e.lon);
         if(d <= MIN_DISTANCE_PASOS){
-          showAlert(`Ese punto está ocupado por ${e.name} — a ~${Math.round(d)} pasos de distancia. Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
+          showAlert(`Ese punto está ocupado por ${e.name} (${e.id}) — a ~${Math.round(d)} pasos de distancia. Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
           submitBtn.disabled = false;
-          submitBtn.textContent = myCitizenship ? 'Agregar esta base' : 'Ser Ciudadano';
+          submitBtn.textContent = 'Ser Ciudadano';
           return;
         }
       }
 
-      if(myCitizenship){
-        // Base adicional: documento aparte, NO se toca `citizens/{docId}`.
-        await addDoc(basesCol, {
-          ownerUid: currentUser.uid,
-          citizenDocId: myCitizenship.docId,
-          citizenId: myCitizenship.id,
-          name: myCitizenship.name,
-          planetIndex, lat, lon,
-          ts: Date.now()
-        });
-        showAlert('Base adicional agregada a tu ciudadanía. Tus datos originales no cambiaron.', 'ok');
+      const newEntry = {
+        id: '#M01-' + Math.floor(1000 + Math.random()*9000),
+        name, planetIndex, lat, lon,
+        profession: document.getElementById('professionSelect').value || '',
+        platform: document.getElementById('platformSelect').value || '',
+        friendCode: document.getElementById('friendCode').value.trim() || '',
+        status: 'pending',
+        ts: Date.now(),
+        ownerUid: currentUser.uid,
+        ownerEmail: currentUser.email || ''
+      };
+      const docRef = await addDoc(citizensCol, newEntry);
+
+      // Si eligió foto, se sube después de crear el registro (necesitamos
+      // el ID del documento para nombrar el archivo). Si esto falla, la
+      // base ya quedó registrada de todas formas — solo avisamos.
+      if(selectedPhotoFile){
+        try{
+          const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+          const storageRef = ref(storage, `bases/${docRef.id}.${ext}`);
+          await uploadBytes(storageRef, selectedPhotoFile);
+          const url = await getDownloadURL(storageRef);
+          await updateDoc(doc(db, 'citizens', docRef.id), { photoUrl: url, photoStatus: 'pending' });
+          addStorageUsage(selectedPhotoFile.size);
+          showAlert(`Solicitud enviada como ${newEntry.id}, con foto pendiente de aprobación. Esperando decisión del Arcade.`, 'ok');
+        }catch(photoErr){
+          showAlert(`Solicitud enviada como ${newEntry.id}, pero la foto no se pudo subir. Puedes intentarlo de nuevo desde tu Tarjeta de Ciudadano.`, 'error');
+        }
       }else{
-        const name = document.getElementById('playerName').value.trim();
-        const newEntry = {
-          id: '#M01-' + Math.floor(1000 + Math.random()*9000),
-          name, planetIndex, lat, lon,
-          profession: document.getElementById('professionSelect').value || '',
-          platform: document.getElementById('platformSelect').value || '',
-          friendCode: document.getElementById('friendCode').value.trim() || '',
-          status: 'pending',
-          ts: Date.now(),
-          ownerUid: currentUser.uid,
-          ownerEmail: currentUser.email || ''
-        };
-        await addDoc(citizensCol, newEntry);
         showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
-        await checkExistingCitizenship(currentUser.uid);
       }
     }catch(e){
       showAlert('No se pudo enviar el registro. Revisa las reglas de Firestore o tu conexión.', 'error');
     }
-    submitBtn.disabled = myCitizenship ? !currentUser : (checkboxes.some(c=>!c.checked) || !currentUser);
-    submitBtn.textContent = myCitizenship ? 'Agregar esta base' : 'Ser Ciudadano';
+    submitBtn.disabled = checkboxes.some(c=>!c.checked) || !currentUser;
+    submitBtn.textContent = 'Ser Ciudadano';
   });
 
   subscribeRegistry();
