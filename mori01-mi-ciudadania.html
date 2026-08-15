@@ -61,6 +61,158 @@
   .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
   .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
 
+  /* ---------- CREDENCIAL (misma vista que mori01-id-card.html, aquí de solo lectura + cambio de foto) ---------- */
+  .cred-stage{display:flex; flex-direction:column; align-items:center; gap:16px;}
+  .cred-inner{width:100%; max-width:480px;}
+  .cred-card{
+    container-type: inline-size;
+    width:100%;
+    aspect-ratio:1.586/1;
+    background:var(--bg-panel-2);
+    border:1px solid var(--border-bright);
+    border-radius:12px;
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
+    box-shadow:0 25px 60px -20px rgba(0,0,0,.7);
+  }
+  .cred-bg-photo{
+    position:absolute; inset:0; z-index:0;
+    background-image:url('./mori01-community-bg.png');
+    background-size:cover; background-position:center 30%;
+    opacity:.4; filter:saturate(.95) brightness(.9);
+  }
+  .cred-bg-scrim{
+    position:absolute; inset:0; z-index:0;
+    background:linear-gradient(175deg, rgba(6,8,13,.72) 0%, rgba(6,8,13,.6) 55%, rgba(6,8,13,.8) 100%);
+  }
+  .cred-topstrip{
+    flex-shrink:0; position:relative; z-index:1;
+    display:flex; align-items:center; gap:4cqw; overflow:hidden;
+    background:rgba(0,0,0,.5); padding:0.9cqw 3cqw; white-space:nowrap;
+  }
+  .cred-topstrip span{
+    font-size:1.3cqw; letter-spacing:.2em; color:var(--text-dim); text-transform:uppercase;
+    display:flex; align-items:center; gap:0.6cqw; flex-shrink:0; font-family:var(--font-mono);
+  }
+  .cred-topstrip span::before{content:"◆"; color:var(--accent-gold); font-size:1cqw;}
+  .cred-header{
+    flex-shrink:0; position:relative; z-index:1;
+    display:flex; align-items:center; justify-content:space-between; gap:2cqw;
+    padding:2cqw 3cqw; background:linear-gradient(120deg, rgba(0,0,0,.65) 0%, rgba(11,14,28,.65) 100%);
+    border-bottom:0.35cqw solid var(--accent-gold);
+  }
+  .cred-header-left{display:flex; align-items:center; gap:1.4cqw;}
+  .cred-brand-mark{
+    width:6.2cqw; height:6.2cqw; border-radius:50%; flex-shrink:0;
+    border:0.28cqw solid var(--accent-cyan);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 1.8cqw rgba(0,217,255,.35), inset 0 0 1cqw rgba(0,217,255,.25);
+    overflow:hidden;
+  }
+  .cred-brand-mark svg{width:3.2cqw; height:3.2cqw; color:var(--accent-cyan);}
+  .cred-brand-text{display:flex; flex-direction:column; line-height:1.25;}
+  .cred-brand-name{font-family:var(--font-display); font-size:2.3cqw; letter-spacing:.06em; color:var(--accent-cyan);}
+  .cred-brand-sub{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.2em; color:var(--text-dim);}
+  .cred-header-right{text-align:right;}
+  .cred-doc-title{font-family:var(--font-display); font-size:2cqw; letter-spacing:.08em; color:var(--text-primary);}
+  .cred-doc-sub{font-family:var(--font-mono); font-size:1.15cqw; letter-spacing:.1em; color:var(--accent-gold); margin-top:0.4cqw; text-transform:uppercase;}
+  .cred-body{
+    flex:1; min-height:0; position:relative; z-index:1; display:flex; flex-direction:column;
+    padding:2.6cqw 3cqw;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(0,217,255,.08), transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(124,108,255,.08), transparent 45%),
+      linear-gradient(160deg, rgba(18,22,43,.5) 0%, rgba(8,10,20,.5) 100%);
+  }
+  .cred-body-grid{
+    flex:1; min-height:0; position:relative; z-index:1;
+    display:grid; grid-template-columns:19cqw 1fr 15cqw; gap:2.4cqw;
+  }
+  .cred-left{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.4cqw; height:100%;}
+  .cred-portrait-frame{
+    position:relative; width:19cqw; height:19cqw; flex-shrink:0;
+    border:0.35cqw solid var(--accent-gold); border-radius:1.6cqw;
+    background:var(--bg-panel);
+    box-shadow:inset 0 0 2.6cqw rgba(0,0,0,.6), 0 0 2.2cqw rgba(245,184,73,.15);
+    padding:0.7cqw;
+  }
+  .cred-portrait{
+    width:100%; height:100%; border-radius:1.1cqw;
+    background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:6cqw; color:var(--bg-deep);
+    background-repeat:no-repeat;
+  }
+  .cred-pill{
+    display:inline-flex; align-items:center; gap:0.8cqw;
+    font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.02em; color:var(--text-muted);
+    border:1px solid var(--border-bright); border-radius:4cqw; padding:0.6cqw 1.5cqw 0.6cqw 1.1cqw;
+    background:var(--bg-panel); white-space:nowrap; max-width:19cqw; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cred-fields{display:flex; flex-direction:column; justify-content:center; gap:1.6cqw; min-width:0; height:100%;}
+  .cred-field .f-label{
+    font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.16em; color:var(--accent-gold);
+    text-transform:uppercase; margin-bottom:0.5cqw;
+  }
+  .cred-field .f-value{
+    background:rgba(232,236,245,.06); border:1px solid var(--border-soft); border-radius:0.8cqw;
+    padding:1.2cqw 1.7cqw; font-size:2.6cqw; font-weight:600; color:var(--text-primary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cred-field.name .f-value{font-size:3.1cqw; font-family:var(--font-display); letter-spacing:.02em;}
+  .cred-field .f-value.cyan{color:var(--accent-cyan);}
+  .cred-field .f-value.violet{color:var(--accent-violet);}
+  .cred-right{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6cqw; height:100%;}
+  .cred-diamond{
+    width:9cqw; height:9cqw;
+    background:linear-gradient(135deg,#fff 0%, var(--accent-cyan) 45%, #0b0e1c 100%);
+    transform:rotate(45deg); border-radius:1cqw;
+    box-shadow:0 0 2.6cqw rgba(0,217,255,.35);
+  }
+  .cred-status-block{
+    text-align:center; border:1px solid var(--border-bright); border-radius:0.9cqw;
+    padding:1cqw 0.8cqw; background:var(--bg-panel); width:100%;
+  }
+  .cred-status-block .lbl{font-family:var(--font-mono); font-size:1.1cqw; letter-spacing:.1em; color:var(--text-dim); text-transform:uppercase;}
+  .cred-status-block .val{font-family:var(--font-mono); font-size:1.5cqw; color:var(--accent-gold); margin-top:0.4cqw; word-break:break-word;}
+  .cred-status-block .val.citizen{color:var(--accent-green);}
+  .cred-status-block .val.rejected{color:var(--accent-red);}
+  .cred-badge-row{display:flex; gap:0.5cqw; flex-wrap:wrap; margin-top:0.8cqw; justify-content:center;}
+  .cred-badge-chip{
+    font-size:0.95cqw; padding:0.3cqw 0.7cqw; border-radius:2cqw;
+    background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);
+    font-family:var(--font-mono); white-space:nowrap;
+  }
+  .cred-bottom{
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:space-between; gap:1.6cqw;
+    padding:1.6cqw 3cqw; border-top:1px solid var(--border-soft);
+    background:rgba(6,8,13,.55); position:relative; z-index:1;
+  }
+  .cred-community{display:flex; align-items:center; gap:1.2cqw;}
+  .cred-community .icon{
+    width:3.6cqw; height:3.6cqw; border-radius:0.9cqw; border:1px solid var(--border-bright);
+    display:flex; align-items:center; justify-content:center; background:var(--bg-panel); flex-shrink:0;
+  }
+  .cred-community .icon svg{width:2cqw; height:2cqw; color:var(--accent-cyan);}
+  .cred-community span{font-family:var(--font-mono); font-size:1.4cqw; letter-spacing:.06em; color:var(--text-dim); white-space:nowrap;}
+  .cred-motto{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.08em; color:var(--accent-blue,var(--accent-cyan)); text-transform:uppercase; text-align:right; white-space:nowrap;}
+
+  /* control de foto */
+  .photo-control{display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:6px;}
+  .file-btn{
+    font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
+    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-primary);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .file-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .photo-hint{font-size:11.5px; color:var(--text-dim); font-family:var(--font-mono); text-align:center; max-width:360px;}
+  .photo-note{
+    font-size:11.5px; font-family:var(--font-mono); color:var(--accent-gold); text-align:center; max-width:360px;
+  }
+  .photo-note.rejected{color:var(--accent-red);}
+  .photo-note.approved{color:var(--accent-green);}
+
   /* perfil */
   .profile-name{font-family:var(--font-display); font-size:26px; letter-spacing:.02em; margin-bottom:16px;}
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
@@ -133,11 +285,15 @@
 </div>
 
 <script type="module">
-  import { db, auth, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
+  import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
-    collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot
+    collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    ref, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  import { computeBadges } from './mori01-badges.js';
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.title = `Mi Ciudadanía · ${SYSTEM_INFO.shortName}`;
@@ -147,6 +303,7 @@
     'Arquitecto','Explorador','Guardián','Comerciante','Científico','Cazarrecompensas'
   ];
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
   // Distancia en "pasos" — misma fórmula que "Hazte Ciudadano".
   const PASOS_FACTOR = 16.02747435;
@@ -163,6 +320,20 @@
     const d = document.createElement('div');
     d.textContent = s ?? '';
     return d.innerHTML;
+  }
+
+  // ---------- CONTADOR DE USO DE STORAGE ----------
+  async function addStorageUsage(bytes){
+    const usageRef = doc(db, 'meta', 'storageUsage');
+    try{
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(usageRef);
+        const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
+        tx.update(usageRef, { bytesUsed: current + bytes });
+      });
+    }catch(e){
+      console.warn('No se pudo actualizar el contador de uso de Storage', e);
+    }
   }
 
   // ---------- AUTH ----------
@@ -233,16 +404,125 @@
       return;
     }
 
-    const profileSrc = myBases[0]; // la más reciente — de ahí sale el perfil general
+    const profileSrc = myBases[0]; // la más reciente — de ahí sale el perfil general y la credencial
 
     // Planetas donde tiene base, sin repetir.
     const myPlanetIndexes = [...new Set(myBases.map(b => b.planetIndex))];
     const planetImages = await loadPlanetImages(myPlanetIndexes);
 
+    // Insignias, calculadas contra todos los ciudadanos aprobados (igual que en la tarjeta).
+    let myBadges = [];
+    if(profileSrc.status === 'citizen'){
+      try{
+        const allSnap = await getDocs(query(citizensCol, where('status','==','citizen')));
+        const allCitizens = allSnap.docs.map(d => d.data());
+        const badgesById = computeBadges(allCitizens);
+        myBadges = badgesById.get(profileSrc.id) || [];
+      }catch(e){ /* si falla, la credencial sigue sin insignias */ }
+    }
+
+    const planet = PLANETS.find(p => p.i === profileSrc.planetIndex);
+    const statusText = profileSrc.status === 'citizen' ? 'Ciudadano'
+      : profileSrc.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+    const hasApprovedPhoto = profileSrc.photoStatus === 'approved' && profileSrc.photoUrl;
+
     box.innerHTML = `
-      <div class="profile-name">${escapeHtml(profileSrc.name)}</div>
+      <h2>Tu Credencial</h2>
+      <p class="sub">Así se ve tu carnet de ciudadano, con los datos que has ido agregando.</p>
+      <div class="cred-stage">
+        <div class="cred-inner">
+          <div class="cred-card" id="credCard">
+            <div class="cred-bg-photo"></div>
+            <div class="cred-bg-scrim"></div>
+            <div class="cred-topstrip" id="credTopStrip"></div>
+            <div class="cred-header">
+              <div class="cred-header-left">
+                <div class="cred-brand-mark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+                </div>
+                <div class="cred-brand-text">
+                  <span class="cred-brand-name">MORI-01</span>
+                  <span class="cred-brand-sub">${SYSTEM_INFO.shortName.toUpperCase()}</span>
+                </div>
+              </div>
+              <div class="cred-header-right">
+                <div class="cred-doc-title">CREDENCIAL DE CIUDADANO</div>
+                <div class="cred-doc-sub">Unidos bajo un mismo cielo</div>
+              </div>
+            </div>
+            <div class="cred-body">
+              <div class="cred-body-grid">
+                <div class="cred-left">
+                  <div class="cred-portrait-frame">
+                    <div class="cred-portrait" id="credPortrait">${profileSrc.name ? escapeHtml(profileSrc.name[0].toUpperCase()) : '?'}</div>
+                  </div>
+                  <div class="cred-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16"><rect x="2.5" y="8" width="19" height="9" rx="4"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="10" cy="12.5" r="1"/><circle cx="16.5" cy="11.3" r="1"/><circle cx="16.5" cy="13.7" r="1"/></svg>
+                    <span>${profileSrc.platform ? escapeHtml(profileSrc.platform) : '—'}</span>
+                  </div>
+                  <div class="cred-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16"><circle cx="8" cy="9" r="2.8"/><path d="M2.8 19c1.1-2.9 3-4.3 5.2-4.3s4.1 1.4 5.2 4.3"/><circle cx="17" cy="9.5" r="2.2"/><path d="M15.3 14.7c1.8.1 3.2 1.4 4 3.7"/></svg>
+                    <span>${profileSrc.friendCode ? escapeHtml(profileSrc.friendCode) : '—'}</span>
+                  </div>
+                </div>
+                <div class="cred-fields">
+                  <div class="cred-field name">
+                    <div class="f-label">Nombre</div>
+                    <div class="f-value">${escapeHtml(profileSrc.name || '—')}</div>
+                  </div>
+                  <div class="cred-field">
+                    <div class="f-label">Profesión</div>
+                    <div class="f-value">${profileSrc.profession ? escapeHtml(profileSrc.profession) : '—'}</div>
+                  </div>
+                  ${profileSrc.role ? `
+                  <div class="cred-field">
+                    <div class="f-label">Rol</div>
+                    <div class="f-value violet">${escapeHtml(profileSrc.role)}</div>
+                  </div>` : ''}
+                  <div class="cred-field">
+                    <div class="f-label">Asentamiento</div>
+                    <div class="f-value cyan">${planet ? escapeHtml(planet.name) : '—'}</div>
+                  </div>
+                </div>
+                <div class="cred-right">
+                  <div class="cred-diamond"></div>
+                  <div class="cred-status-block">
+                    <div class="lbl">ID</div>
+                    <div class="val">${profileSrc.id}</div>
+                  </div>
+                  <div class="cred-status-block">
+                    <div class="lbl">Estado</div>
+                    <div class="val ${profileSrc.status === 'citizen' ? 'citizen' : profileSrc.status === 'rejected' ? 'rejected' : ''}">${statusText}</div>
+                  </div>
+                  <div class="cred-badge-row">${myBadges.map(b=>`<span class="cred-badge-chip" title="${escapeHtml(b.title)}">${b.icon} ${escapeHtml(b.label)}</span>`).join('')}</div>
+                </div>
+              </div>
+            </div>
+            <div class="cred-bottom">
+              <div class="cred-community">
+                <div class="icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+                </div>
+                <span>Consejo Superior MORI-01</span>
+              </div>
+              <div class="cred-motto">Por la exploración</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="photo-control">
+          <label class="file-btn" for="changePhotoInput">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+            ${hasApprovedPhoto ? 'Cambiar foto' : 'Subir foto real'}
+          </label>
+          <input type="file" id="changePhotoInput" accept="image/*" style="display:none">
+          <p class="photo-hint">JPG o PNG, máximo 5MB. Toda foto nueva queda pendiente de aprobación del Arcade antes de mostrarse aquí y en la galería pública.</p>
+          <p class="photo-note" id="photoStatusMsg"></p>
+        </div>
+      </div>
+
       <div id="profileAlert" class="alert"></div>
-      <div class="field-row">
+      <div class="field-row" style="margin-top:28px;">
         <div class="field">
           <label for="fProfession">Profesión</label>
           <select id="fProfession">
@@ -277,6 +557,61 @@
       </div>
       <div id="addBaseForm" style="display:none; margin-top:20px;"></div>
     `;
+
+    // ---- credencial: tira superior y estado de la foto ----
+    document.getElementById('credTopStrip').innerHTML =
+      Array(4).fill(`<span>Mori-01</span><span>${SYSTEM_INFO.tag.replace(/[\[\]]/g,'')}</span>`).join('');
+
+    const credPortrait = document.getElementById('credPortrait');
+    const photoStatusMsg = document.getElementById('photoStatusMsg');
+    if(hasApprovedPhoto){
+      credPortrait.textContent = '';
+      credPortrait.style.backgroundImage = `url(${profileSrc.photoUrl})`;
+      credPortrait.style.backgroundSize = 'cover';
+      credPortrait.style.backgroundPosition = 'center';
+      credPortrait.style.backgroundRepeat = 'no-repeat';
+    }
+    if(profileSrc.photoStatus === 'pending' && profileSrc.photoUrl){
+      photoStatusMsg.textContent = 'Tu foto está pendiente de aprobación del Arcade.';
+      photoStatusMsg.classList.add('pending');
+    }else if(profileSrc.photoStatus === 'rejected'){
+      photoStatusMsg.textContent = 'Tu última foto fue rechazada por el Arcade. Puedes intentar con otra.';
+      photoStatusMsg.classList.add('rejected');
+    }else if(hasApprovedPhoto){
+      photoStatusMsg.textContent = '✓ Foto aprobada por el Arcade.';
+      photoStatusMsg.classList.add('approved');
+    }
+
+    // ---- subir/cambiar foto ----
+    document.getElementById('changePhotoInput').addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!file.type.startsWith('image/')){
+        photoStatusMsg.textContent = 'Solo se permiten imágenes.';
+        photoStatusMsg.className = 'photo-note rejected';
+        return;
+      }
+      if(file.size > MAX_FILE_BYTES){
+        photoStatusMsg.textContent = 'La imagen pesa más de 5MB. Usa una más liviana.';
+        photoStatusMsg.className = 'photo-note rejected';
+        return;
+      }
+      photoStatusMsg.textContent = 'Subiendo…';
+      photoStatusMsg.className = 'photo-note';
+      try{
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const storageRef = ref(storage, `bases/${profileSrc.docId}.${ext}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        await updateDoc(doc(db, 'citizens', profileSrc.docId), { photoUrl: url, photoStatus: 'pending' });
+        addStorageUsage(file.size);
+        photoStatusMsg.textContent = 'Foto subida — pendiente de aprobación del Arcade.';
+        photoStatusMsg.className = 'photo-note pending';
+      }catch(err){
+        photoStatusMsg.textContent = 'No se pudo subir la foto. Intenta de nuevo.';
+        photoStatusMsg.className = 'photo-note rejected';
+      }
+    });
 
     // ---- planetas ----
     const planetGrid = document.getElementById('planetGrid');
