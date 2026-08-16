@@ -238,13 +238,13 @@
   import { db, auth, storage } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
   import {
-    collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot
+    collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    ref, uploadBytes, getDownloadURL
+    ref, uploadBytes, getDownloadURL, deleteObject, getMetadata
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   document.title = `Panel de Administración · ${SYSTEM_INFO.shortName}`;
@@ -494,6 +494,35 @@
     input.value = '';
   }
 
+  // ---------- CONTADOR DE USO DE STORAGE: descuento al borrar ----------
+  async function subtractStorageUsage(bytes){
+    const usageRef = doc(db, 'meta', 'storageUsage');
+    try{
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(usageRef);
+        const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
+        tx.update(usageRef, { bytesUsed: Math.max(0, current - bytes) });
+      });
+    }catch(e){
+      console.warn('No se pudo descontar del contador de uso de Storage', e);
+    }
+  }
+
+  // Borra el archivo real de Storage (a partir de su URL de descarga) y
+  // descuenta su tamaño del contador. Si el archivo ya no existe en
+  // Storage, igual sigue adelante para limpiar el campo en Firestore.
+  async function deleteStorageFile(url){
+    try{
+      const fileRef = ref(storage, url);
+      let size = 0;
+      try{ size = (await getMetadata(fileRef)).size || 0; }catch(e){ /* puede ya no existir */ }
+      await deleteObject(fileRef);
+      if(size > 0) subtractStorageUsage(size);
+    }catch(e){
+      console.warn('No se pudo borrar el archivo de Storage', e);
+    }
+  }
+
   // ---------- MODERACIÓN DE FOTOS ----------
   function photoStatusPillHtml(status){
     if(status === 'approved') return '<span class="status-pill approved">Aprobada</span>';
@@ -501,15 +530,19 @@
     return '<span class="status-pill pending">Pendiente</span>';
   }
 
+  // Muestra TODAS las fotos de base (no solo las pendientes) — aprobar y
+  // rechazar solo tienen sentido mientras está pendiente, pero eliminar
+  // siempre está disponible, esté aprobada, rechazada o pendiente.
   function renderPhotoModeration(){
     const box = document.getElementById('photoModList');
-    const pending = allEntries.filter(e => e.photoUrl && (e.photoStatus || 'pending') === 'pending');
-    if(!pending.length){
-      box.innerHTML = '<div class="empty-state">No hay fotos esperando aprobación.</div>';
+    const withPhoto = allEntries.filter(e => e.photoUrl);
+    if(!withPhoto.length){
+      box.innerHTML = '<div class="empty-state">Todavía no hay fotos de bases.</div>';
       return;
     }
-    box.innerHTML = pending.map(e=>{
+    box.innerHTML = withPhoto.map(e=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      const isPending = (e.photoStatus || 'pending') === 'pending';
       return `
         <div class="photo-row" data-doc="${e.docId}">
           <div class="photo-thumb"><img src="${e.photoUrl}" alt="Foto de ${escapeHtml(e.name)}"></div>
@@ -517,8 +550,11 @@
             <div class="pname">${escapeHtml(e.name)} ${photoStatusPillHtml(e.photoStatus)}</div>
             <div class="pmeta">${e.id} · ${planet ? planet.name : '—'}</div>
             <div class="reg-actions">
-              <button class="act-btn approve" data-photo-action="approve">Aprobar foto</button>
-              <button class="act-btn reject" data-photo-action="reject">Rechazar foto</button>
+              ${isPending ? `
+                <button class="act-btn approve" data-photo-action="approve">Aprobar foto</button>
+                <button class="act-btn reject" data-photo-action="reject">Rechazar foto</button>
+              ` : ''}
+              <button class="act-btn delete" data-photo-action="delete">Eliminar foto</button>
             </div>
           </div>
         </div>`;
@@ -531,6 +567,21 @@
     const row = e.target.closest('.photo-row');
     const docId = row.dataset.doc;
     const action = btn.dataset.photoAction;
+    const entry = allEntries.find(x=>x.docId===docId);
+    if(!entry) return;
+
+    if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la foto de la base de ${entry.name}? Ya no aparecerá en la galería.`)) return;
+      try{
+        if(entry.photoUrl) await deleteStorageFile(entry.photoUrl);
+        await updateDoc(doc(db, 'citizens', docId), { photoUrl: null, photoStatus: null });
+        showAdminAlert('Foto de base eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar la foto. Revisa las reglas.', 'error');
+      }
+      return;
+    }
+
     try{
       await updateDoc(doc(db, 'citizens', docId), { photoStatus: action === 'approve' ? 'approved' : 'rejected' });
       showAdminAlert(action === 'approve' ? 'Foto aprobada — ya es pública en la galería.' : 'Foto rechazada.', 'ok');
@@ -541,16 +592,18 @@
 
   // ---------- MODERACIÓN DE FOTOS DE CARNET (idPhotoUrl/idPhotoStatus) ----------
   // Campo totalmente separado de photoUrl/photoStatus — esta foto nunca
-  // sale en la galería, solo en la credencial de "Mi Ciudadanía".
+  // sale en la galería, solo en la credencial de "Mi Ciudadanía". Igual
+  // que arriba: se muestran todas, eliminar siempre disponible.
   function renderIdPhotoModeration(){
     const box = document.getElementById('idPhotoModList');
-    const pending = allEntries.filter(e => e.idPhotoUrl && (e.idPhotoStatus || 'pending') === 'pending');
-    if(!pending.length){
-      box.innerHTML = '<div class="empty-state">No hay fotos de carnet esperando aprobación.</div>';
+    const withPhoto = allEntries.filter(e => e.idPhotoUrl);
+    if(!withPhoto.length){
+      box.innerHTML = '<div class="empty-state">Todavía no hay fotos de carnet.</div>';
       return;
     }
-    box.innerHTML = pending.map(e=>{
+    box.innerHTML = withPhoto.map(e=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      const isPending = (e.idPhotoStatus || 'pending') === 'pending';
       return `
         <div class="photo-row" data-doc="${e.docId}">
           <div class="photo-thumb"><img src="${e.idPhotoUrl}" alt="Foto de carnet de ${escapeHtml(e.name)}"></div>
@@ -558,8 +611,11 @@
             <div class="pname">${escapeHtml(e.name)} ${photoStatusPillHtml(e.idPhotoStatus)}</div>
             <div class="pmeta">${e.id} · ${planet ? planet.name : '—'}</div>
             <div class="reg-actions">
-              <button class="act-btn approve" data-idphoto-action="approve">Aprobar foto</button>
-              <button class="act-btn reject" data-idphoto-action="reject">Rechazar foto</button>
+              ${isPending ? `
+                <button class="act-btn approve" data-idphoto-action="approve">Aprobar foto</button>
+                <button class="act-btn reject" data-idphoto-action="reject">Rechazar foto</button>
+              ` : ''}
+              <button class="act-btn delete" data-idphoto-action="delete">Eliminar foto</button>
             </div>
           </div>
         </div>`;
@@ -572,6 +628,21 @@
     const row = e.target.closest('.photo-row');
     const docId = row.dataset.doc;
     const action = btn.dataset.idphotoAction;
+    const entry = allEntries.find(x=>x.docId===docId);
+    if(!entry) return;
+
+    if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la foto de carnet de ${entry.name}?`)) return;
+      try{
+        if(entry.idPhotoUrl) await deleteStorageFile(entry.idPhotoUrl);
+        await updateDoc(doc(db, 'citizens', docId), { idPhotoUrl: null, idPhotoStatus: null });
+        showAdminAlert('Foto de carnet eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar la foto. Revisa las reglas.', 'error');
+      }
+      return;
+    }
+
     try{
       await updateDoc(doc(db, 'citizens', docId), { idPhotoStatus: action === 'approve' ? 'approved' : 'rejected' });
       showAdminAlert(action === 'approve' ? 'Foto de carnet aprobada.' : 'Foto de carnet rechazada.', 'ok');
@@ -581,6 +652,7 @@
   });
 
   function renderList(){
+
     const list = document.getElementById('registryList');
     const filtered = currentFilter === 'all'
       ? allEntries
