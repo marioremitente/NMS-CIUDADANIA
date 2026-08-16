@@ -780,8 +780,8 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       saveMsg.textContent = 'No se pudo guardar. Verifica tu sesión e intenta de nuevo.';
     }
   });
-</script>
-<script>
+
+  // ---- Tabs ----
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -791,30 +791,59 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     });
   });
 
+  // ---- Export PNG ----
+  async function toDataURL(url){
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('fetch failed');
+    const blob = await resp.blob();
+    return new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=> res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(blob);
+    });
+  }
+
   async function exportCard(){
     const card = document.getElementById('idCard');
     const portrait = document.getElementById('cardInitial');
-    const origBg = portrait.style.backgroundImage;
-
-    // Pre-fetch Firebase Storage photo as data URL to avoid CORS taint
-    if(approvedPhotoUrl && origBg.includes(approvedPhotoUrl)){
-      try{
-        const resp = await fetch(approvedPhotoUrl);
-        const blob = await resp.blob();
-        const dataUrl = await new Promise((res,rej)=>{
-          const r = new FileReader();
-          r.onload = ()=> res(r.result);
-          r.onerror = rej;
-          r.readAsDataURL(blob);
-        });
-        portrait.style.backgroundImage = `url(${dataUrl})`;
-      }catch(e){
-        // If fetch fails, html2canvas may still work with useCORS
-      }
-    }
+    const bgPhoto = document.querySelector('.card-bg-photo');
+    const origPortraitBg = portrait.style.backgroundImage;
+    const origBgPhoto = bgPhoto ? bgPhoto.style.backgroundImage : '';
 
     try{
-      const canvas = await html2canvas(card, { backgroundColor: null, scale: 3, useCORS: true });
+      if(bgPhoto){
+        try{
+          const bgDataUrl = await toDataURL('./mori01-community-bg.png');
+          bgPhoto.style.backgroundImage = `url(${bgDataUrl})`;
+        }catch(e){}
+      }
+
+      if(approvedPhotoUrl && origPortraitBg.includes(approvedPhotoUrl)){
+        try{
+          const pDataUrl = await toDataURL(approvedPhotoUrl);
+          portrait.style.backgroundImage = `url(${pDataUrl})`;
+        }catch(e){}
+      }
+
+      const exportBtnEl = document.getElementById('exportBtn');
+      const exportBtn2El = document.getElementById('exportBtn2');
+      if(exportBtnEl) exportBtnEl.style.visibility = 'hidden';
+      if(exportBtn2El) exportBtn2El.style.visibility = 'hidden';
+
+      await new Promise(r=> setTimeout(r, 100));
+
+      const canvas = await html2canvas(card, {
+        backgroundColor: null,
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+      });
+
+      if(exportBtnEl) exportBtnEl.style.visibility = '';
+      if(exportBtn2El) exportBtn2El.style.visibility = '';
+
       const link = document.createElement('a');
       const nameVal = document.getElementById('fName').value.trim();
       const safeName = (nameVal || 'ciudadano').toLowerCase().replace(/[^a-z0-9]+/g,'-');
@@ -824,8 +853,12 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     }catch(e){
       alert('No se pudo exportar la imagen. Intenta de nuevo.');
     }finally{
-      // Restore original background
-      portrait.style.backgroundImage = origBg;
+      portrait.style.backgroundImage = origPortraitBg;
+      if(bgPhoto) bgPhoto.style.backgroundImage = origBgPhoto;
+      const exportBtnEl = document.getElementById('exportBtn');
+      const exportBtn2El = document.getElementById('exportBtn2');
+      if(exportBtnEl) exportBtnEl.style.visibility = '';
+      if(exportBtn2El) exportBtn2El.style.visibility = '';
     }
   }
   document.getElementById('exportBtn').addEventListener('click', exportCard);
