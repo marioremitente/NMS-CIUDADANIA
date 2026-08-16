@@ -506,11 +506,8 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   let currentDocId = null;
   let currentOwnerUid = null;
   let currentUser = null;
-  // Foto real del ciudadano, SOLO si el admin ya la aprobó — nunca se usa
-  // si photoStatus es 'pending' o 'rejected', o si no hay photoUrl.
   let approvedPhotoUrl = null;
 
-  // ---------- AUTH ----------
   function renderAuthBox(){
     if(currentUser){
       authBox.innerHTML = `
@@ -529,7 +526,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
         </button>`;
       document.getElementById('googleBtn').addEventListener('click', async ()=>{
         try{ await signInWithGoogle(); }
-        catch(e){ /* el usuario cerró la ventana o falló el login */ }
+        catch(e){ }
       });
     }
   }
@@ -575,8 +572,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     faceGrid.appendChild(sw);
   }
 
-  // La foto real aprobada tiene prioridad absoluta sobre el sprite. Si no
-  // hay foto aprobada, se comporta exactamente como antes.
   function applyFaceToCard(){
     if(approvedPhotoUrl){
       cardInitial.textContent = '';
@@ -646,17 +641,20 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       selectFaceByIndex(typeof data.faceIndex === 'number' ? data.faceIndex : null);
       cardId.textContent = data.id;
 
-      // Foto real: solo se usa si el admin ya la aprobó. Si está pendiente
-      // o rechazada, la tarjeta sigue usando el rostro del sprite.
-      if(data.photoStatus === 'approved' && data.photoUrl){
-        approvedPhotoUrl = data.photoUrl;
+      // Foto del carnet: usa idPhotoUrl/idPhotoStatus (subida desde "Mi
+      // Ciudadanía"). Si el admin la aprobó, se muestra en la tarjeta.
+      // Si está pendiente o rechazada, se usa el rostro del sprite.
+      const idPhoto = data.idPhotoUrl;
+      const idStatus = data.idPhotoStatus;
+      if(idStatus === 'approved' && idPhoto){
+        approvedPhotoUrl = idPhoto;
         faceFieldWrap.style.display = 'none';
         approvedPhotoNote.textContent = '✓ Usando tu foto real, aprobada por el Arcade.';
         approvedPhotoNote.classList.add('show');
-      }else if(data.photoStatus === 'pending' && data.photoUrl){
+      }else if(idStatus === 'pending' && idPhoto){
         photoStatusNote.textContent = 'Tu foto real está pendiente de aprobación del Arcade — mientras tanto se usa el rostro que elijas aquí.';
         photoStatusNote.classList.add('show');
-      }else if(data.photoStatus === 'rejected'){
+      }else if(idStatus === 'rejected'){
         photoStatusNote.textContent = 'Tu foto real fue rechazada por el Arcade. Puedes elegir un rostro del sprite mientras tanto.';
         photoStatusNote.classList.add('show');
       }
@@ -673,7 +671,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 
       if(isCitizen){
         lookupMsg.textContent = 'Ciudadanía verificada y aprobada.';
-        // Insignias: se calculan contra todos los ciudadanos aprobados.
         try{
           const allSnap = await getDocs(query(citizensCol, where('status','==','citizen')));
           const allCitizens = allSnap.docs.map(d => d.data());
@@ -682,9 +679,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
           cardBadges.innerHTML = myBadges
             .map(b => `<span class="badge-chip" title="${escapeHtml(b.title)}">${b.icon} ${escapeHtml(b.label)}</span>`)
             .join('');
-        }catch(e){
-          // si falla el cálculo de insignias, no bloquea el resto de la tarjeta
-        }
+        }catch(e){}
       }else if(isRejected){
         lookupMsg.textContent = data.rejectionReason
           ? `Solicitud rechazada. Motivo: ${data.rejectionReason}`
