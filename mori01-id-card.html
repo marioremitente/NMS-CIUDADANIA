@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +9,8 @@
   --bg-deep:#06080D; --bg-panel:#0E1222; --bg-panel-2:#141B34;
   --border-soft:#232842; --border-bright:#3a4270;
   --text-primary:#E8ECF5; --text-muted:#97A5C7; --text-dim:#565d80;
-  --accent-cyan:#00D9FF; --accent-blue:#4BA8FF; --accent-gold:#f5b849; --accent-violet:#7c6cff;
-  --accent-green:#3ddc97; --accent-red:#e8546b;
+  --accent-cyan:#00D9FF; --accent-blue:#4BA8FF; --accent-gold:#E0A926; --accent-violet:#7c6cff;
+  --accent-green:#3ddc97; --accent-red:#D32F2F;
   --font-display:"Orbitron","Michroma","Eurostile",system-ui,sans-serif;
   --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
   --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
@@ -33,173 +32,226 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 @media(min-width:960px){ .layout{grid-template-columns:minmax(420px,560px) 1fr; align-items:start;} }
 
 .card-stage{display:flex; flex-direction:column; align-items:center; gap:18px; position:sticky; top:24px;}
-
 .card-stage-inner{ width:100%; max-width:520px; }
+
+/* ========== TARJETA ATLAS IDENTITY CARD ========== */
 .card{
   container-type: inline-size;
   width:100%;
   aspect-ratio:1.586/1;
-  background:var(--bg-panel);
-  border:1px solid var(--border-bright);
-  border-radius:12px;
+  background:#1A1A1A;
+  border:1px solid #333;
+  border-radius:16px;
   position:relative; overflow:hidden;
   display:flex; flex-direction:column;
-  box-shadow:0 30px 70px -20px rgba(0,0,0,.75);
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.85), inset 0 0 60px rgba(0,0,0,.3);
 }
 
-.card-bg-photo{
-  position:absolute; inset:0; z-index:0;
-  background-image:url('./mori01-community-bg.png');
-  background-size:cover; background-position:center 30%;
-  opacity:.4; filter:saturate(.95) brightness(.9);
-}
-.card-bg-scrim{
-  position:absolute; inset:0; z-index:0;
-  background:linear-gradient(175deg, rgba(6,8,13,.72) 0%, rgba(6,8,13,.6) 55%, rgba(6,8,13,.8) 100%);
+/* fondo de puntos */
+.card::before{
+  content:""; position:absolute; inset:0; z-index:0;
+  background-image:radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:3cqw 3cqw;
+  pointer-events:none;
 }
 
-.card-topstrip{
-  flex-shrink:0; position:relative; z-index:1;
-  display:flex; align-items:center; gap:4cqw; overflow:hidden;
-  background:rgba(0,0,0,.5); padding:0.9cqw 3cqw; white-space:nowrap;
+/* gradiente radial central */
+.card::after{
+  content:""; position:absolute; inset:0; z-index:0;
+  background:radial-gradient(ellipse at 50% 50%, rgba(224,169,38,.06) 0%, transparent 60%);
+  pointer-events:none;
 }
-.card-topstrip span{
-  font-size:1.3cqw; letter-spacing:.2em; color:var(--text-dim); text-transform:uppercase;
-  display:flex; align-items:center; gap:0.6cqw; flex-shrink:0; font-family:var(--font-mono);
-}
-.card-topstrip span::before{content:"◆"; color:var(--accent-gold); font-size:1cqw;}
 
+/* --- HEADER --- */
 .card-header{
   flex-shrink:0; position:relative; z-index:1;
-  display:flex; align-items:center; justify-content:space-between; gap:2cqw;
-  padding:2cqw 3cqw; background:linear-gradient(120deg, rgba(0,0,0,.65) 0%, rgba(11,14,28,.65) 100%);
-  border-bottom:0.35cqw solid var(--accent-gold);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2.2cqw 3cqw 1.8cqw;
+  background:#111;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 1.2cqw));
+  border-bottom:0.3cqw solid var(--accent-gold);
 }
-.header-left{display:flex; align-items:center; gap:1.4cqw;}
-.brand-mark{
-  width:6.2cqw; height:6.2cqw; border-radius:50%; flex-shrink:0;
-  border:0.28cqw solid var(--accent-cyan);
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 0 1.8cqw rgba(0,217,255,.35), inset 0 0 1cqw rgba(0,217,255,.25);
-  overflow:hidden;
+.header-left{display:flex; align-items:center; gap:1.2cqw;}
+.header-brand{
+  font-family:var(--font-display); font-size:2cqw; letter-spacing:.08em;
+  color:#fff; text-transform:uppercase; font-weight:700;
 }
-.brand-mark svg{width:3.2cqw; height:3.2cqw; color:var(--accent-cyan);}
-.brand-text{display:flex; flex-direction:column; line-height:1.25;}
-.brand-name{font-family:var(--font-display); font-size:2.3cqw; letter-spacing:.06em; color:var(--accent-cyan);}
-.brand-sub{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.2em; color:var(--text-dim);}
+.header-glyphs{
+  font-family:var(--font-mono); font-size:1.2cqw; color:rgba(255,255,255,.25);
+  letter-spacing:.15em;
+}
 .header-right{text-align:right;}
-.doc-title{font-family:var(--font-display); font-size:2cqw; letter-spacing:.08em; color:var(--text-primary);}
-.doc-sub{font-family:var(--font-mono); font-size:1.15cqw; letter-spacing:.1em; color:var(--accent-gold); margin-top:0.4cqw; text-transform:uppercase;}
+.header-subtitle{
+  font-family:var(--font-mono); font-size:1.1cqw; letter-spacing:.12em;
+  color:var(--accent-gold); text-transform:uppercase;
+}
 
+/* --- BODY --- */
 .card-body{
-  flex:1; min-height:0; position:relative; z-index:1; display:flex; flex-direction:column;
-  padding:2.6cqw 3cqw;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(0,217,255,.08), transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(124,108,255,.08), transparent 45%),
-    linear-gradient(160deg, rgba(18,22,43,.5) 0%, rgba(8,10,20,.5) 100%);
-}
-.card-body .hexdots{
-  position:absolute; inset:0; opacity:.07; pointer-events:none;
-  background-image:radial-gradient(circle, var(--accent-cyan) 1px, transparent 1px);
-  background-size:2.4cqw 2.4cqw;
-}
-.card-corner{
-  position:absolute; width:2.6cqw; height:2.6cqw; z-index:2;
-  border-color:rgba(232,236,245,.55); border-style:solid; border-width:0;
-}
-.card-corner.tr{ top:1.3cqw; right:1.3cqw; border-top-width:0.3cqw; border-right-width:0.3cqw; }
-.card-corner.br{ bottom:1.3cqw; right:1.3cqw; border-bottom-width:0.3cqw; border-right-width:0.3cqw; }
-
-.body-grid{
   flex:1; min-height:0; position:relative; z-index:1;
-  display:grid; grid-template-columns:19cqw 1fr 15cqw; gap:2.4cqw;
+  display:grid; grid-template-columns:22cqw 1fr 18cqw;
+  gap:2cqw; padding:2.4cqw 3cqw;
 }
 
-.id-left{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.4cqw; height:100%;}
-.portrait-frame{
-  position:relative; width:19cqw; height:19cqw; flex-shrink:0;
-  border:0.35cqw solid var(--accent-gold); border-radius:1.6cqw;
-  background:var(--bg-panel-2);
-  box-shadow:inset 0 0 2.6cqw rgba(0,0,0,.6), 0 0 2.2cqw rgba(245,184,73,.15);
-  padding:0.7cqw;
+/* --- IZQUIEDA: emblema + pills --- */
+.id-left{
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:1.2cqw; height:100%;
+}
+.emblem{
+  width:18cqw; height:18cqw; flex-shrink:0;
+  border:0.4cqw solid var(--accent-gold); border-radius:1.2cqw;
+  background:#111;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 2cqw rgba(224,169,38,.2), inset 0 0 2cqw rgba(0,0,0,.5);
+  position:relative; overflow:hidden;
+}
+.emblem::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 50%, rgba(224,169,38,.1), transparent 70%);
 }
 .card-portrait{
-  width:100%; height:100%; border-radius:1.1cqw;
-  background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
+  width:100%; height:100%; border-radius:0.8cqw;
+  background:linear-gradient(145deg, #2a2a2a, #1a1a1a);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-display); font-size:6cqw; color:var(--bg-deep);
-  background-repeat:no-repeat;
+  font-family:var(--font-display); font-size:6cqw; color:var(--accent-gold);
+  background-repeat:no-repeat; position:relative; z-index:1;
 }
-.id-pill{
-  display:inline-flex; align-items:center; gap:0.8cqw;
-  font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.02em; color:var(--text-muted);
-  border:1px solid var(--border-bright); border-radius:4cqw; padding:0.6cqw 1.5cqw 0.6cqw 1.1cqw;
-  background:var(--bg-panel-2); white-space:nowrap; max-width:19cqw; overflow:hidden; text-overflow:ellipsis;
+.portrait-triangle{
+  position:absolute; left:-0.8cqw; top:50%; transform:translateY(-50%);
+  width:0; height:0;
+  border-top:1.2cqw solid transparent;
+  border-bottom:1.2cqw solid transparent;
+  border-right:1.5cqw solid var(--accent-gold);
+  z-index:2;
 }
-.id-pill svg{width:1.9cqw; height:1.9cqw; color:var(--accent-blue); flex-shrink:0;}
+.id-icons{
+  display:flex; gap:0.8cqw; justify-content:center;
+}
+.id-icon-circle{
+  width:4.5cqw; height:4.5cqw; border-radius:50%;
+  border:0.25cqw solid rgba(255,255,255,.2);
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.05);
+}
+.id-icon-circle svg{width:2.2cqw; height:2.2cqw; color:rgba(255,255,255,.5);}
 
-.id-fields{display:flex; flex-direction:column; justify-content:center; gap:1.6cqw; min-width:0; height:100%;}
+/* --- CENTRO: campos de datos --- */
+.id-fields{
+  display:flex; flex-direction:column; justify-content:center;
+  gap:1.4cqw; min-width:0; height:100%;
+}
+.id-field{position:relative;}
+.id-field .f-label-row{
+  display:flex; align-items:center; gap:0.8cqw; margin-bottom:0.4cqw;
+}
 .id-field .f-label{
-  font-family:var(--font-mono); font-size:1.5cqw; letter-spacing:.16em; color:var(--accent-gold);
-  text-transform:uppercase; margin-bottom:0.5cqw;
+  font-family:var(--font-display); font-size:1.3cqw; letter-spacing:.14em;
+  color:var(--accent-gold); text-transform:uppercase; font-weight:600;
+}
+.id-field .f-glyphs{
+  font-family:var(--font-mono); font-size:1cqw; color:rgba(224,169,38,.35);
+  letter-spacing:.08em;
 }
 .id-field .f-value{
-  background:rgba(232,236,245,.06); border:1px solid var(--border-soft); border-radius:0.8cqw;
-  padding:1.2cqw 1.7cqw; font-size:2.6cqw; font-weight:600; color:var(--text-primary);
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+  border-radius:0.6cqw; padding:1cqw 1.6cqw;
+  font-size:2.4cqw; font-weight:600; color:#fff;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  backdrop-filter:blur(4px);
+  font-family:var(--font-body);
 }
-.id-field.name .f-value{font-size:3.1cqw; font-family:var(--font-display); letter-spacing:.02em;}
+.id-field.name .f-value{
+  font-size:3cqw; font-family:var(--font-display); letter-spacing:.03em;
+}
 .id-field .f-value.cyan{color:var(--accent-cyan);}
 .id-field .f-value.violet{color:var(--accent-violet);}
+.id-field .f-barcode{
+  font-family:var(--font-mono); font-size:0.8cqw; color:rgba(255,255,255,.12);
+  letter-spacing:.2em; margin-top:0.2cqw; overflow:hidden; white-space:nowrap;
+}
 
-.id-right{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6cqw; height:100%;}
+/* --- DERECHA: diamante + ID + estado --- */
+.id-right{
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:1.4cqw; height:100%;
+}
 .diamond-shape{
-  width:9cqw; height:9cqw;
-  background:linear-gradient(135deg,#fff 0%, var(--accent-cyan) 45%, #0b0e1c 100%);
-  transform:rotate(45deg); border-radius:1cqw;
-  box-shadow:0 0 2.6cqw rgba(0,217,255,.35);
+  width:8cqw; height:8cqw;
+  background:linear-gradient(135deg, #fff 0%, #ccc 30%, #333 60%, #000 100%);
+  transform:rotate(45deg); border-radius:0.8cqw;
+  box-shadow:0 0 2cqw rgba(255,255,255,.15), 0 0 4cqw rgba(0,0,0,.5);
+  position:relative;
+}
+.diamond-shape::after{
+  content:""; position:absolute; inset:15%;
+  background:linear-gradient(135deg, rgba(211,47,47,.4), transparent 60%);
+  border-radius:0.4cqw;
 }
 .id-status-block{
-  text-align:center; border:1px solid var(--border-bright); border-radius:0.9cqw;
-  padding:1cqw 0.8cqw; background:var(--bg-panel-2); width:100%;
+  text-align:center; border:1px solid rgba(255,255,255,.15); border-radius:0.8cqw;
+  padding:0.8cqw 0.7cqw; background:rgba(255,255,255,.05); width:100%;
 }
-.id-status-block .lbl{font-family:var(--font-mono); font-size:1.1cqw; letter-spacing:.1em; color:var(--text-dim); text-transform:uppercase;}
-.id-status-block .val{font-family:var(--font-mono); font-size:1.5cqw; color:var(--accent-gold); margin-top:0.4cqw; word-break:break-word;}
-.id-status-block .status-seal{
-  display:block; font-family:var(--font-mono); font-size:1.4cqw; color:var(--accent-cyan);
-  margin-top:0.4cqw; word-break:break-word; letter-spacing:.02em;
+.id-status-block .lbl{
+  font-family:var(--font-mono); font-size:1cqw; letter-spacing:.1em;
+  color:var(--accent-gold); text-transform:uppercase;
 }
-.id-status-block .status-seal.citizen{color:var(--accent-green);}
-.id-status-block .status-seal.rejected{color:var(--accent-red);}
+.id-status-block .val{
+  font-family:var(--font-mono); font-size:1.4cqw; color:#fff;
+  margin-top:0.3cqw; word-break:break-word;
+}
+.id-status-block .val.citizen{color:var(--accent-green);}
+.id-status-block .val.rejected{color:var(--accent-red);}
 
+/* corner markers */
+.card-corner{
+  position:absolute; z-index:2;
+  width:2.4cqw; height:2.4cqw;
+  border-color:rgba(255,255,255,.3); border-style:solid; border-width:0;
+}
+.card-corner.tr{ top:1.2cqw; right:1.2cqw; border-top-width:0.25cqw; border-right-width:0.25cqw; }
+.card-corner.br{ bottom:1.2cqw; right:1.2cqw; border-bottom-width:0.25cqw; border-right-width:0.25cqw; }
+.card-corner.bl{ bottom:1.2cqw; left:1.2cqw; border-bottom-width:0.25cqw; border-left-width:0.25cqw; }
+
+/* --- BOTTOM --- */
 .card-bottom{
-  flex-shrink:0;
-  display:flex; align-items:center; justify-content:space-between; gap:1.6cqw;
-  padding:1.6cqw 3cqw; border-top:1px solid var(--border-soft);
-  background:rgba(6,8,13,.55); position:relative; z-index:1;
+  flex-shrink:0; position:relative; z-index:1;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.4cqw 3cqw;
+  border-top:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.4);
 }
-.community-slot{display:flex; align-items:center; gap:1.2cqw;}
+.community-slot{display:flex; align-items:center; gap:1cqw;}
 .community-slot .icon{
-  width:3.6cqw; height:3.6cqw; border-radius:0.9cqw; border:1px solid var(--border-bright);
-  display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2); flex-shrink:0;
+  width:3.2cqw; height:3.2cqw; border-radius:0.8cqw;
+  border:0.2cqw solid rgba(255,255,255,.15);
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.05); flex-shrink:0;
 }
-.community-slot .icon svg{width:2cqw; height:2cqw; color:var(--accent-cyan);}
-.community-slot span{font-family:var(--font-mono); font-size:1.4cqw; letter-spacing:.06em; color:var(--text-dim); white-space:nowrap;}
-.card-motto{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.08em; color:var(--accent-blue); text-transform:uppercase; text-align:right; white-space:nowrap;}
+.community-slot .icon svg{width:1.8cqw; height:1.8cqw; color:var(--accent-gold);}
+.community-slot span{
+  font-family:var(--font-mono); font-size:1.3cqw; letter-spacing:.06em;
+  color:rgba(255,255,255,.35); white-space:nowrap;
+}
+.card-motto{
+  font-family:var(--font-mono); font-size:1.2cqw; letter-spacing:.08em;
+  color:var(--accent-gold); text-transform:uppercase; text-align:right; white-space:nowrap;
+}
+
+/* ========== FIN TARJETA ========== */
 
 .face-swatch{
   width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer; background-repeat:no-repeat;
   border:2px solid var(--border-soft); transition:border-color .15s, transform .15s;
 }
 .face-swatch:hover{transform:translateY(-2px);}
-.face-swatch.selected{border-color:var(--accent-cyan);}
+.face-swatch.selected{border-color:var(--accent-gold);}
 
 .export-btn{
   font-weight:600; letter-spacing:.03em; padding:12px 26px; border-radius:4px;
-  background:var(--accent-cyan); color:var(--bg-deep); border:none; cursor:pointer; transition:background .2s;
+  background:var(--accent-gold); color:#111; border:none; cursor:pointer; transition:background .2s;
 }
-.export-btn:hover{background:#31cbe6;}
+.export-btn:hover{background:#FFC800;}
 .export-hint{font-size:11.5px; color:var(--text-dim); font-family:var(--font-mono); text-align:center;}
 
 .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;}
@@ -219,7 +271,7 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
   padding:11px 13px; border-radius:4px; transition:border-color .2s;
 }
-.field input:focus, .field select:focus{border-color:var(--accent-cyan);}
+.field input:focus, .field select:focus{border-color:var(--accent-gold);}
 .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
 
 .export-panel{padding:26px; display:flex; flex-direction:column; gap:16px; align-items:flex-start;}
@@ -229,7 +281,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   border-radius:6px; padding:12px 14px; font-family:var(--font-mono); line-height:1.6;
 }
 
-/* auth box */
 .auth-box{
   background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
   padding:14px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
@@ -250,11 +301,10 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 }
 .signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
-/* insignias */
-.badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; justify-content:center;}
+.badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; justify-content:center;}
 .badge-chip{
-  font-size:10px; padding:3px 8px; border-radius:20px;
-  background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);
+  font-size:9px; padding:2px 7px; border-radius:20px;
+  background:rgba(224,169,38,.12); border:1px solid rgba(224,169,38,.4); color:var(--accent-gold);
   font-family:var(--font-mono);
 }
 
@@ -272,87 +322,98 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   <p class="lede">Vista previa en vivo de tu credencial. Completa tus datos y expórtala en PNG para compartirla o guardarla.</p>
 
   <div class="layout">
-
     <div class="card-stage">
       <div class="card-stage-inner">
         <div class="card" id="idCard">
-          <div class="card-bg-photo"></div>
-          <div class="card-bg-scrim"></div>
 
-          <div class="card-topstrip" id="topStrip"></div>
-
+          <!-- HEADER -->
           <div class="card-header">
             <div class="header-left">
-              <div class="brand-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
-              </div>
-              <div class="brand-text">
-                <span class="brand-name">MORI-01</span>
-                <span class="brand-sub" id="brandSub">—</span>
-              </div>
+              <span class="header-brand">MORI-01</span>
+              <span class="header-glyphs">◇ ◆ ◇ ◆ ◇</span>
             </div>
             <div class="header-right">
-              <div class="doc-title">CREDENCIAL DE CIUDADANO</div>
-              <div class="doc-sub">Unidos bajo un mismo cielo</div>
+              <span class="header-subtitle" id="brandSub">—</span>
             </div>
           </div>
 
+          <!-- BODY -->
           <div class="card-body">
-            <div class="hexdots"></div>
             <div class="card-corner tr"></div>
             <div class="card-corner br"></div>
+            <div class="card-corner bl"></div>
 
-            <div class="body-grid">
-
-              <div class="id-left">
-                <div class="portrait-frame">
-                  <div class="card-portrait" id="cardInitial">?</div>
-                </div>
-                <div class="id-pill">
+            <!-- IZQUIERDA -->
+            <div class="id-left">
+              <div class="emblem">
+                <span class="portrait-triangle"></span>
+                <div class="card-portrait" id="cardInitial">?</div>
+              </div>
+              <div class="id-icons">
+                <div class="id-icon-circle">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="8" width="19" height="9" rx="4"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="10" cy="12.5" r="1"/><circle cx="16.5" cy="11.3" r="1"/><circle cx="16.5" cy="13.7" r="1"/></svg>
-                  <span id="cardPlatform">—</span>
                 </div>
-                <div class="id-pill">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="9" r="2.8"/><path d="M2.8 19c1.1-2.9 3-4.3 5.2-4.3s4.1 1.4 5.2 4.3"/><circle cx="17" cy="9.5" r="2.2"/><path d="M15.3 14.7c1.8.1 3.2 1.4 4 3.7"/></svg>
-                  <span id="cardFriendCode">—</span>
+                <div class="id-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l6 4v6c0 4.5-2.5 7-6 8-3.5-1-6-3.5-6-8V6z"/></svg>
                 </div>
-              </div>
-
-              <div class="id-fields">
-                <div class="id-field name">
-                  <div class="f-label">Nombre</div>
-                  <div class="f-value" id="cardName">—</div>
-                </div>
-                <div class="id-field">
-                  <div class="f-label">Profesión</div>
-                  <div class="f-value" id="cardProfession">—</div>
-                </div>
-                <div class="id-field" id="roleField" style="display:none;">
-                  <div class="f-label">Rol</div>
-                  <div class="f-value violet" id="cardRole">—</div>
-                </div>
-                <div class="id-field">
-                  <div class="f-label">Asentamiento</div>
-                  <div class="f-value cyan" id="cardPlanet">—</div>
+                <div class="id-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="10" r="5"/><path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/></svg>
                 </div>
               </div>
+            </div>
 
-              <div class="id-right">
-                <div class="diamond-shape"></div>
-                <div class="id-status-block">
-                  <div class="lbl">ID</div>
-                  <div class="val" id="cardId">#M01-0000</div>
+            <!-- CENTRO -->
+            <div class="id-fields">
+              <div class="id-field name">
+                <div class="f-label-row">
+                  <span class="f-label">Nombre</span>
+                  <span class="f-glyphs">◇◇◇</span>
                 </div>
-                <div class="id-status-block">
-                  <div class="lbl">Estado</div>
-                  <div class="val status" id="cardStatus">Sin validar</div>
-                </div>
-                <div class="badge-row" id="cardBadges"></div>
+                <div class="f-value" id="cardName">—</div>
+                <div class="f-barcode">||||| |||| ||| |||| |||||</div>
               </div>
+              <div class="id-field">
+                <div class="f-label-row">
+                  <span class="f-label">Profesión</span>
+                  <span class="f-glyphs">◇◇</span>
+                </div>
+                <div class="f-value" id="cardProfession">—</div>
+                <div class="f-barcode">||||| |||| |||</div>
+              </div>
+              <div class="id-field" id="roleField" style="display:none;">
+                <div class="f-label-row">
+                  <span class="f-label">Rol</span>
+                  <span class="f-glyphs">◇◇</span>
+                </div>
+                <div class="f-value violet" id="cardRole">—</div>
+                <div class="f-barcode">||||| ||||</div>
+              </div>
+              <div class="id-field">
+                <div class="f-label-row">
+                  <span class="f-label">Asentamiento</span>
+                  <span class="f-glyphs">◇◇◇</span>
+                </div>
+                <div class="f-value cyan" id="cardPlanet">—</div>
+                <div class="f-barcode">||||| |||| ||| ||||</div>
+              </div>
+            </div>
 
+            <!-- DERECHA -->
+            <div class="id-right">
+              <div class="diamond-shape"></div>
+              <div class="id-status-block">
+                <div class="lbl">ID</div>
+                <div class="val" id="cardId">#M01-0000</div>
+              </div>
+              <div class="id-status-block">
+                <div class="lbl">Estado</div>
+                <div class="val status" id="cardStatus">Sin validar</div>
+              </div>
+              <div class="badge-row" id="cardBadges"></div>
             </div>
           </div>
 
+          <!-- BOTTOM -->
           <div class="card-bottom">
             <div class="community-slot">
               <div class="icon">
@@ -376,7 +437,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       </div>
 
       <div class="tab-panel active" id="tab-data">
-
         <div class="auth-box" id="authBox">
           <div class="auth-status">Inicia sesión con la misma cuenta de Google con la que enviaste tu solicitud.</div>
         </div>
@@ -456,7 +516,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -468,8 +527,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 
   document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('brandSub').textContent = SYSTEM_INFO.shortName.toUpperCase();
-  document.getElementById('topStrip').innerHTML =
-    Array(4).fill(`<span>Mori-01</span><span>${SYSTEM_INFO.tag.replace(/[\[\]]/g,'')}</span>`).join('');
 
   const citizensCol = collection(db, 'citizens');
   const PLANET_BY_INDEX = Object.fromEntries(PLANETS.map(p=>[p.i, p.name]));
@@ -485,8 +542,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   const cardName = document.getElementById('cardName');
   const cardProfession = document.getElementById('cardProfession');
   const cardPlanet = document.getElementById('cardPlanet');
-  const cardPlatform = document.getElementById('cardPlatform');
-  const cardFriendCode = document.getElementById('cardFriendCode');
   const cardInitial = document.getElementById('cardInitial');
   const faceGrid = document.getElementById('faceGrid');
   const cardId = document.getElementById('cardId');
@@ -597,8 +652,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     cardName.textContent = fName.value.trim() || '—';
     cardProfession.textContent = fProfession.value || '—';
     cardPlanet.textContent = fPlanet.value || '—';
-    cardPlatform.textContent = fPlatform.value || '—';
-    cardFriendCode.textContent = fCode.value.trim() || '—';
     applyFaceToCard();
   }
   [fName, fProfession, fPlatform, fPlanet, fCode].forEach(el=>el.addEventListener('input', update));
@@ -641,9 +694,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       selectFaceByIndex(typeof data.faceIndex === 'number' ? data.faceIndex : null);
       cardId.textContent = data.id;
 
-      // Foto del carnet: usa idPhotoUrl/idPhotoStatus (subida desde "Mi
-      // Ciudadanía"). Si el admin la aprobó, se muestra en la tarjeta.
-      // Si está pendiente o rechazada, se usa el rostro del sprite.
       const idPhoto = data.idPhotoUrl;
       const idStatus = data.idPhotoStatus;
       if(idStatus === 'approved' && idPhoto){
