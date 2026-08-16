@@ -203,9 +203,16 @@
 
   <!-- MODERACIÓN DE FOTOS -->
   <div class="panel">
-    <h2>Fotos pendientes de aprobación</h2>
+    <h2>Fotos de bases pendientes de aprobación</h2>
     <p class="sub">Solo las fotos que apruebes aquí se muestran en la galería pública.</p>
     <div id="photoModList"></div>
+  </div>
+
+  <!-- MODERACIÓN DE FOTOS DE CARNET -->
+  <div class="panel">
+    <h2>Fotos de carnet pendientes de aprobación</h2>
+    <p class="sub">Foto real que cada jugador sube para SU credencial en "Mi Ciudadanía". Nunca aparece en la galería pública — solo en su carnet.</p>
+    <div id="idPhotoModList"></div>
   </div>
 
   <!-- IMÁGENES DE PLANETAS -->
@@ -375,6 +382,7 @@
       renderCounts();
       renderList();
       renderPhotoModeration();
+      renderIdPhotoModeration();
     }, err=>{
       document.getElementById('registryList').innerHTML =
         '<div class="empty-state">No se pudo cargar el registro. Revisa las reglas de Firestore.</div>';
@@ -526,6 +534,47 @@
     try{
       await updateDoc(doc(db, 'citizens', docId), { photoStatus: action === 'approve' ? 'approved' : 'rejected' });
       showAdminAlert(action === 'approve' ? 'Foto aprobada — ya es pública en la galería.' : 'Foto rechazada.', 'ok');
+    }catch(err){
+      showAdminAlert('No se pudo actualizar la foto. Revisa las reglas de Firestore.', 'error');
+    }
+  });
+
+  // ---------- MODERACIÓN DE FOTOS DE CARNET (idPhotoUrl/idPhotoStatus) ----------
+  // Campo totalmente separado de photoUrl/photoStatus — esta foto nunca
+  // sale en la galería, solo en la credencial de "Mi Ciudadanía".
+  function renderIdPhotoModeration(){
+    const box = document.getElementById('idPhotoModList');
+    const pending = allEntries.filter(e => e.idPhotoUrl && (e.idPhotoStatus || 'pending') === 'pending');
+    if(!pending.length){
+      box.innerHTML = '<div class="empty-state">No hay fotos de carnet esperando aprobación.</div>';
+      return;
+    }
+    box.innerHTML = pending.map(e=>{
+      const planet = PLANETS.find(p=>p.i===e.planetIndex);
+      return `
+        <div class="photo-row" data-doc="${e.docId}">
+          <div class="photo-thumb"><img src="${e.idPhotoUrl}" alt="Foto de carnet de ${escapeHtml(e.name)}"></div>
+          <div class="photo-info">
+            <div class="pname">${escapeHtml(e.name)} ${photoStatusPillHtml(e.idPhotoStatus)}</div>
+            <div class="pmeta">${e.id} · ${planet ? planet.name : '—'}</div>
+            <div class="reg-actions">
+              <button class="act-btn approve" data-idphoto-action="approve">Aprobar foto</button>
+              <button class="act-btn reject" data-idphoto-action="reject">Rechazar foto</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('idPhotoModList').addEventListener('click', async e=>{
+    const btn = e.target.closest('[data-idphoto-action]');
+    if(!btn) return;
+    const row = e.target.closest('.photo-row');
+    const docId = row.dataset.doc;
+    const action = btn.dataset.idphotoAction;
+    try{
+      await updateDoc(doc(db, 'citizens', docId), { idPhotoStatus: action === 'approve' ? 'approved' : 'rejected' });
+      showAdminAlert(action === 'approve' ? 'Foto de carnet aprobada.' : 'Foto de carnet rechazada.', 'ok');
     }catch(err){
       showAdminAlert('No se pudo actualizar la foto. Revisa las reglas de Firestore.', 'error');
     }

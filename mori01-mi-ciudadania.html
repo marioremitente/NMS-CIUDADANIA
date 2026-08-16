@@ -424,11 +424,13 @@
     const planet = PLANETS.find(p => p.i === profileSrc.planetIndex);
     const statusText = profileSrc.status === 'citizen' ? 'Ciudadano'
       : profileSrc.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
-    const hasApprovedPhoto = profileSrc.photoStatus === 'approved' && profileSrc.photoUrl;
+    // Foto DEL CARNET (idPhotoUrl/idPhotoStatus) — nunca la foto de la
+    // base (photoUrl/photoStatus), que es la que sale en la galería.
+    const hasApprovedPhoto = profileSrc.idPhotoStatus === 'approved' && profileSrc.idPhotoUrl;
 
     box.innerHTML = `
       <h2>Tu Credencial</h2>
-      <p class="sub">Así se ve tu carnet de ciudadano, con los datos que has ido agregando.</p>
+      <p class="sub">Así se ve tu carnet de ciudadano, con los datos que has ido agregando. Esta foto es solo para tu carnet — no aparece en la galería pública.</p>
       <div class="cred-stage">
         <div class="cred-inner">
           <div class="cred-card" id="credCard">
@@ -516,7 +518,7 @@
             ${hasApprovedPhoto ? 'Cambiar foto' : 'Subir foto real'}
           </label>
           <input type="file" id="changePhotoInput" accept="image/*" style="display:none">
-          <p class="photo-hint">JPG o PNG, máximo 5MB. Toda foto nueva queda pendiente de aprobación del Arcade antes de mostrarse aquí y en la galería pública.</p>
+          <p class="photo-hint">JPG o PNG, máximo 5MB. Es la foto de TU carnet — no sale en la galería pública de bases. Toda foto nueva queda pendiente de aprobación del Arcade antes de mostrarse aquí.</p>
           <p class="photo-note" id="photoStatusMsg"></p>
         </div>
       </div>
@@ -566,15 +568,15 @@
     const photoStatusMsg = document.getElementById('photoStatusMsg');
     if(hasApprovedPhoto){
       credPortrait.textContent = '';
-      credPortrait.style.backgroundImage = `url(${profileSrc.photoUrl})`;
+      credPortrait.style.backgroundImage = `url(${profileSrc.idPhotoUrl})`;
       credPortrait.style.backgroundSize = 'cover';
       credPortrait.style.backgroundPosition = 'center';
       credPortrait.style.backgroundRepeat = 'no-repeat';
     }
-    if(profileSrc.photoStatus === 'pending' && profileSrc.photoUrl){
+    if(profileSrc.idPhotoStatus === 'pending' && profileSrc.idPhotoUrl){
       photoStatusMsg.textContent = 'Tu foto está pendiente de aprobación del Arcade.';
       photoStatusMsg.classList.add('pending');
-    }else if(profileSrc.photoStatus === 'rejected'){
+    }else if(profileSrc.idPhotoStatus === 'rejected'){
       photoStatusMsg.textContent = 'Tu última foto fue rechazada por el Arcade. Puedes intentar con otra.';
       photoStatusMsg.classList.add('rejected');
     }else if(hasApprovedPhoto){
@@ -582,7 +584,7 @@
       photoStatusMsg.classList.add('approved');
     }
 
-    // ---- subir/cambiar foto ----
+    // ---- subir/cambiar foto del carnet (idPhotoUrl/idPhotoStatus — nunca photoUrl/photoStatus) ----
     document.getElementById('changePhotoInput').addEventListener('change', async (e)=>{
       const file = e.target.files[0];
       if(!file) return;
@@ -600,10 +602,12 @@
       photoStatusMsg.className = 'photo-note';
       try{
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const storageRef = ref(storage, `bases/${profileSrc.docId}.${ext}`);
+        // Sufijo "-avatar" para no chocar nunca con el nombre de archivo
+        // que usa la foto de la base (bases/{docId}.ext).
+        const storageRef = ref(storage, `bases/${profileSrc.docId}-avatar.${ext}`);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
-        await updateDoc(doc(db, 'citizens', profileSrc.docId), { photoUrl: url, photoStatus: 'pending' });
+        await updateDoc(doc(db, 'citizens', profileSrc.docId), { idPhotoUrl: url, idPhotoStatus: 'pending' });
         addStorageUsage(file.size);
         photoStatusMsg.textContent = 'Foto subida — pendiente de aprobación del Arcade.';
         photoStatusMsg.className = 'photo-note pending';
