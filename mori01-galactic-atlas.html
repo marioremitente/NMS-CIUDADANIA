@@ -652,8 +652,8 @@
           <span id="legendSystem"></span>
         </div>
         <div class="map-legend-item">
-          <div class="legend-dot" style="background: var(--korvax-gold)"></div>
-          <span>Bases Registradas</span>
+          <div class="legend-dot" style="background: var(--korvax-cyan-dim)"></div>
+          <span>Región Cuadrante Delta</span>
         </div>
       </div>
     </div>
@@ -778,26 +778,11 @@ function portalToGlyphs(code) {
 }
 
 // ============================================
-// CONVERT GAME COORDS → MAP PIXELS
+// GALACTIC ATLAS — Option B
 // ============================================
-// In NMS, coordinates are lat/lon in degrees.
-// We scale them relative to the system center.
+// Shows MORI-01 as a single point in the galaxy.
+// Bases are displayed in the list, not on the map.
 // ============================================
-function gameToMapPx(lat, lon, canvasW, canvasH) {
-  const SCALE = 1.8;
-  const cx = canvasW / 2;
-  const cy = canvasH / 2;
-  const px = cx + lon * SCALE;
-  const py = cy - lat * SCALE;
-  return { x: px, y: py };
-}
-
-// ============================================
-// TOOLTIP STATE
-// ============================================
-let hoveredBase = null;
-let tooltipX = 0;
-let tooltipY = 0;
 
 // ============================================
 // RENDER HEADER
@@ -969,8 +954,6 @@ function renderBases() {
       </div>
     `;
   }).join('');
-
-  drawGalaxyMap();
 }
 
 // ============================================
@@ -1071,75 +1054,6 @@ function drawGalaxyMap() {
   ctx.fillStyle = '#00e5ff';
   ctx.fillText(SYSTEM_INFO.shortName, markerX + 16, markerY + 4);
 
-  // Base markers — plotted at real coordinates
-  hoveredBase = null;
-  BASES.forEach(base => {
-    const pos = gameToMapPx(base.lat, base.lon, w, h);
-    const bx = markerX + (pos.x - cx);
-    const by = markerY + (pos.y - cy);
-
-    // Check hover
-    const dx = tooltipX - bx;
-    const dy = tooltipY - by;
-    if (Math.sqrt(dx * dx + dy * dy) < 12) {
-      hoveredBase = base;
-    }
-
-    // Outer ring
-    ctx.strokeStyle = 'rgba(255, 215, 64, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(bx, by, 6, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Inner dot
-    ctx.fillStyle = '#ffd740';
-    ctx.beginPath();
-    ctx.arc(bx, by, 3, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Draw tooltip
-  if (hoveredBase) {
-    const planet = findPlanetByIndex(hoveredBase.planetIndex);
-    const lines = [
-      hoveredBase.name || 'Sin nombre',
-      `${planet ? planet.name : '—'} · +${hoveredBase.lat}, +${hoveredBase.lon}`,
-      hoveredBase.id
-    ];
-
-    const font = '11px "Share Tech Mono", monospace';
-    ctx.font = font;
-    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const pad = 8;
-    const lineH = 16;
-    const boxW = maxW + pad * 2;
-    const boxH = lines.length * lineH + pad * 2;
-    let bx = tooltipX + 14;
-    let by = tooltipY - boxH - 8;
-
-    if (bx + boxW > w) bx = tooltipX - boxW - 14;
-    if (by < 0) by = tooltipY + 14;
-
-    ctx.fillStyle = '#0a0e1dee';
-    ctx.strokeStyle = '#00e5ff44';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(bx, by, boxW, boxH, 3);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.font = 'bold 11px "Share Tech Mono", monospace';
-    ctx.fillStyle = '#ffd740';
-    ctx.fillText(lines[0], bx + pad, by + pad + 11);
-
-    ctx.font = font;
-    ctx.fillStyle = '#b0bec5';
-    lines.slice(1).forEach((line, i) => {
-      ctx.fillText(line, bx + pad, by + pad + 11 + lineH * (i + 1));
-    });
-  }
-
   // Grid lines
   ctx.strokeStyle = 'rgba(0, 229, 255, 0.03)';
   ctx.lineWidth = 0.5;
@@ -1158,26 +1072,6 @@ function drawGalaxyMap() {
 }
 
 // ============================================
-// MAP MOUSE TRACKING
-// ============================================
-function setupMapInteraction() {
-  const canvas = document.getElementById('galaxyCanvas');
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    tooltipX = (e.clientX - rect.left);
-    tooltipY = (e.clientY - rect.top);
-    drawGalaxyMap();
-  });
-
-  canvas.addEventListener('mouseleave', () => {
-    tooltipX = -100;
-    tooltipY = -100;
-    hoveredBase = null;
-    drawGalaxyMap();
-  });
-}
-
-// ============================================
 // FIRESTORE REAL-TIME SUBSCRIPTION
 // ============================================
 function subscribeBases() {
@@ -1191,7 +1085,6 @@ function subscribeBases() {
     }));
 
     renderBases();
-    drawGalaxyMap();
   }, (error) => {
     console.error('Firestore error:', error);
     document.getElementById('basesList').innerHTML =
@@ -1206,7 +1099,6 @@ renderHeader();
 renderSystemData();
 renderPortalCode();
 renderPlanets();
-setupMapInteraction();
 subscribeBases();
 
 window.addEventListener('resize', () => {

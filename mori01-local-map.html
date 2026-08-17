@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Local · MORI-01</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --korvax-cyan: #00e5ff;
+    --korvax-cyan-dim: #00e5ff66;
+    --korvax-cyan-glow: #00e5ff33;
+    --korvax-teal: #00bfa5;
+    --korvax-blue: #1a237e;
+    --korvax-dark: #0a0e1a;
+    --korvax-darker: #060912;
+    --korvax-panel: #0d1225cc;
+    --korvax-border: #00e5ff22;
+    --korvax-text: #b0bec5;
+    --korvax-text-bright: #eceff1;
+    --korvax-gold: #ffd740;
+    --korvax-red: #ff5252;
+    --korvax-green: #69f0ae;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--korvax-darker);
+    color: var(--korvax-text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, #00e5ff08 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #1a237e15 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, #00000008 2px, #00000008 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* === HEADER === */
+  .atlas-header {
+    position: relative;
+    text-align: center;
+    padding: 2rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--korvax-border);
+  }
+
+  .atlas-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--korvax-cyan), transparent);
+  }
+
+  .atlas-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    color: var(--korvax-cyan-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .atlas-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 900;
+    color: var(--korvax-text-bright);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 30px var(--korvax-cyan-glow);
+  }
+
+  .atlas-title span { color: var(--korvax-cyan); }
+
+  .atlas-subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--korvax-cyan-dim);
+    margin-top: 0.5rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* === MAIN LAYOUT === */
+  .atlas-main {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 1000px) {
+    .atlas-main { grid-template-columns: 1fr; }
+  }
+
+  /* === PANELS === */
+  .panel {
+    background: var(--korvax-panel);
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    padding: 1.25rem;
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--korvax-cyan-dim), transparent);
+  }
+
+  .panel-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    color: var(--korvax-cyan);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .panel-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border: 1px solid var(--korvax-cyan);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* === SYSTEM MAP === */
+  .system-map-container { grid-column: 1; }
+
+  .system-map {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #050a15;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--korvax-border);
+    max-height: 70vh;
+  }
+
+  .system-map canvas { width: 100%; height: 100%; display: block; }
+
+  /* === PLANET SIDEBAR === */
+  .planet-sidebar { grid-column: 2; }
+
+  @media (max-width: 1000px) {
+    .planet-sidebar { grid-column: 1; }
+  }
+
+  .planet-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .planet-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem;
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .planet-item:hover, .planet-item.active {
+    border-color: var(--korvax-cyan-dim);
+    box-shadow: 0 0 15px var(--korvax-cyan-glow);
+  }
+
+  .planet-item-img {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #0d1225;
+  }
+
+  .planet-item-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  .planet-item-info { flex: 1; min-width: 0; }
+
+  .planet-item-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--korvax-text-bright);
+    letter-spacing: 0.05em;
+  }
+
+  .planet-item-climate {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--korvax-teal);
+  }
+
+  .planet-item-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--korvax-gold);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* === BASE CARDS === */
+  .bases-section {
+    grid-column: 1 / -1;
+  }
+
+  .bases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .base-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .base-card:hover {
+    border-color: var(--korvax-cyan-dim);
+    box-shadow: 0 0 15px var(--korvax-cyan-glow);
+  }
+
+  .base-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--korvax-blue), var(--korvax-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--korvax-text-bright);
+    flex-shrink: 0;
+  }
+
+  .base-info { flex: 1; min-width: 0; }
+
+  .base-info h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--korvax-text-bright);
+    margin-bottom: 0.15rem;
+  }
+
+  .base-info p {
+    font-size: 0.65rem;
+    color: var(--korvax-text);
+  }
+
+  .base-info .highlight {
+    color: var(--korvax-cyan);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .no-bases {
+    text-align: center;
+    padding: 2rem;
+    color: var(--korvax-text);
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+
+  /* === FOOTER === */
+  .atlas-footer {
+    text-align: center;
+    padding: 1.5rem;
+    border-top: 1px solid var(--korvax-border);
+    margin-top: 1.5rem;
+  }
+
+  .atlas-footer p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--korvax-cyan-dim);
+    letter-spacing: 0.2em;
+  }
+
+  /* === TOOLTIP === */
+  .map-tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #0a0e1dee;
+    border: 1px solid #00e5ff44;
+    border-radius: 3px;
+    padding: 8px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--korvax-text);
+    z-index: 100;
+    display: none;
+    max-width: 250px;
+  }
+
+  .map-tooltip .tt-name {
+    font-weight: bold;
+    color: var(--korvax-gold);
+    margin-bottom: 4px;
+  }
+
+  .map-tooltip .tt-coords {
+    color: var(--korvax-cyan);
+  }
+
+  .map-tooltip .tt-id {
+    color: var(--korvax-text);
+    font-size: 0.6rem;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="atlas-header">
+  <div class="atlas-logo">[MRNG] · MORI-01</div>
+  <h1 class="atlas-title"><span>MAPA</span> LOCAL</h1>
+  <p class="atlas-subtitle">Vista del sistema · Bases en sus planetas</p>
+</header>
+
+<!-- MAIN -->
+<main class="atlas-main">
+
+  <!-- SYSTEM MAP -->
+  <section class="system-map-container panel">
+    <div class="panel-label">Mapa del Sistema</div>
+    <div class="system-map">
+      <canvas id="systemCanvas"></canvas>
+    </div>
+  </section>
+
+  <!-- PLANET SIDEBAR -->
+  <section class="planet-sidebar panel">
+    <div class="panel-label">Cuerpos Celestes</div>
+    <div class="planet-list" id="planetList"></div>
+  </section>
+
+  <!-- BASES -->
+  <section class="bases-section panel">
+    <div class="panel-label">Bases de la Comunidad</div>
+    <div class="bases-grid" id="basesList"></div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="atlas-footer">
+  <p>MORI-01 · Moringos PRIME · Mapa Local v1.0</p>
+</footer>
+
+<!-- TOOLTIP -->
+<div class="map-tooltip" id="tooltip">
+  <div class="tt-name"></div>
+  <div class="tt-coords"></div>
+  <div class="tt-id"></div>
+</div>
+
+<script type="module">
+// ============================================
+// MORI-01 LOCAL MAP — Firebase Edition
+// ============================================
+// Shows bases on their planets using lat/lon.
+// ============================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBQTeFhaiS2Wg6V9OgGfr7qhAFqvdfB0LA",
+  authDomain: "mori-01-b1a8d.firebaseapp.com",
+  projectId: "mori-01-b1a8d",
+  storageBucket: "mori-01-b1a8d.firebasestorage.app",
+  messagingSenderId: "592994102590",
+  appId: "1:592994102590:web:59a6c2ae5238819128d06f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ============================================
+// SHARED DATA
+// ============================================
+
+const SYSTEM_INFO = {
+  tag: '[MRNG]',
+  name: 'Moringos PRIME Disonante',
+  shortName: 'Moringos PRIME',
+  region: 'Cuadrante Delta',
+  race: 'Korvax',
+  economy: 'Generación de Energía',
+  conflict: '2 · Tempestuoso',
+  galaxy: 'Galaxia de Euclides',
+  portalCode: '316CA6F74720'
+};
+
+const PLANETS = [
+  {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
+  {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
+  {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
+  {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},
+  {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
+  {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
+];
+
+// ============================================
+// BASES — loaded from Firestore
+// ============================================
+let BASES = [];
+
+// ============================================
+// PLANET HELPERS
+// ============================================
+function findPlanetByIndex(idx) {
+  return PLANETS.find(p => p.i === idx) || null;
+}
+
+function planetImageSlug(name) {
+  return name.toLowerCase().replace(/\s+/g, '');
+}
+
+function planetImg(p) {
+  return `<img src="./${planetImageSlug(p.name)}.webp" alt="${p.name}" loading="lazy">`;
+}
+
+// ============================================
+// SYSTEM MAP STATE
+// ============================================
+let selectedPlanetIdx = null;
+let starsCache = null;
+let hoveredBase = null;
+
+// Planet orbital positions (arranged in a circle)
+const PLANET_ORBITS = PLANETS.map((p, i) => {
+  const angle = (i / PLANETS.length) * Math.PI * 2 - Math.PI / 2;
+  return { planet: p, angle };
+});
+
+// ============================================
+// COORDS → MAP PIXELS
+// ============================================
+function coordsToPixels(lat, lon, planetCenterX, planetCenterY, radius) {
+  const x = planetCenterX + (lon / 180) * radius;
+  const y = planetCenterY - (lat / 180) * radius;
+  return { x, y };
+}
+
+// ============================================
+// RENDER PLANET SIDEBAR
+// ============================================
+function renderPlanetSidebar() {
+  const list = document.getElementById('planetList');
+
+  list.innerHTML = PLANETS.map((p, idx) => {
+    const count = BASES.filter(b => b.planetIndex === p.i).length;
+    return `
+      <div class="planet-item ${idx === selectedPlanetIdx ? 'active' : ''}" data-idx="${idx}">
+        <div class="planet-item-img">${planetImg(p)}</div>
+        <div class="planet-item-info">
+          <div class="planet-item-name">${p.name}</div>
+          <div class="planet-item-climate">${p.clima}</div>
+        </div>
+        <div class="planet-item-count">${count} base${count !== 1 ? 's' : ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('.planet-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const idx = parseInt(item.dataset.idx);
+      selectPlanet(idx);
+    });
+  });
+
+  if (selectedPlanetIdx === null && PLANETS.length > 0) {
+    selectPlanet(0);
+  }
+}
+
+function selectPlanet(idx) {
+  selectedPlanetIdx = idx;
+
+  document.querySelectorAll('.planet-item').forEach((item, i) => {
+    item.classList.toggle('active', i === idx);
+  });
+
+  drawSystemMap();
+}
+
+// ============================================
+// RENDER BASES LIST
+// ============================================
+function renderBases() {
+  const container = document.getElementById('basesList');
+
+  if (BASES.length === 0) {
+    container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
+    return;
+  }
+
+  container.innerHTML = BASES.map(base => {
+    const planet = findPlanetByIndex(base.planetIndex);
+    const planetName = planet ? planet.name : '—';
+    const initials = (base.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    return `
+      <div class="base-card" data-base-id="${base.docId}">
+        <div class="base-avatar">${initials}</div>
+        <div class="base-info">
+          <h3>${base.name || 'Sin nombre'}</h3>
+          <p><span class="highlight">${planetName}</span> · +${base.lat}, +${base.lon}</p>
+          <p>${base.id} · ${base.platform || '—'}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Click to select planet
+  container.querySelectorAll('.base-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      const baseId = card.dataset.baseId;
+      const base = BASES.find(b => b.docId === baseId);
+      if (base) {
+        const planetIdx = PLANETS.findIndex(p => p.i === base.planetIndex);
+        if (planetIdx >= 0) selectPlanet(planetIdx);
+      }
+    });
+  });
+}
+
+// ============================================
+// SYSTEM MAP (Canvas)
+// ============================================
+function drawSystemMap() {
+  const canvas = document.getElementById('systemCanvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+
+  const size = Math.min(rect.width, rect.height);
+  canvas.width = size * 2;
+  canvas.height = size * 2;
+  ctx.scale(2, 2);
+
+  const w = size;
+  const h = size;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // Background
+  ctx.fillStyle = '#050a15';
+  ctx.fillRect(0, 0, w, h);
+
+  // Stars
+  if (!starsCache || starsCache.w !== w || starsCache.h !== h) {
+    starsCache = { w, h, dots: [] };
+    for (let i = 0; i < 200; i++) {
+      starsCache.dots.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1,
+        a: Math.random() * 0.5 + 0.1
+      });
+    }
+  }
+  starsCache.dots.forEach(s => {
+    ctx.fillStyle = `rgba(176, 190, 197, ${s.a})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Central star
+  const starGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 25);
+  starGrad.addColorStop(0, '#fff8e1');
+  starGrad.addColorStop(0.3, '#ffd740');
+  starGrad.addColorStop(0.7, '#ff8f0044');
+  starGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = starGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffd740';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = '9px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#ffd740aa';
+  ctx.fillText('MRNG', cx + 12, cy + 3);
+
+  // Orbital rings and planets
+  const maxRadius = Math.min(w, h) * 0.42;
+  const minRadius = Math.min(w, h) * 0.18;
+
+  hoveredBase = null;
+  const tooltipEl = document.getElementById('tooltip');
+
+  PLANET_ORBITS.forEach((po, idx) => {
+    const orbitRadius = minRadius + (maxRadius - minRadius) * (idx / (PLANET_ORBITS.length - 1 || 1));
+    const isSelected = idx === selectedPlanetIdx;
+
+    // Orbit ring
+    ctx.strokeStyle = isSelected ? '#00e5ff33' : '#ffffff08';
+    ctx.lineWidth = isSelected ? 1.5 : 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, orbitRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Planet position
+    const px = cx + Math.cos(po.angle) * orbitRadius;
+    const py = cy + Math.sin(po.angle) * orbitRadius;
+    po._x = px;
+    po._y = py;
+    po._radius = orbitRadius;
+
+    // Planet circle
+    const planetRadius = isSelected ? 18 : 14;
+
+    if (isSelected) {
+      const glow = ctx.createRadialGradient(px, py, 0, px, py, planetRadius + 10);
+      glow.addColorStop(0, '#00e5ff22');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px, py, planetRadius + 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = isSelected ? '#00e5ff' : '#4dd0e1';
+    ctx.beginPath();
+    ctx.arc(px, py, planetRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = isSelected ? '#00e5ff' : '#4dd0e188';
+    ctx.lineWidth = isSelected ? 2 : 1;
+    ctx.beginPath();
+    ctx.arc(px, py, planetRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Planet label
+    ctx.font = `${isSelected ? 'bold ' : ''}9px "Orbitron", sans-serif`;
+    ctx.fillStyle = isSelected ? '#eceff1' : '#b0bec5';
+    ctx.textAlign = 'center';
+    ctx.fillText(po.planet.name, px, py - planetRadius - 8);
+    ctx.textAlign = 'left';
+
+    // Bases on this planet
+    const planetBases = BASES.filter(b => b.planetIndex === po.planet.i);
+    const baseRadius = planetRadius * 0.6;
+
+    planetBases.forEach(base => {
+      const bPos = coordsToPixels(base.lat, base.lon, px, py, baseRadius);
+      const bx = bPos.x;
+      const by = bPos.y;
+
+      // Check hover
+      const dx = tooltipMouseX - bx;
+      const dy = tooltipMouseY - by;
+      if (Math.sqrt(dx * dx + dy * dy) < 10) {
+        hoveredBase = base;
+      }
+
+      // Base marker
+      ctx.strokeStyle = 'rgba(255, 215, 64, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(bx, by, 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffd740';
+      ctx.beginPath();
+      ctx.arc(bx, by, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+
+  // Tooltip
+  if (hoveredBase) {
+    const planet = findPlanetByIndex(hoveredBase.planetIndex);
+    tooltipEl.style.display = 'block';
+    tooltipEl.querySelector('.tt-name').textContent = hoveredBase.name || 'Sin nombre';
+    tooltipEl.querySelector('.tt-coords').textContent = `${planet ? planet.name : '—'} · +${hoveredBase.lat}, +${hoveredBase.lon}`;
+    tooltipEl.querySelector('.tt-id').textContent = hoveredBase.id;
+
+    let tx = tooltipMousePageX + 14;
+    let ty = tooltipMousePageY - 60;
+    if (tx + 250 > window.innerWidth) tx = tooltipMousePageX - 260;
+    if (ty < 0) ty = tooltipMousePageY + 14;
+
+    tooltipEl.style.left = tx + 'px';
+    tooltipEl.style.top = ty + 'px';
+  } else {
+    tooltipEl.style.display = 'none';
+  }
+}
+
+// ============================================
+// MAP MOUSE TRACKING
+// ============================================
+let tooltipMouseX = 0;
+let tooltipMouseY = 0;
+let tooltipMousePageX = 0;
+let tooltipMousePageY = 0;
+
+function setupMapInteraction() {
+  const canvas = document.getElementById('systemCanvas');
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    tooltipMouseX = (e.clientX - rect.left) * (canvas.width / 2 / rect.width);
+    tooltipMouseY = (e.clientY - rect.top) * (canvas.height / 2 / rect.height);
+    tooltipMousePageX = e.clientX;
+    tooltipMousePageY = e.clientY;
+    drawSystemMap();
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    tooltipMouseX = -100;
+    tooltipMouseY = -100;
+    hoveredBase = null;
+    drawSystemMap();
+    document.getElementById('tooltip').style.display = 'none';
+  });
+}
+
+// ============================================
+// FIRESTORE REAL-TIME SUBSCRIPTION
+// ============================================
+function subscribeBases() {
+  const citizensRef = collection(db, 'citizens');
+  const q = query(citizensRef, where('status', '==', 'citizen'));
+
+  onSnapshot(q, (snapshot) => {
+    BASES = snapshot.docs.map(doc => ({
+      docId: doc.id,
+      ...doc.data()
+    }));
+
+    renderPlanetSidebar();
+    renderBases();
+    drawSystemMap();
+  }, (error) => {
+    console.error('Firestore error:', error);
+    document.getElementById('basesList').innerHTML =
+      '<div class="no-bases">Error cargando bases.</div>';
+  });
+}
+
+// ============================================
+// INIT
+// ============================================
+setupMapInteraction();
+subscribeBases();
+
+window.addEventListener('resize', () => {
+  starsCache = null;
+  drawSystemMap();
+});
+</script>
+</body>
+</html>
