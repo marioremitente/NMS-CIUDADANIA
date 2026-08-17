@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galactic Atlas · MORI-01</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --korvax-cyan: #00e5ff;
+    --korvax-cyan-dim: #00e5ff66;
+    --korvax-cyan-glow: #00e5ff33;
+    --korvax-teal: #00bfa5;
+    --korvax-blue: #1a237e;
+    --korvax-dark: #0a0e1a;
+    --korvax-darker: #060912;
+    --korvax-panel: #0d1225cc;
+    --korvax-border: #00e5ff22;
+    --korvax-text: #b0bec5;
+    --korvax-text-bright: #eceff1;
+    --korvax-gold: #ffd740;
+    --korvax-red: #ff5252;
+    --korvax-green: #69f0ae;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--korvax-darker);
+    color: var(--korvax-text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, #00e5ff08 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #1a237e15 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #00bfa508 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      #00000008 2px,
+      #00000008 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* === HEADER === */
+  .atlas-header {
+    position: relative;
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--korvax-border);
+  }
+
+  .atlas-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--korvax-cyan), transparent);
+  }
+
+  .atlas-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    color: var(--korvax-cyan-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .atlas-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    color: var(--korvax-text-bright);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 30px var(--korvax-cyan-glow);
+    line-height: 1.1;
+  }
+
+  .atlas-title span { color: var(--korvax-cyan); }
+
+  .atlas-subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--korvax-cyan-dim);
+    margin-top: 0.75rem;
+    letter-spacing: 0.3em;
+  }
+
+  .system-signature {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 1rem;
+  }
+
+  .system-signature img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+
+  .system-signature img:hover { opacity: 1; }
+
+  /* === MAIN LAYOUT === */
+  .atlas-main {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 900px) {
+    .atlas-main { grid-template-columns: 1fr; }
+  }
+
+  /* === PANELS === */
+  .panel {
+    background: var(--korvax-panel);
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    position: relative;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--korvax-cyan-dim), transparent);
+  }
+
+  .panel:nth-child(2) { animation-delay: 0.1s; }
+  .panel:nth-child(3) { animation-delay: 0.2s; }
+  .panel:nth-child(4) { animation-delay: 0.3s; }
+
+  .panel-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    color: var(--korvax-cyan);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .panel-label::before {
+    content: '';
+    width: 8px; height: 8px;
+    border: 1px solid var(--korvax-cyan);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* === GALAXY MAP === */
+  .galaxy-map-container { grid-column: 1 / -1; }
+
+  .galaxy-map {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/7;
+    background: #050a15;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--korvax-border);
+  }
+
+  .galaxy-map canvas { width: 100%; height: 100%; display: block; }
+
+  .map-overlay { position: absolute; inset: 0; pointer-events: none; }
+
+  .map-crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px; height: 40px;
+  }
+
+  .map-crosshair::before, .map-crosshair::after {
+    content: '';
+    position: absolute;
+    background: var(--korvax-cyan);
+    opacity: 0.5;
+  }
+
+  .map-crosshair::before {
+    top: 0; left: 50%;
+    width: 1px; height: 100%;
+    transform: translateX(-50%);
+  }
+
+  .map-crosshair::after {
+    top: 50%; left: 0;
+    width: 100%; height: 1px;
+    transform: translateY(-50%);
+  }
+
+  .map-coords-display {
+    position: absolute;
+    bottom: 12px; left: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--korvax-cyan);
+    background: #0a0e1acc;
+    padding: 6px 12px;
+    border: 1px solid var(--korvax-border);
+    border-radius: 2px;
+  }
+
+  .map-legend {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--korvax-text);
+    background: #0a0e1acc;
+    padding: 8px 12px;
+    border: 1px solid var(--korvax-border);
+    border-radius: 2px;
+  }
+
+  .map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .map-legend-item:last-child { margin-bottom: 0; }
+
+  .legend-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* === DATA FIELDS === */
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #ffffff06;
+  }
+
+  .data-row:last-child { border-bottom: none; }
+
+  .data-key {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--korvax-text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .data-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--korvax-text-bright);
+    text-align: right;
+  }
+
+  .data-value.cyan { color: var(--korvax-cyan); }
+  .data-value.gold { color: var(--korvax-gold); }
+  .data-value.green { color: var(--korvax-green); }
+
+  /* === PORTAL CODE === */
+  .portal-code-display {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .portal-glyph {
+    width: 44px; height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-cyan-dim);
+    border-radius: 3px;
+    position: relative;
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+
+  .portal-glyph img {
+    width: 36px; height: 36px;
+    object-fit: contain;
+  }
+
+  .portal-glyph:hover {
+    border-color: var(--korvax-cyan);
+    box-shadow: 0 0 15px var(--korvax-cyan-glow);
+    transform: translateY(-2px);
+  }
+
+  .portal-glyph::after {
+    content: attr(data-index);
+    position: absolute;
+    bottom: -14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--korvax-cyan-dim);
+  }
+
+  /* === PLANET SELECTOR === */
+  .planet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .planet-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .planet-card {
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .planet-card:hover, .planet-card.active {
+    border-color: var(--korvax-cyan-dim);
+    box-shadow: 0 0 20px var(--korvax-cyan-glow);
+  }
+
+  .planet-card.active::after {
+    content: '◆';
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 0.5rem;
+    color: var(--korvax-cyan);
+  }
+
+  .planet-card-img {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 0.5rem;
+    overflow: hidden;
+    background: #0d1225;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .planet-card-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .planet-card-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--korvax-text-bright);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+  }
+
+  .planet-card-climate {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--korvax-teal);
+  }
+
+  /* === PLANET DETAIL === */
+  .planet-detail {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+  }
+
+  .planet-detail.visible { display: block; }
+
+  .planet-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .planet-detail-img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--korvax-cyan-dim);
+    flex-shrink: 0;
+  }
+
+  .planet-detail-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .planet-detail-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--korvax-text-bright);
+    letter-spacing: 0.1em;
+  }
+
+  .planet-detail-type {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--korvax-teal);
+    letter-spacing: 0.2em;
+    margin-top: 0.2rem;
+  }
+
+  .planet-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .planet-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #ffffff06;
+  }
+
+  .planet-stat-key {
+    font-size: 0.7rem;
+    color: var(--korvax-text);
+    text-transform: uppercase;
+  }
+
+  .planet-stat-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--korvax-text-bright);
+  }
+
+  .planet-resources {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .resource-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--korvax-cyan);
+    background: #00e5ff11;
+    border: 1px solid var(--korvax-border);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+
+  /* === BASES LIST === */
+  .bases-list {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--korvax-cyan-dim) transparent;
+  }
+
+  .bases-list::-webkit-scrollbar { width: 4px; }
+  .bases-list::-webkit-scrollbar-track { background: transparent; }
+  .bases-list::-webkit-scrollbar-thumb {
+    background: var(--korvax-cyan-dim);
+    border-radius: 2px;
+  }
+
+  .base-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #0a0e1a;
+    border: 1px solid var(--korvax-border);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s;
+  }
+
+  .base-card:hover {
+    border-color: var(--korvax-cyan-dim);
+    box-shadow: 0 0 20px var(--korvax-cyan-glow);
+  }
+
+  .base-avatar {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--korvax-blue), var(--korvax-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--korvax-text-bright);
+    flex-shrink: 0;
+  }
+
+  .base-info { flex: 1; }
+
+  .base-info h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--korvax-text-bright);
+    margin-bottom: 0.2rem;
+  }
+
+  .base-info p {
+    font-size: 0.75rem;
+    color: var(--korvax-text);
+  }
+
+  .base-info .highlight {
+    color: var(--korvax-cyan);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .base-portal {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.4rem;
+  }
+
+  .base-portal-glyph {
+    width: 20px; height: 20px;
+  }
+
+  .base-portal-glyph img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+
+  /* === FOOTER === */
+  .atlas-footer {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-top: 1px solid var(--korvax-border);
+    margin-top: 2rem;
+  }
+
+  .atlas-footer p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--korvax-cyan-dim);
+    letter-spacing: 0.2em;
+  }
+
+  /* === ANIMATIONS === */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  .status-dot.online { background: var(--korvax-green); }
+  .status-dot.pending { background: var(--korvax-gold); }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .no-bases {
+    text-align: center;
+    padding: 2rem;
+    color: var(--korvax-text);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="atlas-header">
+  <div class="atlas-logo" id="systemTag"></div>
+  <h1 class="atlas-title"><span>GALACTIC</span> ATLAS</h1>
+  <p class="atlas-subtitle" id="systemSubtitle"></p>
+  <div class="system-signature" id="systemSignature"></div>
+</header>
+
+<!-- MAIN -->
+<main class="atlas-main">
+
+  <!-- GALAXY MAP -->
+  <section class="galaxy-map-container panel">
+    <div class="panel-label">Mapa Galáctico</div>
+    <div class="galaxy-map">
+      <canvas id="galaxyCanvas"></canvas>
+      <div class="map-overlay">
+        <div class="map-crosshair"></div>
+      </div>
+      <div class="map-coords-display" id="mapCoords"></div>
+      <div class="map-legend">
+        <div class="map-legend-item">
+          <div class="legend-dot" style="background: var(--korvax-cyan)"></div>
+          <span id="legendSystem"></span>
+        </div>
+        <div class="map-legend-item">
+          <div class="legend-dot" style="background: var(--korvax-gold)"></div>
+          <span>Bases Registradas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM DATA -->
+  <section class="panel">
+    <div class="panel-label">Datos del Sistema</div>
+    <div id="systemDataRows"></div>
+    <div class="data-row">
+      <span class="data-key">Bases Registradas</span>
+      <span class="data-value gold" id="totalBases">0</span>
+    </div>
+  </section>
+
+  <!-- PLANETS -->
+  <section class="panel">
+    <div class="panel-label">Cuerpos Celestes</div>
+    <div class="planet-grid" id="planetGrid"></div>
+    <div class="planet-detail" id="planetDetail"></div>
+  </section>
+
+  <!-- PORTAL -->
+  <section class="panel" style="grid-column: 1 / -1;">
+    <div class="panel-label">Portal · Código de Glifos del Sistema</div>
+    <div class="portal-code-display" id="portalCode"></div>
+  </section>
+
+  <!-- BASES LIST -->
+  <section class="panel" style="grid-column: 1 / -1;">
+    <div class="panel-label">Bases de la Comunidad</div>
+    <div class="bases-list" id="basesList"></div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="atlas-footer">
+  <p>MORI-01 · Moringos PRIME · Galactic Atlas v1.0</p>
+</footer>
+
+<script type="module">
+// ============================================
+// MORI-01 GALACTIC ATLAS — Firebase Edition
+// ============================================
+// Loads bases from Firestore in real time.
+// Standalone: works on GitHub Pages without build step.
+// ============================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBQTeFhaiS2Wg6V9OgGfr7qhAFqvdfB0LA",
+  authDomain: "mori-01-b1a8d.firebaseapp.com",
+  projectId: "mori-01-b1a8d",
+  storageBucket: "mori-01-b1a8d.firebasestorage.app",
+  messagingSenderId: "592994102590",
+  appId: "1:592994102590:web:59a6c2ae5238819128d06f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ============================================
+// SHARED DATA
+// ============================================
+
+const SYSTEM_INFO = {
+  tag: '[MRNG]',
+  name: 'Moringos PRIME Disonante',
+  shortName: 'Moringos PRIME',
+  region: 'Cuadrante Delta',
+  regionDetail: 'Zona periférica de la galaxia',
+  race: 'Korvax',
+  economy: 'Generación de Energía',
+  conflict: '2 · Tempestuoso',
+  galaxy: 'Galaxia de Euclides',
+  galacticAddress: '0F1F:0025:0773:016C',
+  portalCode: '316CA6F74720'
+};
+
+const PLANETS = [
+  {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
+  {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
+  {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
+  {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},
+  {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
+  {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
+];
+
+const SYSTEM_SIGNATURE = [4,2,7,13,11,7,16,8,5,8,3,1];
+
+// ============================================
+// BASES — loaded from Firestore (real-time)
+// ============================================
+let BASES = [];
+
+// ============================================
+// PLANET HELPERS
+// ============================================
+function findPlanetByIndex(idx) {
+  return PLANETS.find(p => p.i === idx) || null;
+}
+
+function planetImageSlug(name) {
+  return name.toLowerCase().replace(/\s+/g, '');
+}
+
+function planetImg(p) {
+  return `<img src="./${planetImageSlug(p.name)}.webp" alt="${p.name}" loading="lazy">`;
+}
+
+// ============================================
+// PORTAL GLYPH HELPERS
+// ============================================
+function portalToGlyphs(code) {
+  return code.split('').map(ch => {
+    const val = parseInt(ch, 16);
+    return val + 1;
+  });
+}
+
+// ============================================
+// CONVERT GAME COORDS → MAP PIXELS
+// ============================================
+// In NMS, coordinates are lat/lon in degrees.
+// We scale them relative to the system center.
+// ============================================
+function gameToMapPx(lat, lon, canvasW, canvasH) {
+  const SCALE = 1.8;
+  const cx = canvasW / 2;
+  const cy = canvasH / 2;
+  const px = cx + lon * SCALE;
+  const py = cy - lat * SCALE;
+  return { x: px, y: py };
+}
+
+// ============================================
+// TOOLTIP STATE
+// ============================================
+let hoveredBase = null;
+let tooltipX = 0;
+let tooltipY = 0;
+
+// ============================================
+// RENDER HEADER
+// ============================================
+function renderHeader() {
+  document.getElementById('systemTag').textContent =
+    `${SYSTEM_INFO.tag} · ${SYSTEM_INFO.shortName}`;
+  document.getElementById('systemSubtitle').textContent =
+    `${SYSTEM_INFO.region} · ${SYSTEM_INFO.galaxy}`;
+  document.getElementById('legendSystem').textContent =
+    SYSTEM_INFO.shortName;
+
+  const sigContainer = document.getElementById('systemSignature');
+  sigContainer.innerHTML = SYSTEM_SIGNATURE
+    .map(n => `<img src="./${n}.webp" alt="Glifo ${n}" loading="lazy">`)
+    .join('');
+
+  document.getElementById('mapCoords').textContent =
+    SYSTEM_INFO.galacticAddress;
+}
+
+// ============================================
+// RENDER SYSTEM DATA
+// ============================================
+function renderSystemData() {
+  const rows = [
+    ['Galaxia', SYSTEM_INFO.galaxy, 'cyan'],
+    ['Región', SYSTEM_INFO.region, ''],
+    ['Raza', SYSTEM_INFO.race, 'green'],
+    ['Economía', SYSTEM_INFO.economy, ''],
+    ['Conflicto', SYSTEM_INFO.conflict, 'gold'],
+    ['Portal', SYSTEM_INFO.portalCode, 'cyan'],
+  ];
+
+  document.getElementById('systemDataRows').innerHTML = rows
+    .map(([key, val, cls]) => `
+      <div class="data-row">
+        <span class="data-key">${key}</span>
+        <span class="data-value ${cls}">${val}</span>
+      </div>
+    `).join('');
+}
+
+// ============================================
+// RENDER PORTAL CODE
+// ============================================
+function renderPortalCode() {
+  const glyphs = portalToGlyphs(SYSTEM_INFO.portalCode);
+  document.getElementById('portalCode').innerHTML = glyphs
+    .map((g, i) => `
+      <div class="portal-glyph" data-index="${i}" title="Glifo ${i + 1}: ${g}">
+        <img src="./${g}.webp" alt="Glifo ${g}" loading="lazy">
+      </div>
+    `).join('');
+}
+
+// ============================================
+// RENDER PLANETS
+// ============================================
+let selectedPlanet = null;
+
+function renderPlanets() {
+  const grid = document.getElementById('planetGrid');
+
+  grid.innerHTML = PLANETS.map((p, idx) => `
+    <div class="planet-card ${p.capital ? 'active' : ''}" data-idx="${idx}">
+      <div class="planet-card-img">${planetImg(p)}</div>
+      <div class="planet-card-name">${p.name}</div>
+      <div class="planet-card-climate">${p.clima}</div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.planet-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt(card.dataset.idx);
+      selectPlanet(idx);
+    });
+  });
+
+  const capitalIdx = PLANETS.findIndex(p => p.capital);
+  if (capitalIdx >= 0) selectPlanet(capitalIdx);
+}
+
+function selectPlanet(idx) {
+  const p = PLANETS[idx];
+  selectedPlanet = idx;
+
+  document.querySelectorAll('.planet-card').forEach((card, i) => {
+    card.classList.toggle('active', i === idx);
+  });
+
+  const detail = document.getElementById('planetDetail');
+  detail.classList.add('visible');
+
+  const planetBases = BASES.filter(b => b.planetIndex === p.i);
+
+  detail.innerHTML = `
+    <div class="planet-detail-header">
+      <div class="planet-detail-img">${planetImg(p)}</div>
+      <div>
+        <div class="planet-detail-name">${p.name}</div>
+        <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${p.i}</div>
+      </div>
+    </div>
+    <div class="planet-stats">
+      <div class="planet-stat">
+        <span class="planet-stat-key">Clima</span>
+        <span class="planet-stat-val">${p.clima}</span>
+      </div>
+      <div class="planet-stat">
+        <span class="planet-stat-key">Centinela</span>
+        <span class="planet-stat-val">${p.centinela}</span>
+      </div>
+      <div class="planet-stat">
+        <span class="planet-stat-key">Flora</span>
+        <span class="planet-stat-val">${p.flora}</span>
+      </div>
+      <div class="planet-stat">
+        <span class="planet-stat-key">Fauna</span>
+        <span class="planet-stat-val">${p.fauna}</span>
+      </div>
+      <div class="planet-stat">
+        <span class="planet-stat-key">Bases</span>
+        <span class="planet-stat-val" style="color:var(--korvax-gold)">${planetBases.length}</span>
+      </div>
+    </div>
+    <div class="planet-resources">
+      ${p.rec.map(r => `<span class="resource-tag">${r}</span>`).join('')}
+    </div>
+  `;
+}
+
+// ============================================
+// RENDER BASES LIST
+// ============================================
+function renderBases() {
+  const container = document.getElementById('basesList');
+  document.getElementById('totalBases').textContent = BASES.length;
+
+  if (BASES.length === 0) {
+    container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
+    return;
+  }
+
+  const glyphs = portalToGlyphs(SYSTEM_INFO.portalCode);
+  const glyphThumbs = glyphs.map(g =>
+    `<span class="base-portal-glyph"><img src="./${g}.webp" alt="${g}"></span>`
+  ).join('');
+
+  container.innerHTML = BASES.map(base => {
+    const planet = findPlanetByIndex(base.planetIndex);
+    const planetName = planet ? planet.name : '—';
+    const initials = (base.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    return `
+      <div class="base-card">
+        <div class="base-avatar">${initials}</div>
+        <div class="base-info">
+          <h3>${base.name || 'Sin nombre'}</h3>
+          <p><span class="status-dot online"></span> ${base.id}</p>
+          <p>Planeta: <span class="highlight">${planetName}</span> · Coords: <span class="highlight">+${base.lat}, +${base.lon}</span></p>
+          <p>Portal:</p>
+          <div class="base-portal">${glyphThumbs}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--korvax-cyan-dim);">${base.platform || '—'}</div>
+          ${base.profession ? `<div style="font-size:0.6rem;color:var(--korvax-text);margin-top:4px;">${base.profession}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  drawGalaxyMap();
+}
+
+// ============================================
+// GALAXY MAP (Canvas)
+// ============================================
+let starsCache = null;
+
+function drawGalaxyMap() {
+  const canvas = document.getElementById('galaxyCanvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+
+  const w = rect.width;
+  const h = rect.height;
+
+  // Background
+  ctx.fillStyle = '#050a15';
+  ctx.fillRect(0, 0, w, h);
+
+  // Stars (cached so they don't flicker)
+  if (!starsCache || starsCache.w !== w || starsCache.h !== h) {
+    starsCache = { w, h, dots: [] };
+    for (let i = 0; i < 300; i++) {
+      starsCache.dots.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.2,
+        a: Math.random() * 0.6 + 0.1
+      });
+    }
+  }
+  starsCache.dots.forEach(s => {
+    ctx.fillStyle = `rgba(176, 190, 197, ${s.a})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Galaxy spiral arms
+  const cx = w / 2;
+  const cy = h / 2;
+
+  for (let arm = 0; arm < 4; arm++) {
+    const armOffset = (arm * Math.PI) / 2;
+    ctx.beginPath();
+    for (let t = 0; t < Math.PI * 6; t += 0.02) {
+      const r = t * Math.min(w, h) * 0.025;
+      const x = cx + Math.cos(t + armOffset) * r;
+      const y = cy + Math.sin(t + armOffset) * r * 0.4;
+      if (t === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.04)';
+    ctx.lineWidth = 15;
+    ctx.stroke();
+  }
+
+  // Core glow
+  const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.15);
+  coreGrad.addColorStop(0, 'rgba(0, 229, 255, 0.15)');
+  coreGrad.addColorStop(0.5, 'rgba(0, 229, 255, 0.05)');
+  coreGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = coreGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // System center marker
+  const markerX = cx + w * 0.15;
+  const markerY = cy - h * 0.1;
+
+  // Marker pulse
+  const pulseGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 30);
+  pulseGrad.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+  pulseGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = pulseGrad;
+  ctx.beginPath();
+  ctx.arc(markerX, markerY, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Marker dot
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath();
+  ctx.arc(markerX, markerY, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Marker ring
+  ctx.strokeStyle = '#00e5ff88';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(markerX, markerY, 10, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Label
+  ctx.font = '10px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#00e5ff';
+  ctx.fillText(SYSTEM_INFO.shortName, markerX + 16, markerY + 4);
+
+  // Base markers — plotted at real coordinates
+  hoveredBase = null;
+  BASES.forEach(base => {
+    const pos = gameToMapPx(base.lat, base.lon, w, h);
+    const bx = markerX + (pos.x - cx);
+    const by = markerY + (pos.y - cy);
+
+    // Check hover
+    const dx = tooltipX - bx;
+    const dy = tooltipY - by;
+    if (Math.sqrt(dx * dx + dy * dy) < 12) {
+      hoveredBase = base;
+    }
+
+    // Outer ring
+    ctx.strokeStyle = 'rgba(255, 215, 64, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(bx, by, 6, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner dot
+    ctx.fillStyle = '#ffd740';
+    ctx.beginPath();
+    ctx.arc(bx, by, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Draw tooltip
+  if (hoveredBase) {
+    const planet = findPlanetByIndex(hoveredBase.planetIndex);
+    const lines = [
+      hoveredBase.name || 'Sin nombre',
+      `${planet ? planet.name : '—'} · +${hoveredBase.lat}, +${hoveredBase.lon}`,
+      hoveredBase.id
+    ];
+
+    const font = '11px "Share Tech Mono", monospace';
+    ctx.font = font;
+    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+    const pad = 8;
+    const lineH = 16;
+    const boxW = maxW + pad * 2;
+    const boxH = lines.length * lineH + pad * 2;
+    let bx = tooltipX + 14;
+    let by = tooltipY - boxH - 8;
+
+    if (bx + boxW > w) bx = tooltipX - boxW - 14;
+    if (by < 0) by = tooltipY + 14;
+
+    ctx.fillStyle = '#0a0e1dee';
+    ctx.strokeStyle = '#00e5ff44';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, boxW, boxH, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#ffd740';
+    ctx.fillText(lines[0], bx + pad, by + pad + 11);
+
+    ctx.font = font;
+    ctx.fillStyle = '#b0bec5';
+    lines.slice(1).forEach((line, i) => {
+      ctx.fillText(line, bx + pad, by + pad + 11 + lineH * (i + 1));
+    });
+  }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.03)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w; x += 50) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+  for (let y = 0; y < h; y += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+}
+
+// ============================================
+// MAP MOUSE TRACKING
+// ============================================
+function setupMapInteraction() {
+  const canvas = document.getElementById('galaxyCanvas');
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    tooltipX = (e.clientX - rect.left);
+    tooltipY = (e.clientY - rect.top);
+    drawGalaxyMap();
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    tooltipX = -100;
+    tooltipY = -100;
+    hoveredBase = null;
+    drawGalaxyMap();
+  });
+}
+
+// ============================================
+// FIRESTORE REAL-TIME SUBSCRIPTION
+// ============================================
+function subscribeBases() {
+  const citizensRef = collection(db, 'citizens');
+  const q = query(citizensRef, where('status', '==', 'citizen'));
+
+  onSnapshot(q, (snapshot) => {
+    BASES = snapshot.docs.map(doc => ({
+      docId: doc.id,
+      ...doc.data()
+    }));
+
+    renderBases();
+    drawGalaxyMap();
+  }, (error) => {
+    console.error('Firestore error:', error);
+    document.getElementById('basesList').innerHTML =
+      '<div class="no-bases">Error cargando bases. Revisa las reglas de Firestore.</div>';
+  });
+}
+
+// ============================================
+// INIT
+// ============================================
+renderHeader();
+renderSystemData();
+renderPortalCode();
+renderPlanets();
+setupMapInteraction();
+subscribeBases();
+
+window.addEventListener('resize', () => {
+  starsCache = null;
+  drawGalaxyMap();
+});
+</script>
+</body>
+</html>
