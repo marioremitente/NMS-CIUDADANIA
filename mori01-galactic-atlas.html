@@ -193,7 +193,8 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg, formatHexAddress } from './colonies-data.js';
+  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg } from './colonies-data.js';
+  import { formatHexAddress } from './nms-glyphs.js';
   import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 

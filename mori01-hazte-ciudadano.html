@@ -398,7 +398,8 @@
 
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { loadAllColonies, planetImg, glyphSVG, validateSignature, glyphsToCartesian, formatHexAddress } from './colonies-data.js';
+  import { loadAllColonies, planetImg, glyphSVG } from './colonies-data.js';
+  import { validateSignature, glyphsToCartesian, formatHexAddress } from './nms-glyphs.js';
   import {
     collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

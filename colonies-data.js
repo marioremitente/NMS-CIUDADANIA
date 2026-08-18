@@ -1,22 +1,14 @@
 // Módulo de colonias — carga y gestión de colonias desde Firestore.
-// Re-exporta funciones helper de mori01-data.js y nms-glyphs.js
-// para que las páginas no necesiten importar múltiples módulos.
+// Re-exporta funciones helper de mori01-data.js para que las páginas
+// que solo necesiten glifos/planetImg no tengan que importar ambos módulos.
 import { db } from './firebase-config.js';
 import { SYSTEM_INFO, PLANETS, SYSTEM_SIGNATURE, glyphSVG, planetImageSlug, planetImg as _planetImg } from './mori01-data.js';
 import {
   collection, doc, getDoc, getDocs, query, where, setDoc, updateDoc, deleteDoc, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  glyphsToCartesian as _glyphsToCartesian,
-  validateSignature,
-  formatHexAddress,
-  cartesianDistance,
-} from './nms-glyphs.js';
 
 export { glyphSVG };
 export const planetImg = _planetImg;
-export const glyphsToCartesian = _glyphsToCartesian;
-export { validateSignature, formatHexAddress, cartesianDistance };
 
 // ── Conversión de glifos a posición en el mapa ────────────────────────
 // Convierte la firma de 12 glifos (1-16) en coordenadas {x, y} (0-1)
@@ -34,9 +26,36 @@ export function glyphToPosition(signature){
   return { x: galX / 4096, y: galZ / 4096 };
 }
 
+// ── Decodificador inline (sin dependencia externa) ────────────────────
+// Convierte firma de 12 glifos a coordenadas Cartesianas 3D.
+// Formato: P SSS GG YYY XXX → X=XXX-0x7FF, Y=GG-0x7F, Z=YYY-0x7FF
+function _glyphsToCartesianLocal(signature){
+  if(!signature || signature.length < 12) return null;
+  var h = signature.map(function(g){ return g - 1; });
+  for(var i = 0; i < 12; i++){
+    if(typeof h[i] !== 'number' || isNaN(h[i]) || h[i] < 0 || h[i] > 15) return null;
+  }
+  var P   = h[0];
+  var SSS = (h[1] << 8) | (h[2] << 4) | h[3];
+  var GG  = (h[4] << 4) | h[5];
+  var YYY = (h[6] << 8) | (h[7] << 4) | h[8];
+  var XXX = (h[9] << 8) | (h[10] << 4) | h[11];
+  var hex = signature.map(function(g){
+    return (g - 1).toString(16).toUpperCase().padStart(2, '0');
+  }).join('');
+  return {
+    x: XXX - 0x7FF,
+    y: GG - 0x7F,
+    z: YYY - 0x7FF,
+    planetIndex: P === 0 ? 1 : P,
+    systemIndex: SSS,
+    hexAddress: hex
+  };
+}
+
 // ── MORI-01 embebido ──────────────────────────────────────────────────
 // Siempre aparece como primera colonia sin necesidad de Firestore.
-var _moriCoords = _glyphsToCartesian(SYSTEM_SIGNATURE);
+var _moriCoords = _glyphsToCartesianLocal(SYSTEM_SIGNATURE);
 
 export const MORI01_COLONY = Object.freeze({
   id:          'mori-01',
@@ -62,7 +81,7 @@ const coloniesRef = collection(db, 'colonies');
 
 function enrichCartesian(colony) {
   if (colony.signature && !colony.cartesian) {
-    var coords = _glyphsToCartesian(colony.signature);
+    var coords = _glyphsToCartesianLocal(colony.signature);
     if (coords) {
       colony.cartesian = { x: coords.x, y: coords.y, z: coords.z };
       colony.hexAddress = coords.hexAddress;
@@ -121,7 +140,7 @@ export async function saveColony(data){
   const id = data.id;
   if(!id) throw new Error('La colonia debe tener un id');
   if (data.signature && data.signature.length === 12) {
-    var coords = _glyphsToCartesian(data.signature);
+    var coords = _glyphsToCartesianLocal(data.signature);
     if (coords) {
       data.cartesian = { x: coords.x, y: coords.y, z: coords.z };
       data.hexAddress = coords.hexAddress;
