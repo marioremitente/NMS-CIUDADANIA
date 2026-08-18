@@ -8,1103 +8,404 @@
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
 
   :root {
-    --korvax-cyan: #00e5ff;
-    --korvax-cyan-dim: #00e5ff66;
-    --korvax-cyan-glow: #00e5ff33;
-    --korvax-teal: #00bfa5;
-    --korvax-blue: #1a237e;
-    --korvax-dark: #0a0e1a;
-    --korvax-darker: #060912;
-    --korvax-panel: #0d1225cc;
-    --korvax-border: #00e5ff22;
-    --korvax-text: #b0bec5;
-    --korvax-text-bright: #eceff1;
-    --korvax-gold: #ffd740;
-    --korvax-red: #ff5252;
-    --korvax-green: #69f0ae;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--korvax-darker);
-    color: var(--korvax-text);
-    font-family: 'Rajdhani', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 50%, #00e5ff08 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, #1a237e15 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, #00bfa508 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      #00000008 2px,
-      #00000008 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  /* === HEADER === */
-  .atlas-header {
-    position: relative;
-    text-align: center;
-    padding: 3rem 1.5rem 2rem;
-    border-bottom: 1px solid var(--korvax-border);
-  }
-
-  .atlas-header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--korvax-cyan), transparent);
-  }
-
-  .atlas-logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 400;
-    letter-spacing: 0.5em;
-    color: var(--korvax-cyan-dim);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .atlas-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    font-weight: 900;
-    color: var(--korvax-text-bright);
-    letter-spacing: 0.08em;
-    text-shadow: 0 0 30px var(--korvax-cyan-glow);
-    line-height: 1.1;
-  }
-
-  .atlas-title span { color: var(--korvax-cyan); }
-
-  .atlas-subtitle {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--korvax-cyan-dim);
-    margin-top: 0.75rem;
-    letter-spacing: 0.3em;
-  }
-
-  .system-signature {
-    display: flex;
-    justify-content: center;
-    gap: 3px;
-    margin-top: 1rem;
-  }
-
-  .system-signature img {
-    width: 24px;
-    height: 24px;
-    opacity: 0.6;
-    transition: opacity 0.3s;
-  }
-
-  .system-signature img:hover { opacity: 1; }
-
-  /* === MAIN LAYOUT === */
-  .atlas-main {
-    position: relative;
-    z-index: 1;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-  }
-
-  @media (max-width: 900px) {
-    .atlas-main { grid-template-columns: 1fr; }
-  }
-
-  /* === PANELS === */
-  .panel {
-    background: var(--korvax-panel);
-    border: 1px solid var(--korvax-border);
-    border-radius: 4px;
-    padding: 1.5rem;
-    position: relative;
-    backdrop-filter: blur(10px);
-    animation: fadeIn 0.6s ease-out forwards;
-  }
-
-  .panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--korvax-cyan-dim), transparent);
-  }
-
-  .panel:nth-child(2) { animation-delay: 0.1s; }
-  .panel:nth-child(3) { animation-delay: 0.2s; }
-  .panel:nth-child(4) { animation-delay: 0.3s; }
-
-  .panel-label {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.4em;
-    color: var(--korvax-cyan);
-    text-transform: uppercase;
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .panel-label::before {
-    content: '';
-    width: 8px; height: 8px;
-    border: 1px solid var(--korvax-cyan);
-    transform: rotate(45deg);
-    flex-shrink: 0;
-  }
-
-  /* === GALAXY MAP === */
-  .galaxy-map-container { grid-column: 1 / -1; }
-
-  .galaxy-map {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16/7;
-    background: #050a15;
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid var(--korvax-border);
-  }
-
-  .galaxy-map canvas { width: 100%; height: 100%; display: block; }
-
-  .map-overlay { position: absolute; inset: 0; pointer-events: none; }
-
-  .map-crosshair {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px; height: 40px;
-  }
-
-  .map-crosshair::before, .map-crosshair::after {
-    content: '';
-    position: absolute;
-    background: var(--korvax-cyan);
-    opacity: 0.5;
-  }
-
-  .map-crosshair::before {
-    top: 0; left: 50%;
-    width: 1px; height: 100%;
-    transform: translateX(-50%);
-  }
-
-  .map-crosshair::after {
-    top: 50%; left: 0;
-    width: 100%; height: 1px;
-    transform: translateY(-50%);
-  }
-
-  .map-coords-display {
-    position: absolute;
-    bottom: 12px; left: 12px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--korvax-cyan);
-    background: #0a0e1acc;
-    padding: 6px 12px;
-    border: 1px solid var(--korvax-border);
-    border-radius: 2px;
-  }
-
-  .map-legend {
-    position: absolute;
-    top: 12px; right: 12px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--korvax-text);
-    background: #0a0e1acc;
-    padding: 8px 12px;
-    border: 1px solid var(--korvax-border);
-    border-radius: 2px;
-  }
-
-  .map-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-
-  .map-legend-item:last-child { margin-bottom: 0; }
-
-  .legend-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  /* === DATA FIELDS === */
-  .data-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid #ffffff06;
-  }
-
-  .data-row:last-child { border-bottom: none; }
-
-  .data-key {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--korvax-text);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .data-value {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--korvax-text-bright);
-    text-align: right;
-  }
-
-  .data-value.cyan { color: var(--korvax-cyan); }
-  .data-value.gold { color: var(--korvax-gold); }
-  .data-value.green { color: var(--korvax-green); }
-
-  /* === PORTAL CODE === */
-  .portal-code-display {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
-    margin: 1rem 0;
-    flex-wrap: wrap;
-  }
-
-  .portal-glyph {
-    width: 44px; height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0a0e1a;
-    border: 1px solid var(--korvax-cyan-dim);
-    border-radius: 3px;
-    position: relative;
-    transition: all 0.3s;
-    overflow: hidden;
-  }
-
-  .portal-glyph img {
-    width: 36px; height: 36px;
-    object-fit: contain;
-  }
-
-  .portal-glyph:hover {
-    border-color: var(--korvax-cyan);
-    box-shadow: 0 0 15px var(--korvax-cyan-glow);
-    transform: translateY(-2px);
-  }
-
-  .portal-glyph::after {
-    content: attr(data-index);
-    position: absolute;
-    bottom: -14px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--korvax-cyan-dim);
-  }
-
-  /* === PLANET SELECTOR === */
-  .planet-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
-
-  @media (max-width: 600px) {
-    .planet-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .planet-card {
-    background: #0a0e1a;
-    border: 1px solid var(--korvax-border);
-    border-radius: 4px;
-    padding: 0.75rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-  }
-
-  .planet-card:hover, .planet-card.active {
-    border-color: var(--korvax-cyan-dim);
-    box-shadow: 0 0 20px var(--korvax-cyan-glow);
-  }
-
-  .planet-card.active::after {
-    content: '◆';
-    position: absolute;
-    top: 6px; right: 8px;
-    font-size: 0.5rem;
-    color: var(--korvax-cyan);
-  }
-
-  .planet-card-img {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    margin: 0 auto 0.5rem;
-    overflow: hidden;
-    background: #0d1225;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .planet-card-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-
-  .planet-card-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: var(--korvax-text-bright);
-    letter-spacing: 0.05em;
-    margin-bottom: 0.2rem;
-  }
-
-  .planet-card-climate {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.55rem;
-    color: var(--korvax-teal);
-  }
-
-  /* === PLANET DETAIL === */
-  .planet-detail {
-    display: none;
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background: #0a0e1a;
-    border: 1px solid var(--korvax-border);
-    border-radius: 4px;
-  }
-
-  .planet-detail.visible { display: block; }
-
-  .planet-detail-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .planet-detail-img {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid var(--korvax-cyan-dim);
-    flex-shrink: 0;
-  }
-
-  .planet-detail-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-
-  .planet-detail-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--korvax-text-bright);
-    letter-spacing: 0.1em;
-  }
-
-  .planet-detail-type {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--korvax-teal);
-    letter-spacing: 0.2em;
-    margin-top: 0.2rem;
-  }
-
-  .planet-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-  }
-
-  .planet-stat {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.4rem 0;
-    border-bottom: 1px solid #ffffff06;
-  }
-
-  .planet-stat-key {
-    font-size: 0.7rem;
-    color: var(--korvax-text);
-    text-transform: uppercase;
-  }
-
-  .planet-stat-val {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--korvax-text-bright);
-  }
-
-  .planet-resources {
-    margin-top: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .resource-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--korvax-cyan);
-    background: #00e5ff11;
-    border: 1px solid var(--korvax-border);
-    padding: 0.2rem 0.5rem;
-    border-radius: 2px;
-  }
-
-  /* === BASES LIST === */
-  .bases-list {
-    max-height: 500px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--korvax-cyan-dim) transparent;
-  }
-
-  .bases-list::-webkit-scrollbar { width: 4px; }
-  .bases-list::-webkit-scrollbar-track { background: transparent; }
-  .bases-list::-webkit-scrollbar-thumb {
-    background: var(--korvax-cyan-dim);
-    border-radius: 2px;
-  }
-
-  .base-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: #0a0e1a;
-    border: 1px solid var(--korvax-border);
-    border-radius: 4px;
-    margin-bottom: 0.75rem;
-    transition: all 0.3s;
-  }
-
-  .base-card:hover {
-    border-color: var(--korvax-cyan-dim);
-    box-shadow: 0 0 20px var(--korvax-cyan-glow);
-  }
-
-  .base-avatar {
-    width: 50px; height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--korvax-blue), var(--korvax-cyan));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--korvax-text-bright);
-    flex-shrink: 0;
-  }
-
-  .base-info { flex: 1; }
-
-  .base-info h3 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--korvax-text-bright);
-    margin-bottom: 0.2rem;
-  }
-
-  .base-info p {
-    font-size: 0.75rem;
-    color: var(--korvax-text);
-  }
-
-  .base-info .highlight {
-    color: var(--korvax-cyan);
-    font-family: 'Share Tech Mono', monospace;
-  }
-
-  .base-portal {
-    display: flex;
-    gap: 2px;
-    margin-top: 0.4rem;
-  }
-
-  .base-portal-glyph {
-    width: 20px; height: 20px;
-  }
-
-  .base-portal-glyph img {
-    width: 100%; height: 100%;
-    object-fit: contain;
-  }
-
-  /* === FOOTER === */
-  .atlas-footer {
-    text-align: center;
-    padding: 2rem 1.5rem;
-    border-top: 1px solid var(--korvax-border);
-    margin-top: 2rem;
-  }
-
-  .atlas-footer p {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--korvax-cyan-dim);
-    letter-spacing: 0.2em;
-  }
-
-  /* === ANIMATIONS === */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .status-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: blink 2s ease-in-out infinite;
-  }
-
-  .status-dot.online { background: var(--korvax-green); }
-  .status-dot.pending { background: var(--korvax-gold); }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .no-bases {
-    text-align: center;
-    padding: 2rem;
-    color: var(--korvax-text);
-    font-style: italic;
-  }
+    --bg-deep:#07080d; --bg-panel:#0c0f1c; --bg-panel-2:#10142a;
+    --border-soft:#232842; --border-bright:#3a4270;
+    --text-primary:#e8eaf2; --text-muted:#8b93b3; --text-dim:#565d80;
+    --accent-cyan:#06b6d4; --accent-gold:#f5b849; --accent-violet:#7c6cff;
+    --accent-red:#e8546b; --accent-green:#3ddc97;
+    --font-display:"Eurostile","Michroma","Orbitron",system-ui,sans-serif;
+    --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
+    --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg-deep); color:var(--text-primary); font-family:var(--font-body); line-height:1.5; min-height:100vh;}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:44px 24px 80px;}
+  .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:24px; text-decoration:none;}
+  .back-link:hover{color:var(--accent-cyan);}
+  .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
+  .top-eyebrow::before{content:""; width:20px; height:1px; background:var(--accent-gold); opacity:.6;}
+  h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,5vw,42px); letter-spacing:.03em; margin-bottom:12px;}
+  .lede{color:var(--text-muted); font-size:15px; max-width:660px; margin-bottom:32px;}
+
+  .grid2{display:grid; grid-template-columns:1.4fr 1fr; gap:18px; margin-bottom:18px;}
+  @media(max-width:900px){ .grid2{grid-template-columns:1fr;} }
+
+  .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:22px; margin-bottom:18px;}
+  .panel-label{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; color:var(--accent-gold);
+    text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; gap:8px;
+  }
+  .panel-label::before{content:""; width:7px; height:7px; border:1px solid var(--accent-gold); transform:rotate(45deg); flex-shrink:0;}
+
+  .galaxy-map{
+    position:relative; width:100%; aspect-ratio:16/7; background:var(--bg-deep);
+    border-radius:6px; overflow:hidden; border:1px solid var(--border-soft);
+  }
+  .galaxy-map canvas{width:100%; height:100%; display:block;}
+  .map-coords-display{
+    position:absolute; bottom:12px; left:12px; font-family:var(--font-mono); font-size:11px;
+    color:var(--accent-cyan); background:rgba(7,8,13,.8); padding:6px 12px;
+    border:1px solid var(--border-soft); border-radius:4px;
+  }
+  .map-legend{
+    position:absolute; top:12px; right:12px; font-family:var(--font-mono); font-size:10.5px;
+    color:var(--text-muted); background:rgba(7,8,13,.8); padding:8px 12px;
+    border:1px solid var(--border-soft); border-radius:4px;
+  }
+  .map-legend-item{display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+  .map-legend-item:last-child{margin-bottom:0;}
+  .legend-dot{width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+
+  .data-row{display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border-soft);}
+  .data-row:last-child{border-bottom:none;}
+  .data-key{font-size:12.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;}
+  .data-value{font-family:var(--font-mono); font-size:13px; color:var(--text-primary); text-align:right;}
+  .data-value.cyan{color:var(--accent-cyan);}
+  .data-value.gold{color:var(--accent-gold);}
+  .data-value.green{color:var(--accent-green);}
+
+  .signature-label{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; color:var(--text-dim);
+    text-transform:uppercase; margin-bottom:16px; display:flex; justify-content:space-between;
+  }
+  .signature-label span:last-child{color:var(--accent-cyan);}
+  .glyph-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .glyph{
+    width:44px; height:44px; border:1px solid var(--border-bright); border-radius:4px;
+    display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2);
+    position:relative;
+  }
+  .glyph img{width:26px; height:26px; object-fit:contain;}
+  .glyph::after{
+    content:attr(data-index); position:absolute; bottom:-15px; font-family:var(--font-mono);
+    font-size:9px; color:var(--text-dim);
+  }
+
+  .planet-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:4px;}
+  @media(max-width:560px){ .planet-grid{grid-template-columns:repeat(2, 1fr);} }
+  .planet-card{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
+    padding:12px; text-align:center; cursor:pointer; transition:border-color .2s, transform .2s;
+  }
+  .planet-card:hover, .planet-card.active{border-color:var(--accent-cyan); transform:translateY(-2px);}
+  .planet-card-img{width:52px; height:52px; border-radius:50%; margin:0 auto 8px; overflow:hidden; background:var(--bg-panel);}
+  .planet-card-img img{width:100%; height:100%; object-fit:cover; display:block;}
+  .planet-card-name{font-family:var(--font-display); font-size:12px; letter-spacing:.02em; margin-bottom:2px;}
+  .planet-card-climate{font-family:var(--font-mono); font-size:10px; color:var(--text-muted);}
+
+  .planet-detail{display:none; margin-top:16px; padding:16px; background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;}
+  .planet-detail.visible{display:block;}
+  .planet-detail-header{display:flex; align-items:center; gap:14px; margin-bottom:14px;}
+  .planet-detail-img{width:64px; height:64px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-gold); flex-shrink:0;}
+  .planet-detail-img img{width:100%; height:100%; object-fit:cover;}
+  .planet-detail-name{font-family:var(--font-display); font-size:17px; letter-spacing:.02em;}
+  .planet-detail-type{font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan); margin-top:3px;}
+  .planet-stats{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .planet-stat{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-soft); font-size:12.5px;}
+  .planet-stat-key{color:var(--text-muted); text-transform:uppercase; font-size:11px;}
+  .planet-stat-val{font-family:var(--font-mono); font-size:12px;}
+  .planet-resources{margin-top:12px; display:flex; flex-wrap:wrap; gap:6px;}
+  .resource-chip{
+    font-family:var(--font-mono); font-size:10.5px; padding:3px 8px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:3px; color:var(--text-muted);
+  }
+
+  .bases-list{max-height:520px; overflow-y:auto;}
+  .base-card{
+    display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg-panel-2);
+    border:1px solid var(--border-soft); border-radius:6px; margin-bottom:10px; transition:border-color .2s;
+  }
+  .base-card:hover{border-color:var(--accent-cyan);}
+  .base-avatar{
+    width:46px; height:46px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(145deg, var(--accent-cyan), var(--accent-violet));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:16px; color:var(--bg-deep);
+    overflow:hidden;
+  }
+  .base-avatar img{width:100%; height:100%; object-fit:cover;}
+  .base-info{flex:1; min-width:0;}
+  .base-info h3{font-family:var(--font-display); font-size:14.5px; font-weight:400; margin-bottom:3px;}
+  .base-info p{font-size:12px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;}
+  .base-info .highlight{color:var(--accent-cyan);}
+  .base-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+  .base-tag{
+    font-family:var(--font-mono); font-size:10px; padding:2px 8px; border-radius:20px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); color:var(--text-muted);
+  }
+  .base-tag.role{border-color:rgba(124,108,255,.4); color:var(--accent-violet);}
+
+  .status-dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent-green);}
+  .no-bases{text-align:center; padding:40px 0; color:var(--text-dim); font-family:var(--font-mono); font-size:13px;}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<!-- HEADER -->
-<header class="atlas-header">
-  <div class="atlas-logo" id="systemTag"></div>
-  <h1 class="atlas-title"><span>GALACTIC</span> ATLAS</h1>
-  <p class="atlas-subtitle" id="systemSubtitle"></p>
-  <div class="system-signature" id="systemSignature"></div>
-</header>
+  <a class="back-link" href="./index.html" id="backLink">← Volver</a>
+  <p class="top-eyebrow">Guía de comunidad</p>
+  <h1>Atlas Galáctico</h1>
+  <p class="lede" id="lede">Vista general del sistema, sus mundos y las bases activas de la comunidad.</p>
 
-<!-- MAIN -->
-<main class="atlas-main">
-
-  <!-- GALAXY MAP -->
-  <section class="galaxy-map-container panel">
+  <div class="panel">
     <div class="panel-label">Mapa Galáctico</div>
     <div class="galaxy-map">
       <canvas id="galaxyCanvas"></canvas>
-      <div class="map-overlay">
-        <div class="map-crosshair"></div>
-      </div>
       <div class="map-coords-display" id="mapCoords"></div>
       <div class="map-legend">
-        <div class="map-legend-item">
-          <div class="legend-dot" style="background: var(--korvax-cyan)"></div>
-          <span id="legendSystem"></span>
-        </div>
-        <div class="map-legend-item">
-          <div class="legend-dot" style="background: var(--korvax-cyan-dim)"></div>
-          <span>Región Cuadrante Delta</span>
-        </div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendSystem"></span></div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span id="legendRegion"></span></div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- SYSTEM DATA -->
-  <section class="panel">
-    <div class="panel-label">Datos del Sistema</div>
-    <div id="systemDataRows"></div>
-    <div class="data-row">
-      <span class="data-key">Bases Registradas</span>
-      <span class="data-value gold" id="totalBases">0</span>
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-label">Cuerpos Celestes</div>
+      <div class="planet-grid" id="planetGrid"></div>
+      <div class="planet-detail" id="planetDetail"></div>
     </div>
-  </section>
+    <div class="panel">
+      <div class="panel-label">Datos del Sistema</div>
+      <div id="systemDataRows"></div>
+      <div class="data-row">
+        <span class="data-key">Bases registradas</span>
+        <span class="data-value gold" id="totalBases">0</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- PLANETS -->
-  <section class="panel">
-    <div class="panel-label">Cuerpos Celestes</div>
-    <div class="planet-grid" id="planetGrid"></div>
-    <div class="planet-detail" id="planetDetail"></div>
-  </section>
+  <div class="panel">
+    <div class="signature-label"><span>Firma del sistema · Dirección de portal compartida</span><span id="signatureCount">—</span></div>
+    <div class="glyph-row" id="portalCode"></div>
+  </div>
 
-  <!-- PORTAL -->
-  <section class="panel" style="grid-column: 1 / -1;">
-    <div class="panel-label">Portal · Código de Glifos del Sistema</div>
-    <div class="portal-code-display" id="portalCode"></div>
-  </section>
-
-  <!-- BASES LIST -->
-  <section class="panel" style="grid-column: 1 / -1;">
+  <div class="panel">
     <div class="panel-label">Bases de la Comunidad</div>
     <div class="bases-list" id="basesList"></div>
-  </section>
+  </div>
 
-</main>
-
-<!-- FOOTER -->
-<footer class="atlas-footer">
-  <p>MORI-01 · Moringos PRIME · Galactic Atlas v1.0</p>
-</footer>
+</div>
 
 <script type="module">
-// ============================================
-// MORI-01 GALACTIC ATLAS — Firebase Edition
-// ============================================
-// Loads bases from Firestore in real time.
-// Standalone: works on GitHub Pages without build step.
-// ============================================
+  import { db } from './firebase-config.js';
+  import { PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE, glyphSVG, planetImg } from './mori01-data.js';
+  import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.title = `Atlas Galáctico · ${SYSTEM_INFO.shortName}`;
+  document.getElementById('lede').textContent =
+    `Vista general de ${SYSTEM_INFO.shortName}, sus mundos y las bases activas de la comunidad.`;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBQTeFhaiS2Wg6V9OgGfr7qhAFqvdfB0LA",
-  authDomain: "mori-01-b1a8d.firebaseapp.com",
-  projectId: "mori-01-b1a8d",
-  storageBucket: "mori-01-b1a8d.firebasestorage.app",
-  messagingSenderId: "592994102590",
-  appId: "1:592994102590:web:59a6c2ae5238819128d06f"
-};
+  let BASES = [];
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
 
-// ============================================
-// SHARED DATA
-// ============================================
+  document.getElementById('legendSystem').textContent = SYSTEM_INFO.shortName;
+  document.getElementById('legendRegion').textContent = SYSTEM_INFO.region;
+  document.getElementById('mapCoords').textContent = SYSTEM_SIGNATURE.join('-');
+  document.getElementById('signatureCount').textContent = `${SYSTEM_SIGNATURE.length} glifos`;
 
-const SYSTEM_INFO = {
-  tag: '[MRNG]',
-  name: 'Moringos PRIME Disonante',
-  shortName: 'Moringos PRIME',
-  region: 'Cuadrante Delta',
-  regionDetail: 'Zona periférica de la galaxia',
-  race: 'Korvax',
-  economy: 'Generación de Energía',
-  conflict: '2 · Tempestuoso',
-  galaxy: 'Galaxia de Euclides',
-  galacticAddress: '0F1F:0025:0773:016C',
-  portalCode: '316CA6F74720'
-};
-
-const PLANETS = [
-  {i:4, name:'Aizinia', capital:true, clima:'Apacible', centinela:'Remoto', flora:'Generoso', fauna:'Abundante', rec:['Bulbo Estelar','Plata','Parafino','Cobre']},
-  {i:3, name:'Agforn Sigma', clima:'Diluvio Ácido', centinela:'Abandonado', flora:'Generoso', fauna:'Copioso', rec:['Moho Fúngico','Chatarra Recuperable','Cobalto','Amonio','Cobre Activado']},
-  {i:2, name:'Hibouri', clima:'Aire Sobrecalentado', centinela:'Ejecutor', flora:'Rebosante', fauna:'Profuso', rec:['Solanio','Sodio','Fósforo','Cobre Activado']},
-  {i:6, name:'Nuvillus', clima:'Nubes Perdidas', centinela:'Abarca Demasiado', flora:'Desarraigado', fauna:'Entre Mundos', rec:['Cobre','Oro','Sodio']},
-  {i:7, name:'Reumodgr VIII', clima:'Vientos Volátiles', centinela:'Mínimo', flora:'Abundante', fauna:'Ocasional', rec:['Raíz Gamma','Cobre','Uranio','Plata']},
-  {i:5, name:'Luna de Aizinia', clima:'Vaho Tóxico', centinela:'Ejecutor', flora:'Frecuente', fauna:'Generoso', rec:['Huesos Antiguos','Moho Fúngico','Cobre','Amonio','Plata']},
-];
-
-const SYSTEM_SIGNATURE = [4,2,7,13,11,7,16,8,5,8,3,1];
-
-// ============================================
-// BASES — loaded from Firestore (real-time)
-// ============================================
-let BASES = [];
-
-// ============================================
-// PLANET HELPERS
-// ============================================
-function findPlanetByIndex(idx) {
-  return PLANETS.find(p => p.i === idx) || null;
-}
-
-function planetImageSlug(name) {
-  return name.toLowerCase().replace(/\s+/g, '');
-}
-
-function planetImg(p) {
-  return `<img src="./${planetImageSlug(p.name)}.webp" alt="${p.name}" loading="lazy">`;
-}
-
-// ============================================
-// PORTAL GLYPH HELPERS
-// ============================================
-function portalToGlyphs(code) {
-  return code.split('').map(ch => {
-    const val = parseInt(ch, 16);
-    return val + 1;
-  });
-}
-
-// ============================================
-// GALACTIC ATLAS — Option B
-// ============================================
-// Shows MORI-01 as a single point in the galaxy.
-// Bases are displayed in the list, not on the map.
-// ============================================
-
-// ============================================
-// RENDER HEADER
-// ============================================
-function renderHeader() {
-  document.getElementById('systemTag').textContent =
-    `${SYSTEM_INFO.tag} · ${SYSTEM_INFO.shortName}`;
-  document.getElementById('systemSubtitle').textContent =
-    `${SYSTEM_INFO.region} · ${SYSTEM_INFO.galaxy}`;
-  document.getElementById('legendSystem').textContent =
-    SYSTEM_INFO.shortName;
-
-  const sigContainer = document.getElementById('systemSignature');
-  sigContainer.innerHTML = SYSTEM_SIGNATURE
-    .map(n => `<img src="./${n}.webp" alt="Glifo ${n}" loading="lazy">`)
-    .join('');
-
-  document.getElementById('mapCoords').textContent =
-    SYSTEM_INFO.galacticAddress;
-}
-
-// ============================================
-// RENDER SYSTEM DATA
-// ============================================
-function renderSystemData() {
-  const rows = [
+  document.getElementById('systemDataRows').innerHTML = [
     ['Galaxia', SYSTEM_INFO.galaxy, 'cyan'],
     ['Región', SYSTEM_INFO.region, ''],
     ['Raza', SYSTEM_INFO.race, 'green'],
     ['Economía', SYSTEM_INFO.economy, ''],
     ['Conflicto', SYSTEM_INFO.conflict, 'gold'],
-    ['Portal', SYSTEM_INFO.portalCode, 'cyan'],
-  ];
-
-  document.getElementById('systemDataRows').innerHTML = rows
-    .map(([key, val, cls]) => `
-      <div class="data-row">
-        <span class="data-key">${key}</span>
-        <span class="data-value ${cls}">${val}</span>
-      </div>
-    `).join('');
-}
-
-// ============================================
-// RENDER PORTAL CODE
-// ============================================
-function renderPortalCode() {
-  const glyphs = portalToGlyphs(SYSTEM_INFO.portalCode);
-  document.getElementById('portalCode').innerHTML = glyphs
-    .map((g, i) => `
-      <div class="portal-glyph" data-index="${i}" title="Glifo ${i + 1}: ${g}">
-        <img src="./${g}.webp" alt="Glifo ${g}" loading="lazy">
-      </div>
-    `).join('');
-}
-
-// ============================================
-// RENDER PLANETS
-// ============================================
-let selectedPlanet = null;
-
-function renderPlanets() {
-  const grid = document.getElementById('planetGrid');
-
-  grid.innerHTML = PLANETS.map((p, idx) => `
-    <div class="planet-card ${p.capital ? 'active' : ''}" data-idx="${idx}">
-      <div class="planet-card-img">${planetImg(p)}</div>
-      <div class="planet-card-name">${p.name}</div>
-      <div class="planet-card-climate">${p.clima}</div>
+  ].map(([key, val, cls]) => `
+    <div class="data-row">
+      <span class="data-key">${key}</span>
+      <span class="data-value ${cls}">${val}</span>
     </div>
   `).join('');
 
-  grid.querySelectorAll('.planet-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const idx = parseInt(card.dataset.idx);
-      selectPlanet(idx);
+  document.getElementById('portalCode').innerHTML = SYSTEM_SIGNATURE.map((n, i) => `
+    <div class="glyph" data-index="${i + 1}" title="Glifo ${n}">${glyphSVG(n)}</div>
+  `).join('');
+
+  let selectedPlanetIdx = null;
+
+  function renderPlanets(){
+    const grid = document.getElementById('planetGrid');
+    grid.innerHTML = PLANETS.map((p, idx) => `
+      <div class="planet-card ${p.capital ? 'active' : ''}" data-idx="${idx}">
+        <div class="planet-card-img">${planetImg(p)}</div>
+        <div class="planet-card-name">${p.name}</div>
+        <div class="planet-card-climate">${p.clima}</div>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('.planet-card').forEach(card => {
+      card.addEventListener('click', () => selectPlanet(parseInt(card.dataset.idx, 10)));
     });
-  });
 
-  const capitalIdx = PLANETS.findIndex(p => p.capital);
-  if (capitalIdx >= 0) selectPlanet(capitalIdx);
-}
-
-function selectPlanet(idx) {
-  const p = PLANETS[idx];
-  selectedPlanet = idx;
-
-  document.querySelectorAll('.planet-card').forEach((card, i) => {
-    card.classList.toggle('active', i === idx);
-  });
-
-  const detail = document.getElementById('planetDetail');
-  detail.classList.add('visible');
-
-  const planetBases = BASES.filter(b => b.planetIndex === p.i);
-
-  detail.innerHTML = `
-    <div class="planet-detail-header">
-      <div class="planet-detail-img">${planetImg(p)}</div>
-      <div>
-        <div class="planet-detail-name">${p.name}</div>
-        <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${p.i}</div>
-      </div>
-    </div>
-    <div class="planet-stats">
-      <div class="planet-stat">
-        <span class="planet-stat-key">Clima</span>
-        <span class="planet-stat-val">${p.clima}</span>
-      </div>
-      <div class="planet-stat">
-        <span class="planet-stat-key">Centinela</span>
-        <span class="planet-stat-val">${p.centinela}</span>
-      </div>
-      <div class="planet-stat">
-        <span class="planet-stat-key">Flora</span>
-        <span class="planet-stat-val">${p.flora}</span>
-      </div>
-      <div class="planet-stat">
-        <span class="planet-stat-key">Fauna</span>
-        <span class="planet-stat-val">${p.fauna}</span>
-      </div>
-      <div class="planet-stat">
-        <span class="planet-stat-key">Bases</span>
-        <span class="planet-stat-val" style="color:var(--korvax-gold)">${planetBases.length}</span>
-      </div>
-    </div>
-    <div class="planet-resources">
-      ${p.rec.map(r => `<span class="resource-tag">${r}</span>`).join('')}
-    </div>
-  `;
-}
-
-// ============================================
-// RENDER BASES LIST
-// ============================================
-function renderBases() {
-  const container = document.getElementById('basesList');
-  document.getElementById('totalBases').textContent = BASES.length;
-
-  if (BASES.length === 0) {
-    container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
-    return;
+    const capitalIdx = PLANETS.findIndex(p => p.capital);
+    selectPlanet(capitalIdx >= 0 ? capitalIdx : 0);
   }
 
-  const glyphs = portalToGlyphs(SYSTEM_INFO.portalCode);
-  const glyphThumbs = glyphs.map(g =>
-    `<span class="base-portal-glyph"><img src="./${g}.webp" alt="${g}"></span>`
-  ).join('');
+  function selectPlanet(idx){
+    const p = PLANETS[idx];
+    selectedPlanetIdx = idx;
+    document.querySelectorAll('.planet-card').forEach((card, i) => card.classList.toggle('active', i === idx));
 
-  container.innerHTML = BASES.map(base => {
-    const planet = findPlanetByIndex(base.planetIndex);
-    const planetName = planet ? planet.name : '—';
-    const initials = (base.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
-    return `
-      <div class="base-card">
-        <div class="base-avatar">${initials}</div>
-        <div class="base-info">
-          <h3>${base.name || 'Sin nombre'}</h3>
-          <p><span class="status-dot online"></span> ${base.id}</p>
-          <p>Planeta: <span class="highlight">${planetName}</span> · Coords: <span class="highlight">+${base.lat}, +${base.lon}</span></p>
-          <p>Portal:</p>
-          <div class="base-portal">${glyphThumbs}</div>
-        </div>
-        <div style="text-align: right;">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--korvax-cyan-dim);">${base.platform || '—'}</div>
-          ${base.profession ? `<div style="font-size:0.6rem;color:var(--korvax-text);margin-top:4px;">${base.profession}</div>` : ''}
+    const planetBases = BASES.filter(b => b.planetIndex === p.i);
+    const detail = document.getElementById('planetDetail');
+    detail.classList.add('visible');
+    detail.innerHTML = `
+      <div class="planet-detail-header">
+        <div class="planet-detail-img">${planetImg(p)}</div>
+        <div>
+          <div class="planet-detail-name">${p.name}${p.capital ? ' ★' : ''}</div>
+          <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${p.i}</div>
         </div>
       </div>
+      <div class="planet-stats">
+        <div class="planet-stat"><span class="planet-stat-key">Clima</span><span class="planet-stat-val">${p.clima}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Centinela</span><span class="planet-stat-val">${p.centinela}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Flora</span><span class="planet-stat-val">${p.flora}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Fauna</span><span class="planet-stat-val">${p.fauna}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Bases</span><span class="planet-stat-val" style="color:var(--accent-gold)">${planetBases.length}</span></div>
+      </div>
+      <div class="planet-resources">${p.rec.map(r => `<span class="resource-chip">${r}</span>`).join('')}</div>
     `;
-  }).join('');
-}
+  }
 
-// ============================================
-// GALAXY MAP (Canvas)
-// ============================================
-let starsCache = null;
+  function renderBases(){
+    const container = document.getElementById('basesList');
+    document.getElementById('totalBases').textContent = BASES.length;
 
-function drawGalaxyMap() {
-  const canvas = document.getElementById('galaxyCanvas');
-  const ctx = canvas.getContext('2d');
-  const rect = canvas.parentElement.getBoundingClientRect();
-
-  canvas.width = rect.width * 2;
-  canvas.height = rect.height * 2;
-  ctx.scale(2, 2);
-
-  const w = rect.width;
-  const h = rect.height;
-
-  // Background
-  ctx.fillStyle = '#050a15';
-  ctx.fillRect(0, 0, w, h);
-
-  // Stars (cached so they don't flicker)
-  if (!starsCache || starsCache.w !== w || starsCache.h !== h) {
-    starsCache = { w, h, dots: [] };
-    for (let i = 0; i < 300; i++) {
-      starsCache.dots.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.random() * 1.2,
-        a: Math.random() * 0.6 + 0.1
-      });
+    if(!BASES.length){
+      container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
+      return;
     }
+
+    container.innerHTML = BASES.map(base => {
+      const planet = PLANETS.find(p => p.i === base.planetIndex);
+      const planetName = planet ? planet.name : '—';
+      const initials = (base.name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const tags = [
+        base.role ? `<span class="base-tag role">${escapeHtml(base.role)}</span>` : '',
+        base.profession ? `<span class="base-tag">${escapeHtml(base.profession)}</span>` : '',
+        base.platform ? `<span class="base-tag">${escapeHtml(base.platform)}</span>` : '',
+      ].join('');
+
+      const avatarContent = base.photoUrl
+        ? `<img src="${escapeHtml(base.photoUrl)}" alt="${escapeHtml(base.name || '')}">`
+        : initials;
+
+      return `
+        <div class="base-card">
+          <div class="base-avatar">${avatarContent}</div>
+          <div class="base-info">
+            <h3>${escapeHtml(base.name || 'Sin nombre')}</h3>
+            <p><span class="status-dot"></span>${base.id}</p>
+            <p>Planeta: <span class="highlight">${planetName}</span> · Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
+            <div class="base-tags">${tags}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
   }
-  starsCache.dots.forEach(s => {
-    ctx.fillStyle = `rgba(176, 190, 197, ${s.a})`;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
 
-  // Galaxy spiral arms
-  const cx = w / 2;
-  const cy = h / 2;
+  let starsCache = null;
 
-  for (let arm = 0; arm < 4; arm++) {
-    const armOffset = (arm * Math.PI) / 2;
-    ctx.beginPath();
-    for (let t = 0; t < Math.PI * 6; t += 0.02) {
-      const r = t * Math.min(w, h) * 0.025;
-      const x = cx + Math.cos(t + armOffset) * r;
-      const y = cy + Math.sin(t + armOffset) * r * 0.4;
-      if (t === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+  function drawGalaxyMap(){
+    const canvas = document.getElementById('galaxyCanvas');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+
+    const w = rect.width, h = rect.height;
+
+    ctx.fillStyle = '#07080d';
+    ctx.fillRect(0, 0, w, h);
+
+    if(!starsCache || starsCache.w !== w || starsCache.h !== h){
+      starsCache = { w, h, dots: [] };
+      for(let i = 0; i < 300; i++){
+        starsCache.dots.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.2, a: Math.random()*0.6+0.1 });
+      }
     }
-    ctx.strokeStyle = 'rgba(0, 229, 255, 0.04)';
-    ctx.lineWidth = 15;
-    ctx.stroke();
+    starsCache.dots.forEach(s => {
+      ctx.fillStyle = `rgba(139, 147, 179, ${s.a})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    });
+
+    const cx = w/2, cy = h/2;
+
+    for(let arm = 0; arm < 4; arm++){
+      const armOffset = (arm * Math.PI) / 2;
+      ctx.beginPath();
+      for(let t = 0; t < Math.PI*6; t += 0.02){
+        const r = t * Math.min(w,h) * 0.025;
+        const x = cx + Math.cos(t+armOffset)*r;
+        const y = cy + Math.sin(t+armOffset)*r*0.4;
+        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
+      ctx.lineWidth = 15;
+      ctx.stroke();
+    }
+
+    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h)*0.15);
+    coreGrad.addColorStop(0, 'rgba(6, 182, 212, 0.15)');
+    coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.05)');
+    coreGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    const markerX = cx + w*0.15, markerY = cy - h*0.1;
+    const pulseGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 30);
+    pulseGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+    pulseGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = pulseGrad;
+    ctx.beginPath(); ctx.arc(markerX, markerY, 30, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath(); ctx.arc(markerX, markerY, 4, 0, Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(markerX, markerY, 10, 0, Math.PI*2); ctx.stroke();
+
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#06b6d4';
+    ctx.fillText(SYSTEM_INFO.shortName, markerX + 16, markerY + 4);
+
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.03)';
+    ctx.lineWidth = 0.5;
+    for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+    for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
   }
 
-  // Core glow
-  const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.15);
-  coreGrad.addColorStop(0, 'rgba(0, 229, 255, 0.15)');
-  coreGrad.addColorStop(0.5, 'rgba(0, 229, 255, 0.05)');
-  coreGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = coreGrad;
-  ctx.fillRect(0, 0, w, h);
-
-  // System center marker
-  const markerX = cx + w * 0.15;
-  const markerY = cy - h * 0.1;
-
-  // Marker pulse
-  const pulseGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 30);
-  pulseGrad.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
-  pulseGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = pulseGrad;
-  ctx.beginPath();
-  ctx.arc(markerX, markerY, 30, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Marker dot
-  ctx.fillStyle = '#00e5ff';
-  ctx.beginPath();
-  ctx.arc(markerX, markerY, 4, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Marker ring
-  ctx.strokeStyle = '#00e5ff88';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(markerX, markerY, 10, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Label
-  ctx.font = '10px "Share Tech Mono", monospace';
-  ctx.fillStyle = '#00e5ff';
-  ctx.fillText(SYSTEM_INFO.shortName, markerX + 16, markerY + 4);
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(0, 229, 255, 0.03)';
-  ctx.lineWidth = 0.5;
-  for (let x = 0; x < w; x += 50) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
+  function subscribeBases(){
+    const citizensCol = collection(db, 'citizens');
+    const q = query(citizensCol, where('status', '==', 'citizen'));
+    onSnapshot(q, snap => {
+      BASES = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+      renderBases();
+      if(selectedPlanetIdx !== null) selectPlanet(selectedPlanetIdx);
+    }, err => {
+      document.getElementById('basesList').innerHTML =
+        '<div class="no-bases">No se pudo cargar. Revisa las reglas de Firestore.</div>';
+    });
   }
-  for (let y = 0; y < h; y += 50) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-}
 
-// ============================================
-// FIRESTORE REAL-TIME SUBSCRIPTION
-// ============================================
-function subscribeBases() {
-  const citizensRef = collection(db, 'citizens');
-  const q = query(citizensRef, where('status', '==', 'citizen'));
-
-  onSnapshot(q, (snapshot) => {
-    BASES = snapshot.docs.map(doc => ({
-      docId: doc.id,
-      ...doc.data()
-    }));
-
-    renderBases();
-  }, (error) => {
-    console.error('Firestore error:', error);
-    document.getElementById('basesList').innerHTML =
-      '<div class="no-bases">Error cargando bases. Revisa las reglas de Firestore.</div>';
-  });
-}
-
-// ============================================
-// INIT
-// ============================================
-renderHeader();
-renderSystemData();
-renderPortalCode();
-renderPlanets();
-subscribeBases();
-
-window.addEventListener('resize', () => {
-  starsCache = null;
+  renderPlanets();
+  subscribeBases();
   drawGalaxyMap();
-});
+
+  window.addEventListener('resize', () => { starsCache = null; drawGalaxyMap(); });
 </script>
 </body>
 </html>
