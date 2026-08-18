@@ -2,7 +2,7 @@
 // Re-exporta funciones helper de mori01-data.js para que las páginas
 // que solo necesiten glifos/planetImg no tangan que importar ambos módulos.
 import { db } from './firebase-config.js';
-import { glyphSVG, planetImageSlug, planetImg as _planetImg } from './mori01-data.js';
+import { SYSTEM_INFO, PLANETS, SYSTEM_SIGNATURE, glyphSVG, planetImageSlug, planetImg as _planetImg } from './mori01-data.js';
 import {
   collection, doc, getDoc, getDocs, query, where, setDoc, updateDoc, deleteDoc, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -10,24 +10,51 @@ import {
 export { glyphSVG };
 export const planetImg = _planetImg;
 
+// ── MORI-01 embebido ──────────────────────────────────────────────────
+// Siempre aparece como primera colonia sin necesidad de Firestore.
+export const MORI01_COLONY = Object.freeze({
+  id:          'mori-01',
+  name:        SYSTEM_INFO.name,
+  shortName:   SYSTEM_INFO.shortName,
+  tag:         SYSTEM_INFO.tag,
+  region:      SYSTEM_INFO.region,
+  race:        SYSTEM_INFO.race,
+  economy:     SYSTEM_INFO.economy,
+  conflict:    SYSTEM_INFO.conflict,
+  galaxy:      SYSTEM_INFO.galaxy,
+  status:      'active',
+  signature:   SYSTEM_SIGNATURE,
+  galacticPos: { x: 0, y: 0 },
+  planets:     PLANETS.map(p => ({ ...p })),
+  createdAt:   0,
+  updatedAt:   0,
+});
+
 const coloniesRef = collection(db, 'colonies');
 
-// Todas las colonias activas
+// Todas las colonias activas (MORI-01 siempre primero)
 export async function loadAllColonies(){
   const q = query(coloniesRef, where('status', '==', 'active'));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  if(!firestore.length) return [MORI01_COLONY];
+  const hasMori = firestore.some(c => c.id === 'mori-01');
+  return hasMori ? firestore : [MORI01_COLONY, ...firestore];
 }
 
 // Todas las colonias (para el admin — incluye borradores e inactivas)
 export async function loadAllColoniesAdmin(){
   const q = query(coloniesRef, orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+  if(!firestore.length) return [MORI01_COLONY];
+  const hasMori = firestore.some(c => c.id === 'mori-01');
+  return hasMori ? firestore : [MORI01_COLONY, ...firestore];
 }
 
 // Una colonia específica
 export async function loadColony(colonyId){
+  if(colonyId === 'mori-01') return MORI01_COLONY;
   const snap = await getDoc(doc(db, 'colonies', colonyId));
   if(!snap.exists()) return null;
   return { docId: snap.id, ...snap.data() };
