@@ -194,9 +194,11 @@
 <script type="module">
   import { db } from './firebase-config.js';
   import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg } from './colonies-data.js';
-  import { formatHexAddress } from './nms-glyphs.js';
   import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  let formatHexAddress = null;
+  import('./nms-glyphs.js').then(m => { formatHexAddress = m.formatHexAddress; }).catch(()=>{});
 
   let ALL_COLONIES = [];
   let ACTIVE_COLONY = null;
@@ -265,7 +267,7 @@
     document.getElementById('legendRegion').textContent = colony.region || SYSTEM_INFO.region;
 
     const sig = colony.signature || SYSTEM_SIGNATURE;
-    var hexAddr = colony.hexAddress || formatHexAddress(sig) || '—';
+    var hexAddr = colony.hexAddress || (formatHexAddress && formatHexAddress(sig)) || '—';
     var cart = colony.cartesian || null;
     document.getElementById('mapCoords').innerHTML =
       '<span style="color:var(--text-dim)">Hex:</span> <span style="color:var(--accent-cyan)">' + escapeHtml(hexAddr) + '</span><br>' +
@@ -284,7 +286,7 @@
       ['Coords', cart ? 'X:' + cart.x + ' Y:' + cart.y + ' Z:' + cart.z : '\u2014', 'cyan'],
     ].map(function(r){ return '<div class="data-row"><span class="data-key">' + r[0] + '</span><span class="data-value ' + r[2] + '">' + escapeHtml(r[1] || '') + '</span></div>'; }).join('');
 
-    var hexAddr2 = colony.hexAddress || formatHexAddress(sig) || '—';
+    var hexAddr2 = colony.hexAddress || (formatHexAddress && formatHexAddress(sig)) || '—';
     document.getElementById('portalCode').innerHTML =
       '<div style="text-align:center;margin-bottom:10px;font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan)">' + escapeHtml(hexAddr2) + '</div>' +
       sig.map((n, i) => `

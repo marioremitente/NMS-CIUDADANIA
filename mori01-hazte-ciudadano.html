@@ -399,13 +399,21 @@
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { loadAllColonies, planetImg, glyphSVG } from './colonies-data.js';
-  import { validateSignature, glyphsToCartesian, formatHexAddress } from './nms-glyphs.js';
   import {
     collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     ref, uploadBytes, getDownloadURL
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  let validateSignature = null, glyphsToCartesian = null, formatHexAddress = null;
+  import('./nms-glyphs.js').then(m => {
+    validateSignature = m.validateSignature;
+    glyphsToCartesian = m.glyphsToCartesian;
+    formatHexAddress = m.formatHexAddress;
+  }).catch(() => {
+    console.warn('nms-glyphs.js no disponible — selector de glifos desactivado');
+  });
 
   const citizensCol = collection(db, 'citizens');
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -482,6 +490,11 @@
     var box = document.getElementById('glyphDecoded');
     var allFilled = selectedGlyphs.every(function(g){ return g !== null; });
     if(!allFilled){ box.style.display = 'none'; return; }
+    if(!validateSignature || !glyphsToCartesian || !formatHexAddress){
+      box.style.display = 'block';
+      box.innerHTML = '<span class="decoded-err">Decoder no disponible. Sube nms-glyphs.js al servidor.</span>';
+      return;
+    }
     var v = validateSignature(selectedGlyphs);
     if(!v.valid){
       box.style.display = 'block';
@@ -783,6 +796,12 @@
     var allGlyphsFilled = selectedGlyphs.every(function(g){ return g !== null; });
     var portalData = {};
     if(allGlyphsFilled){
+      if(!validateSignature || !glyphsToCartesian){
+        showAlert('El decoder de glifos no está disponible. Sube nms-glyphs.js al servidor.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Ser Ciudadano';
+        return;
+      }
       var gv = validateSignature(selectedGlyphs);
       if(!gv.valid){ showAlert('Glifos invalidos: ' + gv.error, 'error'); return; }
       var gc = glyphsToCartesian(selectedGlyphs);
