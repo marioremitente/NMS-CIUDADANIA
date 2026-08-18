@@ -314,9 +314,269 @@
     }).join('');
   }
 
-  let starsCache = null;
+  // ============================================
+  // GALAXY MAP — Enhanced with effects
+  // ============================================
 
-  function drawGalaxyMap(){
+  let staticCanvas = null;
+  let staticCtx = null;
+  let staticW = 0, staticH = 0;
+
+  // Nebulas
+  const NEBULAS = [];
+  // Shooting stars
+  const shootingStars = [];
+  let lastShootingStar = 0;
+  // Marker pulse
+  let markerPhase = 0;
+  // Animation
+  let animFrame = null;
+  let lastTime = 0;
+
+  function initNebulas(w, h){
+    NEBULAS.length = 0;
+    const colors = [
+      [6, 182, 212],
+      [124, 108, 255],
+      [245, 184, 73],
+      [6, 182, 212],
+      [100, 120, 200],
+    ];
+    for(let i = 0; i < 5; i++){
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 0.1 + Math.random() * 0.25;
+      NEBULAS.push({
+        x: w/2 + Math.cos(angle) * w * dist,
+        y: h/2 + Math.sin(angle) * h * dist,
+        radius: 40 + Math.random() * 60,
+        color: colors[i % colors.length],
+        alpha: 0.03 + Math.random() * 0.03,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.05,
+      });
+    }
+  }
+
+  function drawStaticLayer(w, h){
+    if(staticCanvas && staticW === w && staticH === h) return;
+
+    staticCanvas = document.createElement('canvas');
+    staticCanvas.width = w * 2;
+    staticCanvas.height = h * 2;
+    staticCtx = staticCanvas.getContext('2d');
+    staticCtx.scale(2, 2);
+    staticW = w;
+    staticH = h;
+
+    const ctx = staticCtx;
+
+    // Background
+    ctx.fillStyle = '#07080d';
+    ctx.fillRect(0, 0, w, h);
+
+    // Stars
+    for(let i = 0; i < 400; i++){
+      const x = Math.random()*w, y = Math.random()*h;
+      const r = Math.random()*1.2;
+      const a = Math.random()*0.6+0.1;
+      const hue = Math.random() > 0.8 ? (Math.random() > 0.5 ? 195 : 45) : 0;
+      if(hue){
+        ctx.fillStyle = `hsla(${hue}, 30%, 80%, ${a})`;
+      } else {
+        ctx.fillStyle = `rgba(170, 180, 200, ${a})`;
+      }
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+    }
+
+    const cx = w/2, cy = h/2;
+
+    // Spiral arms — diffuse layer
+    for(let arm = 0; arm < 4; arm++){
+      const armOffset = (arm * Math.PI) / 2;
+      ctx.beginPath();
+      for(let t = 0; t < Math.PI*6; t += 0.02){
+        const r = t * Math.min(w,h) * 0.025;
+        const x = cx + Math.cos(t+armOffset)*r;
+        const y = cy + Math.sin(t+armOffset)*r*0.4;
+        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      const grad = ctx.createLinearGradient(cx - w*0.3, cy, cx + w*0.3, cy);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.06)');
+      grad.addColorStop(0.5, 'rgba(80, 100, 180, 0.04)');
+      grad.addColorStop(1, 'rgba(6, 182, 212, 0.02)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 35;
+      ctx.stroke();
+    }
+
+    // Spiral arms — bright core layer
+    for(let arm = 0; arm < 4; arm++){
+      const armOffset = (arm * Math.PI) / 2;
+      ctx.beginPath();
+      for(let t = 0; t < Math.PI*6; t += 0.02){
+        const r = t * Math.min(w,h) * 0.025;
+        const x = cx + Math.cos(t+armOffset)*r;
+        const y = cy + Math.sin(t+armOffset)*r*0.4;
+        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    // Star clusters along arms
+    for(let arm = 0; arm < 4; arm++){
+      const armOffset = (arm * Math.PI) / 2;
+      for(let i = 0; i < 12; i++){
+        const t = (i / 12) * Math.PI * 5 + Math.random() * 0.3;
+        const r = t * Math.min(w,h) * 0.025;
+        const spread = 8 + Math.random() * 12;
+        const bx = cx + Math.cos(t+armOffset)*r + (Math.random()-0.5)*spread;
+        const by = cy + Math.sin(t+armOffset)*r*0.4 + (Math.random()-0.5)*spread;
+        const bs = 0.5 + Math.random() * 1.5;
+        const ba = 0.15 + Math.random() * 0.3;
+        ctx.fillStyle = `rgba(180, 200, 255, ${ba})`;
+        ctx.beginPath(); ctx.arc(bx, by, bs, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    // Core glow
+    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h)*0.18);
+    coreGrad.addColorStop(0, 'rgba(255, 255, 240, 0.2)');
+    coreGrad.addColorStop(0.2, 'rgba(6, 182, 212, 0.15)');
+    coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.05)');
+    coreGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Core bright center
+    const coreDot = ctx.createRadialGradient(cx, cy, 0, cx, cy, 8);
+    coreDot.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+    coreDot.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreDot;
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.025)';
+    ctx.lineWidth = 0.5;
+    for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+    for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  }
+
+  function spawnShootingStar(w, h){
+    const side = Math.floor(Math.random() * 4);
+    let x, y, vx, vy;
+    const speed = 6 + Math.random() * 8;
+    const angle = Math.random() * 0.4 + 0.2;
+    if(side === 0){ x = Math.random()*w; y = 0; vx = speed*Math.cos(angle); vy = speed*Math.sin(angle); }
+    else if(side === 1){ x = w; y = Math.random()*h; vx = -speed*Math.cos(angle); vy = speed*Math.sin(angle)*(Math.random()>0.5?1:-1); }
+    else if(side === 2){ x = Math.random()*w; y = h; vx = speed*Math.cos(angle)*(Math.random()>0.5?1:-1); vy = -speed*Math.sin(angle); }
+    else { x = 0; y = Math.random()*h; vx = speed*Math.cos(angle); vy = speed*Math.sin(angle)*(Math.random()>0.5?1:-1); }
+    shootingStars.push({ x, y, vx, vy, life: 0, maxLife: 25 + Math.floor(Math.random()*20), trail: [] });
+  }
+
+  function drawShootingStars(ctx){
+    const now = performance.now();
+    if(now - lastShootingStar > 2500 + Math.random()*3000){
+      lastShootingStar = now;
+      if(shootingStars.length < 3) spawnShootingStar(staticW, staticH);
+    }
+
+    for(let i = shootingStars.length - 1; i >= 0; i--){
+      const s = shootingStars[i];
+      s.x += s.vx;
+      s.y += s.vy;
+      s.life++;
+      s.trail.push({ x: s.x, y: s.y });
+      if(s.trail.length > 15) s.trail.shift();
+
+      if(s.life > s.maxLife || s.x < -20 || s.x > staticW+20 || s.y < -20 || s.y > staticH+20){
+        shootingStars.splice(i, 1);
+        continue;
+      }
+
+      const progress = s.life / s.maxLife;
+      const alpha = progress < 0.2 ? progress * 5 : (1 - progress) * 1.25;
+
+      // Trail
+      for(let t = 0; t < s.trail.length; t++){
+        const tp = t / s.trail.length;
+        const ta = tp * alpha * 0.5;
+        const tw = tp * 2;
+        ctx.strokeStyle = `rgba(200, 230, 255, ${ta})`;
+        ctx.lineWidth = tw;
+        ctx.beginPath();
+        if(t > 0){
+          ctx.moveTo(s.trail[t-1].x, s.trail[t-1].y);
+          ctx.lineTo(s.trail[t].x, s.trail[t].y);
+        } else {
+          ctx.moveTo(s.trail[t].x, s.trail[t].y);
+          ctx.lineTo(s.trail[t].x, s.trail[t].y);
+        }
+        ctx.stroke();
+      }
+
+      // Head
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  function drawNebulas(ctx, w, h){
+    const cx = w/2, cy = h/2;
+    NEBULAS.forEach(n => {
+      n.x += n.vx;
+      n.y += n.vy;
+      if(n.x < -n.radius) n.x = w + n.radius;
+      if(n.x > w + n.radius) n.x = -n.radius;
+      if(n.y < -n.radius) n.y = h + n.radius;
+      if(n.y > h + n.radius) n.y = -n.radius;
+
+      const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
+      grad.addColorStop(0, `rgba(${n.color[0]}, ${n.color[1]}, ${n.color[2]}, ${n.alpha})`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.radius, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  function drawMarker(ctx, w, h, time){
+    const cx = w/2, cy = h/2;
+    const markerX = cx + w*0.15, markerY = cy - h*0.1;
+
+    markerPhase = (time % 2000) / 2000;
+    const pulse = Math.sin(markerPhase * Math.PI * 2) * 0.5 + 0.5;
+    const pulseRadius = 10 + pulse * 12;
+    const pulseAlpha = 0.15 + pulse * 0.2;
+
+    // Pulse ring
+    ctx.strokeStyle = `rgba(6, 182, 212, ${pulseAlpha})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(markerX, markerY, pulseRadius, 0, Math.PI*2); ctx.stroke();
+
+    // Outer glow
+    const glowGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 25 + pulse*10);
+    glowGrad.addColorStop(0, `rgba(6, 182, 212, ${0.15 + pulse*0.1})`);
+    glowGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath(); ctx.arc(markerX, markerY, 25 + pulse*10, 0, Math.PI*2); ctx.fill();
+
+    // Dot
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath(); ctx.arc(markerX, markerY, 4, 0, Math.PI*2); ctx.fill();
+
+    // Inner ring
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(markerX, markerY, 8, 0, Math.PI*2); ctx.stroke();
+
+    // Label
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#06b6d4';
+    ctx.fillText(SYSTEM_INFO.shortName, markerX + 14, markerY + 4);
+  }
+
+  function drawFrame(time){
     const canvas = document.getElementById('galaxyCanvas');
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -327,65 +587,24 @@
 
     const w = rect.width, h = rect.height;
 
-    ctx.fillStyle = '#07080d';
-    ctx.fillRect(0, 0, w, h);
+    if(NEBULAS.length === 0) initNebulas(w, h);
 
-    if(!starsCache || starsCache.w !== w || starsCache.h !== h){
-      starsCache = { w, h, dots: [] };
-      for(let i = 0; i < 300; i++){
-        starsCache.dots.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.2, a: Math.random()*0.6+0.1 });
-      }
+    drawStaticLayer(w, h);
+
+    // Draw static layer
+    ctx.drawImage(staticCanvas, 0, 0, staticCanvas.width, staticCanvas.height, 0, 0, w, h);
+
+    // Animated layers
+    drawNebulas(ctx, w, h);
+    drawShootingStars(ctx);
+    drawMarker(ctx, w, h, time);
+  }
+
+  function animate(time){
+    if(document.visibilityState === 'visible'){
+      drawFrame(time);
     }
-    starsCache.dots.forEach(s => {
-      ctx.fillStyle = `rgba(139, 147, 179, ${s.a})`;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-    });
-
-    const cx = w/2, cy = h/2;
-
-    for(let arm = 0; arm < 4; arm++){
-      const armOffset = (arm * Math.PI) / 2;
-      ctx.beginPath();
-      for(let t = 0; t < Math.PI*6; t += 0.02){
-        const r = t * Math.min(w,h) * 0.025;
-        const x = cx + Math.cos(t+armOffset)*r;
-        const y = cy + Math.sin(t+armOffset)*r*0.4;
-        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-      }
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
-      ctx.lineWidth = 15;
-      ctx.stroke();
-    }
-
-    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h)*0.15);
-    coreGrad.addColorStop(0, 'rgba(6, 182, 212, 0.15)');
-    coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.05)');
-    coreGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = coreGrad;
-    ctx.fillRect(0, 0, w, h);
-
-    const markerX = cx + w*0.15, markerY = cy - h*0.1;
-    const pulseGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 30);
-    pulseGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
-    pulseGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = pulseGrad;
-    ctx.beginPath(); ctx.arc(markerX, markerY, 30, 0, Math.PI*2); ctx.fill();
-
-    ctx.fillStyle = '#06b6d4';
-    ctx.beginPath(); ctx.arc(markerX, markerY, 4, 0, Math.PI*2); ctx.fill();
-
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(markerX, markerY, 10, 0, Math.PI*2); ctx.stroke();
-
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#06b6d4';
-    ctx.fillText(SYSTEM_INFO.shortName, markerX + 16, markerY + 4);
-
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.03)';
-    ctx.lineWidth = 0.5;
-    for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
-    for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+    animFrame = requestAnimationFrame(animate);
   }
 
   function subscribeBases(){
@@ -403,9 +622,14 @@
 
   renderPlanets();
   subscribeBases();
-  drawGalaxyMap();
+  animate(0);
 
-  window.addEventListener('resize', () => { starsCache = null; drawGalaxyMap(); });
+  window.addEventListener('resize', () => {
+    staticCanvas = null;
+    staticW = 0;
+    staticH = 0;
+    initNebulas(0, 0);
+  });
 </script>
 </body>
 </html>
