@@ -247,6 +247,39 @@
   .cta-panel h3{font-family:var(--font-display); font-weight:400; font-size:26px; margin-bottom:10px;}
   .cta-panel p{color:var(--text-muted); font-size:14px; max-width:420px;}
 
+  /* EXPLORACIÓN */
+  .exploration-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:680px){ .exploration-grid{grid-template-columns:1fr;} }
+  .exploration-card{
+    position:relative; overflow:hidden;
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;
+    padding:32px 28px; display:flex; flex-direction:column; justify-content:space-between;
+    min-height:220px; transition:border-color .25s, transform .25s; text-decoration:none;
+  }
+  .exploration-card:hover{border-color:var(--accent-cyan); transform:translateY(-3px);}
+  .exploration-card .ec-icon{
+    width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px; border:1px solid var(--border-bright); background:var(--bg-panel-2);
+    color:var(--accent-cyan); font-size:20px; flex-shrink:0;
+  }
+  .exploration-card .ec-title{
+    font-family:var(--font-display); font-weight:400; font-size:20px;
+    letter-spacing:.02em; margin-bottom:6px;
+  }
+  .exploration-card .ec-desc{font-size:13.5px; color:var(--text-muted); margin-bottom:22px; line-height:1.6;}
+  .exploration-card .ec-cta{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.08em;
+    color:var(--accent-cyan); display:flex; align-items:center; gap:8px;
+    transition:color .2s;
+  }
+  .exploration-card:hover .ec-cta{color:var(--text-primary);}
+  .exploration-card .ec-bg{
+    position:absolute; top:-40px; right:-40px; width:160px; height:160px;
+    border-radius:50%; opacity:.06; pointer-events:none;
+  }
+  .exploration-card:first-child .ec-bg{background:var(--accent-cyan);}
+  .exploration-card:last-child .ec-bg{background:var(--accent-gold);}
+
   /* PROCESO */
   .steps{display:flex; flex-direction:column; gap:0; max-width:640px;}
   .step{display:flex; gap:20px; padding:20px 0; border-bottom:1px solid var(--border-soft);}
@@ -320,6 +353,7 @@
       <a href="#sociedad">Sociedad</a>
       <a href="#roles">Roles</a>
       <a href="#mundos">Mundos</a>
+      <a href="#exploracion">Exploración</a>
       <a href="./mori01-hazte-ciudadano.html">Hazte Ciudadano</a>
       <a href="./mori01-id-card.html">Mi Tarjeta</a>
       <a href="./mori01-galeria.html">Ciudadanos</a>
@@ -411,6 +445,31 @@
     </div>
 
     <div class="planet-grid" id="planetGrid"></div>
+  </section>
+
+  <!-- EXPLORACIÓN -->
+  <section id="exploracion">
+    <div class="section-head">
+      <p class="section-eyebrow">Exploración</p>
+      <h2 class="section-title">Navega el territorio</h2>
+      <p class="section-desc">Explora la galaxia desde tu navegador. El mapa interactivo muestra cada colonia, sus mundos y las bases de la comunidad.</p>
+    </div>
+    <div class="exploration-grid">
+      <a class="exploration-card" href="./mori01-galactic-atlas.html">
+        <div class="ec-bg"></div>
+        <svg class="ec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="24" height="24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="4"/></svg>
+        <div class="ec-title">Atlas Galáctico</div>
+        <div class="ec-desc">Vista general de las colonias en la espiral galáctica. Selecciona una colonia para ver sus mundos, datos del sistema y las bases de sus ciudadanos.</div>
+        <div class="ec-cta">Abrir atlas →</div>
+      </a>
+      <a class="exploration-card" href="./mori01-local-map.html">
+        <div class="ec-bg"></div>
+        <svg class="ec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="24" height="24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <div class="ec-title">Mapa Local</div>
+        <div class="ec-desc">Mapa orbital de un sistema concreto. Planetas en órbita, bases marcadas con coordenadas y tooltips al pasar el cursor.</div>
+        <div class="ec-cta">Abrir mapa →</div>
+      </a>
+    </div>
   </section>
 
   <!-- PROCESO -->
