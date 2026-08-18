@@ -332,7 +332,7 @@
   function renderBases(){
     const container = document.getElementById('basesList');
     const colonyId = ACTIVE_COLONY ? ACTIVE_COLONY.id : null;
-    const filtered = colonyId ? BASES.filter(b => !b.colonyId || b.colonyId === colonyId) : BASES;
+    const filtered = BASES;
     document.getElementById('totalBases').textContent = filtered.length;
 
     if(!filtered.length){
@@ -560,14 +560,8 @@
       mx = galaxyMarkerPos.x;
       my = galaxyMarkerPos.y;
     } else {
-      const gp = ACTIVE_COLONY && ACTIVE_COLONY.galacticPos;
-      if(gp){
-        mx = cx + gp.x * w * 0.4;
-        my = cy + gp.y * h * 0.4;
-      } else {
-        mx = cx + w*0.15;
-        my = cy - h*0.1;
-      }
+      mx = cx + w*0.15;
+      my = cy - h*0.1;
       galaxyMarkerPos = { x: mx, y: my };
     }
 
