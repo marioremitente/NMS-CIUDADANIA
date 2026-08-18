@@ -439,6 +439,7 @@
   colonySelect.addEventListener('change', ()=>{
     SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || null;
     renderPlanetPicker();
+    renderRegistry(currentEntries);
     if(SELECTED_COLONY){
       const name = SELECTED_COLONY.name;
       document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
@@ -567,11 +568,13 @@
 
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
-    if(!entries.length){
-      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
+    const colonyId = SELECTED_COLONY ? SELECTED_COLONY.id : null;
+    const filtered = colonyId ? entries.filter(e => e.colonyId === colonyId) : entries;
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados en esta colonia.</div>';
       return;
     }
-    const groups = groupByPlayer(entries);
+    const groups = groupByPlayer(filtered);
     list.innerHTML = groups.map(g=>{
       const basesHtml = g.bases.map(e=>{
         const colonyLabel = getColonyName(e.colonyId);

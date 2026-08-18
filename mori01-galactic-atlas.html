@@ -42,7 +42,7 @@
 
   .galaxy-map{
     position:relative; width:100%; aspect-ratio:16/7; background:var(--bg-deep);
-    border-radius:6px; overflow:hidden; border:1px solid var(--border-soft);
+    border-radius:6px; overflow:hidden; border:1px solid var(--border-soft); cursor:pointer;
   }
   .galaxy-map canvas{width:100%; height:100%; display:block;}
   .map-coords-display{
@@ -140,15 +140,6 @@
 
   .status-dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent-green);}
   .no-bases{text-align:center; padding:40px 0; color:var(--text-dim); font-family:var(--font-mono); font-size:13px;}
-
-  .colony-select-wrap{margin-bottom:20px;}
-  .colony-select-wrap label{font-family:var(--font-mono); font-size:11px; letter-spacing:.15em; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;}
-  .colony-select{
-    width:100%; padding:10px 14px; background:var(--bg-panel-2); border:1px solid var(--border-soft);
-    border-radius:6px; color:var(--text-primary); font-family:var(--font-mono); font-size:13px;
-    cursor:pointer;
-  }
-  .colony-select:focus{border-color:var(--accent-cyan);}
 </style>
 </head>
 <body>
@@ -158,11 +149,6 @@
   <p class="top-eyebrow">Guía de comunidad</p>
   <h1>Atlas Galáctico</h1>
   <p class="lede" id="lede">Vista general del sistema, sus mundos y las bases activas de la comunidad.</p>
-
-  <div class="colony-select-wrap">
-    <label for="colonySelect">Colonia</label>
-    <select class="colony-select" id="colonySelect"></select>
-  </div>
 
   <div class="panel">
     <div class="panel-label">Mapa Galáctico</div>
@@ -222,53 +208,65 @@
     return d.innerHTML;
   }
 
-  // --- Colony Selector ---
+  const MORI_COLOR = [6, 182, 212];
+  const COLONY_COLORS = [
+    [245, 184, 73], [124, 108, 255], [61, 220, 151], [232, 84, 107],
+    [255, 140, 50], [80, 200, 220], [200, 120, 255], [255, 200, 80],
+  ];
+
+  function getColonyColor(colony, idx){
+    if(colony.id === 'mori-01') return MORI_COLOR;
+    return COLONY_COLORS[(idx || 0) % COLONY_COLORS.length];
+  }
+
+  function getColonyMarkerPos(colony, idx, total, w, h){
+    const gp = colony.galacticPos;
+    if(gp && typeof gp.x === 'number' && typeof gp.y === 'number'){
+      return { x: gp.x * w, y: gp.y * h };
+    }
+    const cx = w/2, cy = h/2;
+    const radius = Math.min(w, h) * 0.32;
+    const angle = (idx / total) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius * 0.55 };
+  }
+
   async function initColonies(){
     try{ ALL_COLONIES = await loadAllColonies(); }catch(e){ ALL_COLONIES = [MORI01_COLONY]; }
     if(!ALL_COLONIES.length) ALL_COLONIES = [MORI01_COLONY];
 
-    const select = document.getElementById('colonySelect');
-    select.innerHTML = ALL_COLONIES.map(c =>
-      `<option value="${escapeHtml(c.id)}">${escapeHtml(c.shortName || c.name)}</option>`
-    ).join('');
-
     const params = new URLSearchParams(window.location.search);
     const preselect = params.get('colony');
-    if(preselect && ALL_COLONIES.find(c => c.id === preselect)){
-      select.value = preselect;
-    }
-
-    select.addEventListener('change', ()=> switchColony(select.value));
-    switchColony(select.value);
+    let initial = ALL_COLONIES.find(c => c.id === preselect) || ALL_COLONIES[0];
+    selectColony(initial);
   }
 
-  function switchColony(colonyId){
-    ACTIVE_COLONY = ALL_COLONIES.find(c => c.id === colonyId) || MORI01_COLONY;
-    PLANETS = ACTIVE_COLONY.planets || FALLBACK_PLANETS;
+  function selectColony(colony){
+    ACTIVE_COLONY = colony;
+    PLANETS = colony.planets || FALLBACK_PLANETS;
 
-    const short = ACTIVE_COLONY.shortName || ACTIVE_COLONY.name;
+    const short = colony.shortName || colony.name;
     document.title = `Atlas Galáctico · ${short}`;
-    document.getElementById('backLink').textContent = `← Volver a ${short}`;
+    document.getElementById('backLink').textContent = `\u2190 Volver a ${short}`;
     document.getElementById('lede').textContent =
       `Vista general de ${short}, sus mundos y las bases activas de la comunidad.`;
 
     document.getElementById('legendSystem').textContent = short;
-    document.getElementById('legendRegion').textContent = ACTIVE_COLONY.region || SYSTEM_INFO.region;
+    document.getElementById('legendRegion').textContent = colony.region || SYSTEM_INFO.region;
 
-    const sig = ACTIVE_COLONY.signature || SYSTEM_SIGNATURE;
+    const sig = colony.signature || SYSTEM_SIGNATURE;
     document.getElementById('mapCoords').textContent = sig.join('-');
     document.getElementById('signatureCount').textContent = `${sig.length} glifos`;
 
     document.getElementById('systemDataRows').innerHTML = [
-      ['Galaxia', ACTIVE_COLONY.galaxy || SYSTEM_INFO.galaxy, 'cyan'],
-      ['Región', ACTIVE_COLONY.region || SYSTEM_INFO.region, ''],
-      ['Raza', ACTIVE_COLONY.race || SYSTEM_INFO.race, 'green'],
-      ['Economía', ACTIVE_COLONY.economy || SYSTEM_INFO.economy, ''],
-      ['Conflicto', ACTIVE_COLONY.conflict || SYSTEM_INFO.conflict, 'gold'],
+      ['Galaxia', colony.galaxy || SYSTEM_INFO.galaxy, 'cyan'],
+      ['Regi\u00f3n', colony.region || SYSTEM_INFO.region, ''],
+      ['Raza', colony.race || SYSTEM_INFO.race, 'green'],
+      ['Econom\u00eda', colony.economy || SYSTEM_INFO.economy, ''],
+      ['Conflicto', colony.conflict || SYSTEM_INFO.conflict, 'gold'],
     ].map(([key, val, cls]) => `
       <div class="data-row">
         <span class="data-key">${key}</span>
-        <span class="data-value ${cls}">${val}</span>
+        <span class="data-value ${cls}">${escapeHtml(val || '')}</span>
       </div>
     `).join('');
 
@@ -278,10 +276,8 @@
 
     renderPlanets();
     renderBases();
-    galaxyMarkerPos = null;
   }
 
-  // --- Planets ---
   function renderPlanets(){
     const grid = document.getElementById('planetGrid');
     grid.innerHTML = PLANETS.map((p, idx) => `
@@ -306,15 +302,16 @@
     selectedPlanetIdx = idx;
     document.querySelectorAll('.planet-card').forEach((card, i) => card.classList.toggle('active', i === idx));
 
-    const planetBases = BASES.filter(b => b.planetIndex === p.i);
+    const colonyBases = BASES.filter(b => (b.colonyId || 'mori-01') === ACTIVE_COLONY.id);
+    const planetBases = colonyBases.filter(b => b.planetIndex === p.i);
     const detail = document.getElementById('planetDetail');
     detail.classList.add('visible');
     detail.innerHTML = `
       <div class="planet-detail-header">
         <div class="planet-detail-img">${planetImg(p)}</div>
         <div>
-          <div class="planet-detail-name">${escapeHtml(p.name)}${p.capital ? ' ★' : ''}</div>
-          <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${p.i}</div>
+          <div class="planet-detail-name">${escapeHtml(p.name)}${p.capital ? ' \u2605' : ''}</div>
+          <div class="planet-detail-type">${p.capital ? 'Capital \u00b7 ' : ''}Glifo ${p.i}</div>
         </div>
       </div>
       <div class="planet-stats">
@@ -328,21 +325,19 @@
     `;
   }
 
-  // --- Bases ---
   function renderBases(){
     const container = document.getElementById('basesList');
-    const colonyId = ACTIVE_COLONY ? ACTIVE_COLONY.id : null;
-    const filtered = BASES;
-    document.getElementById('totalBases').textContent = filtered.length;
+    const colonyBases = BASES.filter(b => (b.colonyId || 'mori-01') === ACTIVE_COLONY.id);
+    document.getElementById('totalBases').textContent = colonyBases.length;
 
-    if(!filtered.length){
-      container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
+    if(!colonyBases.length){
+      container.innerHTML = '<div class="no-bases">No hay bases aprobadas aun en esta colonia.</div>';
       return;
     }
 
-    container.innerHTML = filtered.map(base => {
+    container.innerHTML = colonyBases.map(base => {
       const planet = PLANETS.find(p => p.i === base.planetIndex);
-      const planetName = planet ? planet.name : '—';
+      const planetName = planet ? planet.name : '\u2014';
       const initials = (base.name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
       const tags = [
         base.role ? `<span class="base-tag role">${escapeHtml(base.role)}</span>` : '',
@@ -360,7 +355,7 @@
           <div class="base-info">
             <h3>${escapeHtml(base.name || 'Sin nombre')}</h3>
             <p><span class="status-dot"></span>${escapeHtml(base.id)}</p>
-            <p>Planeta: <span class="highlight">${planetName}</span> · Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
+            <p>Planeta: <span class="highlight">${planetName}</span> \u00b7 Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
             <div class="base-tags">${tags}</div>
           </div>
         </div>
@@ -369,7 +364,7 @@
   }
 
   // ============================================
-  // GALAXY MAP — Enhanced with effects
+  // GALAXY MAP
   // ============================================
 
   let staticCanvas = null;
@@ -379,7 +374,8 @@
   const shootingStars = [];
   let lastShootingStar = 0;
   let markerPhase = 0;
-  let galaxyMarkerPos = null;
+  const markerHitRadius = 18;
+  let colonyPixelPositions = [];
 
   function initNebulas(w, h){
     NEBULAS.length = 0;
@@ -552,45 +548,70 @@
     });
   }
 
-  function drawMarker(ctx, w, h, time){
-    const cx = w/2, cy = h/2;
-    let mx, my;
-
-    if(galaxyMarkerPos){
-      mx = galaxyMarkerPos.x;
-      my = galaxyMarkerPos.y;
-    } else {
-      mx = cx + w*0.15;
-      my = cy - h*0.1;
-      galaxyMarkerPos = { x: mx, y: my };
-    }
-
+  function drawAllMarkers(ctx, w, h, time){
+    colonyPixelPositions = [];
     markerPhase = (time % 2000) / 2000;
     const pulse = Math.sin(markerPhase * Math.PI * 2) * 0.5 + 0.5;
-    const pulseRadius = 10 + pulse * 12;
-    const pulseAlpha = 0.15 + pulse * 0.2;
 
-    ctx.strokeStyle = `rgba(6, 182, 212, ${pulseAlpha})`;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(mx, my, pulseRadius, 0, Math.PI*2); ctx.stroke();
+    ALL_COLONIES.forEach((colony, idx) => {
+      const pos = getColonyMarkerPos(colony, idx, ALL_COLONIES.length, w, h);
+      const mx = pos.x, my = pos.y;
+      const isActive = ACTIVE_COLONY && colony.id === ACTIVE_COLONY.id;
+      const rgb = getColonyColor(colony, idx);
+      const rgbStr = rgb.join(', ');
+      colonyPixelPositions.push({ x: mx, y: my, colony, idx });
 
-    const glowGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 25 + pulse*10);
-    glowGrad.addColorStop(0, `rgba(6, 182, 212, ${0.15 + pulse*0.1})`);
-    glowGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = glowGrad;
-    ctx.beginPath(); ctx.arc(mx, my, 25 + pulse*10, 0, Math.PI*2); ctx.fill();
+      const pulseRadius = (isActive ? 14 : 10) + pulse * (isActive ? 14 : 10);
+      const pulseAlpha = 0.15 + pulse * 0.2;
 
-    ctx.fillStyle = '#06b6d4';
-    ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = `rgba(${rgbStr}, ${pulseAlpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(mx, my, pulseRadius, 0, Math.PI*2); ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI*2); ctx.stroke();
+      const glowSize = (isActive ? 30 : 22) + pulse * 10;
+      const glowGrad = ctx.createRadialGradient(mx, my, 0, mx, my, glowSize);
+      glowGrad.addColorStop(0, `rgba(${rgbStr}, ${0.15 + pulse*0.1})`);
+      glowGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath(); ctx.arc(mx, my, glowSize, 0, Math.PI*2); ctx.fill();
 
-    const label = ACTIVE_COLONY ? (ACTIVE_COLONY.shortName || ACTIVE_COLONY.name) : SYSTEM_INFO.shortName;
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#06b6d4';
-    ctx.fillText(label, mx + 14, my + 4);
+      const dotSize = isActive ? 5 : 3.5;
+      ctx.fillStyle = `rgb(${rgbStr})`;
+      ctx.beginPath(); ctx.arc(mx, my, dotSize, 0, Math.PI*2); ctx.fill();
+
+      ctx.strokeStyle = `rgba(${rgbStr}, 0.55)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(mx, my, dotSize + 4, 0, Math.PI*2); ctx.stroke();
+
+      if(isActive){
+        ctx.strokeStyle = `rgba(${rgbStr}, 0.25)`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.arc(mx, my, dotSize + 10, 0, Math.PI*2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      const label = colony.shortName || colony.name;
+      ctx.font = `${isActive ? 'bold ' : ''}10px "JetBrains Mono", monospace`;
+      ctx.fillStyle = `rgb(${rgbStr})`;
+      ctx.fillText(label, mx + dotSize + 6, my + 4);
+    });
+  }
+
+  function handleCanvasClick(e){
+    const canvas = document.getElementById('galaxyCanvas');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left);
+    const clickY = (e.clientY - rect.top);
+
+    for(const mp of colonyPixelPositions){
+      const dx = clickX - mp.x;
+      const dy = clickY - mp.y;
+      if(Math.sqrt(dx*dx + dy*dy) < markerHitRadius){
+        selectColony(mp.colony);
+        return;
+      }
+    }
   }
 
   function drawFrame(time){
@@ -609,7 +630,7 @@
     ctx.drawImage(staticCanvas, 0, 0, staticCanvas.width, staticCanvas.height, 0, 0, w, h);
     drawNebulas(ctx, w, h);
     drawShootingStars(ctx);
-    drawMarker(ctx, w, h, time);
+    drawAllMarkers(ctx, w, h, time);
   }
 
   function animate(time){
@@ -630,12 +651,14 @@
     });
   }
 
+  document.getElementById('galaxyCanvas').addEventListener('click', handleCanvasClick);
+
   initColonies().then(()=> subscribeBases());
   animate(0);
 
   window.addEventListener('resize', () => {
     staticCanvas = null; staticW = 0; staticH = 0;
-    galaxyMarkerPos = null;
+    colonyPixelPositions = [];
   });
 </script>
 </body>
