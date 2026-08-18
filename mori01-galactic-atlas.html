@@ -47,9 +47,11 @@
   .galaxy-map canvas{width:100%; height:100%; display:block;}
   .map-coords-display{
     position:absolute; bottom:12px; left:12px; font-family:var(--font-mono); font-size:11px;
-    color:var(--accent-cyan); background:rgba(7,8,13,.8); padding:6px 12px;
-    border:1px solid var(--border-soft); border-radius:4px;
+    color:var(--accent-cyan); background:rgba(7,8,13,.85); padding:8px 14px;
+    border:1px solid var(--border-soft); border-radius:4px; line-height:1.7;
   }
+  .map-coords-display .coord-label{color:var(--text-dim); margin-right:4px;}
+  .map-coords-display .coord-val{color:var(--accent-cyan);}
   .map-legend{
     position:absolute; top:12px; right:12px; font-family:var(--font-mono); font-size:10.5px;
     color:var(--text-muted); background:rgba(7,8,13,.8); padding:8px 12px;
@@ -158,6 +160,8 @@
       <div class="map-legend">
         <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendSystem"></span></div>
         <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span id="legendRegion"></span></div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:rgba(255,255,240,.5)"></div><span>Centro galáctico (0,0,0)</span></div>
+        <div style="margin-top:6px; font-size:9px; color:var(--text-dim);">Rango: X/Z ±2048 · Y ±128</div>
       </div>
     </div>
   </div>
@@ -192,7 +196,7 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg } from './colonies-data.js';
+  import { MORI01_COLONY, loadAllColonies, glyphsToCartesian, cartesianToNormalized, glyphSVG, planetImg, formatHexAddress } from './colonies-data.js';
   import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -220,13 +224,18 @@
   }
 
   function getColonyMarkerPos(colony, idx, total, w, h){
-    const gp = glyphToPosition(colony.signature);
-    if(gp){
-      return { x: gp.x * w, y: gp.y * h };
+    // Usar coordenadas Cartesianas reales si están disponibles
+    if(colony.cartesian && typeof colony.cartesian.x === 'number'){
+      const cx = w / 2;
+      const cy = h / 2;
+      // Escalar: el rango visible es ±2048 en X/Z, mapeado al 80% del canvas
+      const scale = Math.min(w, h) * 0.8 / 4096;
+      return {
+        x: cx + colony.cartesian.x * scale,
+        y: cy + colony.cartesian.z * scale,
+      };
     }
-    if(colony.galacticPos && typeof colony.galacticPos.x === 'number'){
-      return { x: colony.galacticPos.x * w, y: colony.galacticPos.y * h };
-    }
+    // Fallback: posición circular para colonias sin coordenadas
     const cx = w/2, cy = h/2;
     const radius = Math.min(w, h) * 0.32;
     const angle = (idx / total) * Math.PI * 2 - Math.PI / 2;
@@ -257,7 +266,14 @@
     document.getElementById('legendRegion').textContent = colony.region || SYSTEM_INFO.region;
 
     const sig = colony.signature || SYSTEM_SIGNATURE;
-    document.getElementById('mapCoords').textContent = sig.join('-');
+    const hexAddr = colony.hexAddress || formatHexAddress(sig) || '—';
+    const cart = colony.cartesian || null;
+    document.getElementById('mapCoords').innerHTML = `
+      <span class="coord-label">Hex:</span><span class="coord-val">${escapeHtml(hexAddr)}</span><br>
+      <span class="coord-label">X:</span><span class="coord-val">${cart ? cart.x : '—'}</span>
+      <span class="coord-label">Y:</span><span class="coord-val">${cart ? cart.y : '—'}</span>
+      <span class="coord-label">Z:</span><span class="coord-val">${cart ? cart.z : '—'}</span>
+    `;
     document.getElementById('signatureCount').textContent = `${sig.length} glifos`;
 
     document.getElementById('systemDataRows').innerHTML = [
@@ -266,16 +282,21 @@
       ['Raza', colony.race || SYSTEM_INFO.race, 'green'],
       ['Econom\u00eda', colony.economy || SYSTEM_INFO.economy, ''],
       ['Conflicto', colony.conflict || SYSTEM_INFO.conflict, 'gold'],
+      ['Direcci\u00f3n Hex', hexAddr, 'cyan'],
+      ['Coordenadas', cart ? `X: ${cart.x}  Y: ${cart.y}  Z: ${cart.z}` : '—', 'cyan'],
     ].map(([key, val, cls]) => `
       <div class="data-row">
         <span class="data-key">${key}</span>
-        <span class="data-value ${cls}">${escapeHtml(val || '')}</span>
+        <span class="data-value ${cls}">${escapeHtml(String(val || ''))}</span>
       </div>
     `).join('');
 
-    document.getElementById('portalCode').innerHTML = sig.map((n, i) => `
+    const hexAddr = colony.hexAddress || formatHexAddress(sig) || '—';
+    document.getElementById('portalCode').innerHTML = `
+      <div style="text-align:center; margin-bottom:12px; font-family:var(--font-mono); font-size:12px; color:var(--accent-cyan);">${escapeHtml(hexAddr)}</div>
+      ${sig.map((n, i) => `
       <div class="glyph" data-index="${i + 1}" title="Glifo ${n}">${glyphSVG(n)}</div>
-    `).join('');
+    `).join('')}
 
     renderPlanets();
     renderBases();
@@ -491,6 +512,55 @@
     ctx.lineWidth = 0.5;
     for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
     for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+    // Ejes galácticos X y Z que cruzan en el centro (0,0,0)
+    const axisLen = Math.min(w, h) * 0.42;
+    ctx.strokeStyle = 'rgba(245, 184, 73, 0.18)';
+    ctx.lineWidth = 1;
+    // Eje X (horizontal)
+    ctx.beginPath(); ctx.moveTo(cx - axisLen, cy); ctx.lineTo(cx + axisLen, cy); ctx.stroke();
+    // Eje Z (vertical)
+    ctx.beginPath(); ctx.moveTo(cx, cy - axisLen); ctx.lineTo(cx, cy + axisLen); ctx.stroke();
+
+    // Marcas de escala cada 512 unidades
+    const scale = Math.min(w, h) * 0.8 / 4096;
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(245, 184, 73, 0.3)';
+    ctx.textAlign = 'center';
+    for(let v = -2048; v <= 2048; v += 512){
+      if(v === 0) continue;
+      const px = cx + v * scale;
+      const py = cy + v * scale;
+      // Marcas en eje X
+      if(px > cx - axisLen && px < cx + axisLen){
+        ctx.strokeStyle = 'rgba(245, 184, 73, 0.12)';
+        ctx.beginPath(); ctx.moveTo(px, cy - 3); ctx.lineTo(px, cy + 3); ctx.stroke();
+        ctx.fillText(v.toString(), px, cy + 12);
+      }
+      // Marcas en eje Z
+      if(py > cy - axisLen && py < cy + axisLen){
+        ctx.strokeStyle = 'rgba(245, 184, 73, 0.12)';
+        ctx.beginPath(); ctx.moveTo(cx - 3, py); ctx.lineTo(cx + 3, py); ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.fillText(v.toString(), cx - 6, py + 3);
+        ctx.textAlign = 'center';
+      }
+    }
+
+    // Etiquetas de ejes
+    ctx.fillStyle = 'rgba(245, 184, 73, 0.35)';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('X →', cx + axisLen + 4, cy + 4);
+    ctx.textAlign = 'center';
+    ctx.fillText('Z ↑', cx, cy - axisLen - 6);
+
+    // Centro galáctico (0,0,0)
+    const coreDot2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
+    coreDot2.addColorStop(0, 'rgba(255, 255, 240, 0.6)');
+    coreDot2.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreDot2;
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
   }
 
   function spawnShootingStar(w, h){
@@ -594,10 +664,14 @@
         ctx.setLineDash([]);
       }
 
+      // Etiqueta con nombre + coordenadas reales
       const label = colony.shortName || colony.name;
+      const coordStr = colony.cartesian
+        ? ` [${colony.cartesian.x}, ${colony.cartesian.y}, ${colony.cartesian.z}]`
+        : '';
       ctx.font = `${isActive ? 'bold ' : ''}10px "JetBrains Mono", monospace`;
       ctx.fillStyle = `rgb(${rgbStr})`;
-      ctx.fillText(label, mx + dotSize + 6, my + 4);
+      ctx.fillText(label + coordStr, mx + dotSize + 6, my + 4);
     });
   }
 
@@ -615,6 +689,19 @@
         return;
       }
     }
+
+    // Click en espacio vacío: mostrar coordenadas galácticas de ese punto
+    const w = rect.width, h = rect.height;
+    const cx = w / 2, cy = h / 2;
+    const scale = Math.min(w, h) * 0.8 / 4096;
+    const galX = Math.round((clickX - cx) / scale);
+    const galZ = Math.round((clickY - cy) / scale);
+    const coordsDiv = document.getElementById('mapCoords');
+    coordsDiv.innerHTML = `
+      <span class="coord-label">Click:</span><br>
+      <span class="coord-label">X:</span><span class="coord-val">${galX}</span>
+      <span class="coord-label">Z:</span><span class="coord-val">${galZ}</span>
+    `;
   }
 
   function drawFrame(time){
