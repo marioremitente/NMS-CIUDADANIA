@@ -384,7 +384,7 @@
       </svg>
     </div>
 
-    <h1>NETINOSTV</h1>
+    <h1 id="heroTitle"></h1>
     <p class="community-name" id="communityName">—</p>
     <p class="hero-sub" id="heroSub">Un sistema estelar, seis mundos, una sociedad Korvax construida por jugadores de No Man&rsquo;s Sky. Esto no es un servidor — es un lugar del que puedes ser ciudadano.</p>
 
@@ -567,6 +567,7 @@
 
   document.title = `MORI-01 · ${SYSTEM_INFO.shortName}`;
 
+  document.getElementById('heroTitle').textContent = SYSTEM_INFO.shortName;
   document.getElementById('communityName').textContent = `${SYSTEM_INFO.tag} ${SYSTEM_INFO.name}`;
 
   document.getElementById('heroSub').innerHTML =
