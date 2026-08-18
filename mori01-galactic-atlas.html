@@ -192,7 +192,7 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { MORI01_COLONY, loadAllColonies, glyphSVG, planetImg } from './colonies-data.js';
+  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg } from './colonies-data.js';
   import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -220,9 +220,12 @@
   }
 
   function getColonyMarkerPos(colony, idx, total, w, h){
-    const gp = colony.galacticPos;
-    if(gp && typeof gp.x === 'number' && typeof gp.y === 'number'){
+    const gp = glyphToPosition(colony.signature);
+    if(gp){
       return { x: gp.x * w, y: gp.y * h };
+    }
+    if(colony.galacticPos && typeof colony.galacticPos.x === 'number'){
+      return { x: colony.galacticPos.x * w, y: colony.galacticPos.y * h };
     }
     const cx = w/2, cy = h/2;
     const radius = Math.min(w, h) * 0.32;
