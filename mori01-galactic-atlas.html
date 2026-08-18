@@ -158,6 +158,7 @@
       <div class="map-legend">
         <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendSystem"></span></div>
         <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span id="legendRegion"></span></div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:rgba(255,255,240,.5)"></div><span>Centro galactico (0,0,0)</span></div>
       </div>
     </div>
   </div>
@@ -192,7 +193,7 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg } from './colonies-data.js';
+  import { MORI01_COLONY, loadAllColonies, glyphToPosition, glyphSVG, planetImg, formatHexAddress } from './colonies-data.js';
   import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -220,17 +221,23 @@
   }
 
   function getColonyMarkerPos(colony, idx, total, w, h){
-    const gp = glyphToPosition(colony.signature);
+    if(colony.cartesian && typeof colony.cartesian.x === 'number'){
+      var cx = w / 2;
+      var cy = h / 2;
+      var scale = Math.min(w, h) * 0.8 / 4096;
+      return { x: cx + colony.cartesian.x * scale, y: cy + colony.cartesian.z * scale };
+    }
+    var gp = glyphToPosition(colony.signature);
     if(gp){
       return { x: gp.x * w, y: gp.y * h };
     }
     if(colony.galacticPos && typeof colony.galacticPos.x === 'number'){
       return { x: colony.galacticPos.x * w, y: colony.galacticPos.y * h };
     }
-    const cx = w/2, cy = h/2;
-    const radius = Math.min(w, h) * 0.32;
-    const angle = (idx / total) * Math.PI * 2 - Math.PI / 2;
-    return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius * 0.55 };
+    var cx2 = w/2, cy2 = h/2;
+    var radius = Math.min(w, h) * 0.32;
+    var angle = (idx / total) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx2 + Math.cos(angle) * radius, y: cy2 + Math.sin(angle) * radius * 0.55 };
   }
 
   async function initColonies(){
@@ -257,7 +264,13 @@
     document.getElementById('legendRegion').textContent = colony.region || SYSTEM_INFO.region;
 
     const sig = colony.signature || SYSTEM_SIGNATURE;
-    document.getElementById('mapCoords').textContent = sig.join('-');
+    var hexAddr = colony.hexAddress || formatHexAddress(sig) || '—';
+    var cart = colony.cartesian || null;
+    document.getElementById('mapCoords').innerHTML =
+      '<span style="color:var(--text-dim)">Hex:</span> <span style="color:var(--accent-cyan)">' + escapeHtml(hexAddr) + '</span><br>' +
+      '<span style="color:var(--text-dim)">X:</span> <span style="color:var(--accent-cyan)">' + (cart ? cart.x : '—') + '</span> ' +
+      '<span style="color:var(--text-dim)">Y:</span> <span style="color:var(--accent-cyan)">' + (cart ? cart.y : '—') + '</span> ' +
+      '<span style="color:var(--text-dim)">Z:</span> <span style="color:var(--accent-cyan)">' + (cart ? cart.z : '—') + '</span>';
     document.getElementById('signatureCount').textContent = `${sig.length} glifos`;
 
     document.getElementById('systemDataRows').innerHTML = [
@@ -266,14 +279,14 @@
       ['Raza', colony.race || SYSTEM_INFO.race, 'green'],
       ['Econom\u00eda', colony.economy || SYSTEM_INFO.economy, ''],
       ['Conflicto', colony.conflict || SYSTEM_INFO.conflict, 'gold'],
-    ].map(([key, val, cls]) => `
-      <div class="data-row">
-        <span class="data-key">${key}</span>
-        <span class="data-value ${cls}">${escapeHtml(val || '')}</span>
-      </div>
-    `).join('');
+      ['Hex', hexAddr, 'cyan'],
+      ['Coords', cart ? 'X:' + cart.x + ' Y:' + cart.y + ' Z:' + cart.z : '\u2014', 'cyan'],
+    ].map(function(r){ return '<div class="data-row"><span class="data-key">' + r[0] + '</span><span class="data-value ' + r[2] + '">' + escapeHtml(r[1] || '') + '</span></div>'; }).join('');
 
-    document.getElementById('portalCode').innerHTML = sig.map((n, i) => `
+    var hexAddr2 = colony.hexAddress || formatHexAddress(sig) || '—';
+    document.getElementById('portalCode').innerHTML =
+      '<div style="text-align:center;margin-bottom:10px;font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan)">' + escapeHtml(hexAddr2) + '</div>' +
+      sig.map((n, i) => `
       <div class="glyph" data-index="${i + 1}" title="Glifo ${n}">${glyphSVG(n)}</div>
     `).join('');
 
@@ -491,6 +504,49 @@
     ctx.lineWidth = 0.5;
     for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
     for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+    // Ejes galácticos X y Z
+    var axisLen = Math.min(w, h) * 0.42;
+    ctx.strokeStyle = 'rgba(245, 184, 73, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - axisLen, cy); ctx.lineTo(cx + axisLen, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy - axisLen); ctx.lineTo(cx, cy + axisLen); ctx.stroke();
+
+    // Marcas de escala cada 512
+    var mapScale = Math.min(w, h) * 0.8 / 4096;
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(245, 184, 73, 0.3)';
+    ctx.textAlign = 'center';
+    for(var v = -2048; v <= 2048; v += 512){
+      if(v === 0) continue;
+      var px = cx + v * mapScale;
+      var py = cy + v * mapScale;
+      if(px > cx - axisLen && px < cx + axisLen){
+        ctx.strokeStyle = 'rgba(245, 184, 73, 0.12)';
+        ctx.beginPath(); ctx.moveTo(px, cy - 3); ctx.lineTo(px, cy + 3); ctx.stroke();
+        ctx.fillText(v.toString(), px, cy + 12);
+      }
+      if(py > cy - axisLen && py < cy + axisLen){
+        ctx.strokeStyle = 'rgba(245, 184, 73, 0.12)';
+        ctx.beginPath(); ctx.moveTo(cx - 3, py); ctx.lineTo(cx + 3, py); ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.fillText(v.toString(), cx - 6, py + 3);
+        ctx.textAlign = 'center';
+      }
+    }
+    ctx.fillStyle = 'rgba(245, 184, 73, 0.35)';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('X', cx + axisLen + 4, cy + 4);
+    ctx.textAlign = 'center';
+    ctx.fillText('Z', cx, cy - axisLen - 6);
+
+    // Centro galáctico
+    var coreG = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
+    coreG.addColorStop(0, 'rgba(255, 255, 240, 0.6)');
+    coreG.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreG;
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
   }
 
   function spawnShootingStar(w, h){
@@ -595,9 +651,12 @@
       }
 
       const label = colony.shortName || colony.name;
+      var coordStr = colony.cartesian
+        ? ' [' + colony.cartesian.x + ',' + colony.cartesian.y + ',' + colony.cartesian.z + ']'
+        : '';
       ctx.font = `${isActive ? 'bold ' : ''}10px "JetBrains Mono", monospace`;
       ctx.fillStyle = `rgb(${rgbStr})`;
-      ctx.fillText(label, mx + dotSize + 6, my + 4);
+      ctx.fillText(label + coordStr, mx + dotSize + 6, my + 4);
     });
   }
 
@@ -615,6 +674,16 @@
         return;
       }
     }
+
+    var w = rect.width, h = rect.height;
+    var ccx = w / 2, ccy = h / 2;
+    var scl = Math.min(w, h) * 0.8 / 4096;
+    var galX = Math.round((clickX - ccx) / scl);
+    var galZ = Math.round((clickY - ccy) / scl);
+    document.getElementById('mapCoords').innerHTML =
+      '<span style="color:var(--text-dim)">Click:</span><br>' +
+      '<span style="color:var(--text-dim)">X:</span> <span style="color:var(--accent-cyan)">' + galX + '</span> ' +
+      '<span style="color:var(--text-dim)">Z:</span> <span style="color:var(--accent-cyan)">' + galZ + '</span>';
   }
 
   function drawFrame(time){
