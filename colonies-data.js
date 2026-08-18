@@ -34,22 +34,32 @@ const coloniesRef = collection(db, 'colonies');
 
 // Todas las colonias activas (MORI-01 siempre primero)
 export async function loadAllColonies(){
-  const q = query(coloniesRef, where('status', '==', 'active'));
-  const snap = await getDocs(q);
-  const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-  if(!firestore.length) return [MORI01_COLONY];
-  const hasMori = firestore.some(c => c.id === 'mori-01');
-  return hasMori ? firestore : [MORI01_COLONY, ...firestore];
+  try{
+    const q = query(coloniesRef, where('status', '==', 'active'));
+    const snap = await getDocs(q);
+    const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+    if(!firestore.length) return [MORI01_COLONY];
+    const hasMori = firestore.some(c => c.id === 'mori-01');
+    return hasMori ? firestore : [MORI01_COLONY, ...firestore];
+  }catch(e){
+    console.warn('loadAllColonies: Firestore no disponible, usando MORI-01 embebido', e);
+    return [MORI01_COLONY];
+  }
 }
 
 // Todas las colonias (para el admin — incluye borradores e inactivas)
 export async function loadAllColoniesAdmin(){
-  const q = query(coloniesRef, orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-  if(!firestore.length) return [MORI01_COLONY];
-  const hasMori = firestore.some(c => c.id === 'mori-01');
-  return hasMori ? firestore : [MORI01_COLONY, ...firestore];
+  try{
+    const q = query(coloniesRef, orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    const firestore = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+    if(!firestore.length) return [MORI01_COLONY];
+    const hasMori = firestore.some(c => c.id === 'mori-01');
+    return hasMori ? firestore : [MORI01_COLONY, ...firestore];
+  }catch(e){
+    console.warn('loadAllColoniesAdmin: Firestore no disponible, usando MORI-01 embebido', e);
+    return [MORI01_COLONY];
+  }
 }
 
 // Una colonia específica
