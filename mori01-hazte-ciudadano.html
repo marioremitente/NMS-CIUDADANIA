@@ -172,7 +172,7 @@
 
   <p class="top-eyebrow">Registro de ciudadanía</p>
   <h1>Hazte Ciudadano</h1>
-  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
+  <p class="lede">Inicia sesión, elige tu colonia, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
 
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
 
@@ -198,7 +198,7 @@
       </div>
       <div class="mission">
         <input type="checkbox" id="m2">
-        <label for="m2"><b>2. Elige uno de los 6 planetas</b><span>Lo seleccionas abajo, en el formulario.</span></label>
+        <label for="m2"><b>2. Elige tu colonia y uno de sus planetas</b><span>Primero selecciona la colonia, luego el planeta. Lo seleccionas abajo, en el formulario.</span></label>
       </div>
       <div class="mission">
         <input type="checkbox" id="m3">
@@ -223,6 +223,11 @@
       <div class="field">
         <label for="playerName">Nombre de jugador</label>
         <input type="text" id="playerName" placeholder="Tu nombre en el juego">
+      </div>
+
+      <div class="field">
+        <label for="colonySelect">Colonia elegida</label>
+        <select id="colonySelect"></select>
       </div>
 
       <div class="field">
@@ -318,7 +323,7 @@
 
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
+  import { loadAllColonies, planetImg } from './colonies-data.js';
   import {
     collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -326,27 +331,25 @@
     ref, uploadBytes, getDownloadURL
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
-  document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
-
   const citizensCol = collection(db, 'citizens');
-  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
-
-  // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
-  // cuadrado, multiplicada por el factor de escala del sistema.
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
-  // La fórmula de pasos solo tiene sentido para puntos cercanos. Si la
-  // diferencia en grados ya es grande, los puntos están lejos de sobra —
-  // se descarta el choque sin necesidad de calcular pasos.
   const MAX_DELTA_DEG = 2;
+
+  let ALL_COLONIES = [];
+  let SELECTED_COLONY = null;
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
 
   function distanciaPasos(lat1, lon1, lat2, lon2){
     const diffLat = lat2 - lat1;
     const diffLon = lon2 - lon1;
-    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
-      return Infinity; // demasiado lejos, ni se calcula
-    }
+    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG) return Infinity;
     const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
     return distCoord * PASOS_FACTOR;
   }
@@ -387,24 +390,14 @@
     if(user) redirectIfAlreadyCitizen(user.uid);
   });
 
-  // Si esta cuenta de Google ya tiene alguna base registrada, este
-  // formulario ya no es el lugar — lo mandamos a "Mi Ciudadanía", donde
-  // puede agregar otra base sin repetir el checklist. Si nunca ha
-  // registrado nada, se queda aquí para hacerlo por primera vez.
   async function redirectIfAlreadyCitizen(uid){
     try{
       const q = query(citizensCol, where('ownerUid', '==', uid));
       const snap = await getDocs(q);
-      if(!snap.empty){
-        window.location.href = './mori01-mi-ciudadania.html';
-      }
-    }catch(e){
-      // Si falla la consulta, no bloqueamos nada — se queda en el
-      // formulario normal como si fuera su primer registro.
-    }
+      if(!snap.empty) window.location.href = './mori01-mi-ciudadania.html';
+    }catch(e){}
   }
 
-  // ---------- CONTADOR DE USO DE STORAGE ----------
   async function addStorageUsage(bytes){
     const usageRef = doc(db, 'meta', 'storageUsage');
     try{
@@ -413,31 +406,73 @@
         const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
         tx.update(usageRef, { bytesUsed: current + bytes });
       });
-    }catch(e){
-      console.warn('No se pudo actualizar el contador de uso de Storage', e);
-    }
+    }catch(e){ console.warn('No se pudo actualizar el contador de uso de Storage', e); }
   }
+
+  // ---------- COLONIES ----------
+  const colonySelect = document.getElementById('colonySelect');
+
+  async function initColonies(){
+    try{ ALL_COLONIES = await loadAllColonies(); }catch(e){ ALL_COLONIES = []; }
+    if(!ALL_COLONIES.length){
+      colonySelect.innerHTML = '<option value="">No hay colonias activas</option>';
+      return;
+    }
+    colonySelect.innerHTML = ALL_COLONIES.map(c =>
+      `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    const params = new URLSearchParams(window.location.search);
+    const preselect = params.get('colony');
+    if(preselect && ALL_COLONIES.find(c => c.id === preselect)){
+      colonySelect.value = preselect;
+    }
+    SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || ALL_COLONIES[0];
+    renderPlanetPicker();
+
+    const name = SELECTED_COLONY.name;
+    const short = SELECTED_COLONY.shortName || name;
+    document.getElementById('backLink').textContent = `← Volver a ${short}`;
+    document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
+  }
+
+  colonySelect.addEventListener('change', ()=>{
+    SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || null;
+    renderPlanetPicker();
+    renderRegistry(currentEntries);
+    if(SELECTED_COLONY){
+      const name = SELECTED_COLONY.name;
+      document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
+    }
+  });
 
   // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
   const planetPicker = document.getElementById('planetPicker');
 
-  PLANETS.forEach(p=>{
-    const opt = document.createElement('option');
-    opt.value = p.i;
-    opt.textContent = `${p.name} (glifo ${p.i})`;
-    planetSelect.appendChild(opt);
+  function renderPlanetPicker(){
+    planetSelect.innerHTML = '';
+    planetPicker.innerHTML = '';
+    if(!SELECTED_COLONY) return;
+    const planets = SELECTED_COLONY.planets || [];
 
-    const card = document.createElement('div');
-    card.className = 'planet-choice';
-    card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
-    card.addEventListener('click', ()=>{
-      planetSelect.value = p.i;
-      document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
+    planets.forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = p.i;
+      opt.textContent = `${p.name} (glifo ${p.i})`;
+      planetSelect.appendChild(opt);
+
+      const card = document.createElement('div');
+      card.className = 'planet-choice';
+      card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${escapeHtml(p.name || 'Planeta')}</div><div class="pglyph">Glifo ${p.i}</div>`;
+      card.addEventListener('click', ()=>{
+        planetSelect.value = p.i;
+        document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+      planetPicker.appendChild(card);
     });
-    planetPicker.appendChild(card);
-  });
+  }
 
   // ---------- FOTO OPCIONAL ----------
   const basePhotoInput = document.getElementById('basePhotoInput');
@@ -470,10 +505,9 @@
   function updateProgress(){
     const checked = checkboxes.filter(c=>c.checked).length;
     progressFill.style.width = (checked/checkboxes.length*100)+'%';
-    submitBtn.disabled = checked < checkboxes.length || !currentUser;
+    submitBtn.disabled = checked < checkboxes.length || !currentUser || !SELECTED_COLONY;
   }
   checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
-  updateProgress();
 
   function showAlert(msg, type){
     const box = document.getElementById('alertBox');
@@ -498,14 +532,17 @@
     });
   }
 
-  async function fetchSamePlanet(planetIndex){
-    const q = query(citizensCol, where('planetIndex', '==', planetIndex));
+  async function fetchSamePlanet(planetIndex, colonyId){
+    const constraints = [
+      where('planetIndex', '==', planetIndex),
+      where('status', '!=', 'rejected')
+    ];
+    if(colonyId) constraints.push(where('colonyId', '==', colonyId));
+    const q = query(citizensCol, ...constraints);
     const snap = await getDocs(q);
-    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
+    return snap.docs.map(d=>d.data());
   }
 
-  // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
-  // = mismo jugador, así que sus bases se muestran juntas.
   function groupByPlayer(entries){
     const map = new Map();
     entries.forEach(e=>{
@@ -516,25 +553,41 @@
     return Array.from(map.values());
   }
 
+  function getColonyName(colonyId){
+    if(!colonyId || colonyId === 'mori-01') return 'MORI-01';
+    const c = ALL_COLONIES.find(c => c.id === colonyId);
+    return c ? (c.shortName || c.name) : colonyId;
+  }
+
+  function getPlanetName(colonyId, planetIndex){
+    const colony = ALL_COLONIES.find(c => c.id === colonyId);
+    if(!colony) return '—';
+    const p = (colony.planets || []).find(p => p.i === planetIndex);
+    return p ? p.name : '—';
+  }
+
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
-    if(!entries.length){
-      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
+    const colonyId = SELECTED_COLONY ? SELECTED_COLONY.id : null;
+    const filtered = colonyId ? entries.filter(e => e.colonyId === colonyId) : entries;
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados en esta colonia.</div>';
       return;
     }
-    const groups = groupByPlayer(entries);
+    const groups = groupByPlayer(filtered);
     list.innerHTML = groups.map(g=>{
       const basesHtml = g.bases.map(e=>{
-        const planet = PLANETS.find(p=>p.i===e.planetIndex);
+        const colonyLabel = getColonyName(e.colonyId);
+        const planetName = getPlanetName(e.colonyId, e.planetIndex);
         const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
         const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
         return `
           <div class="registry-row">
             <div class="registry-top">
-              <span class="registry-id">${e.id}</span>
+              <span class="registry-id">${escapeHtml(e.id)}</span>
               <span class="status-pill ${pillClass}">${pillText}</span>
             </div>
-            <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+            <span class="registry-meta">${escapeHtml(colonyLabel)} · ${escapeHtml(planetName)} · ${e.lat}, ${e.lon}</span>
           </div>`;
       }).join('');
       const countBadge = g.bases.length > 1 ? `<span class="base-count">${g.bases.length} bases</span>` : '';
@@ -546,12 +599,6 @@
     }).join('');
   }
 
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s ?? '';
-    return d.innerHTML;
-  }
-
   function parseCoord(v){
     const n = parseFloat(String(v).replace(',', '.').trim());
     return isNaN(n) ? null : n;
@@ -560,6 +607,7 @@
   submitBtn.addEventListener('click', async ()=>{
     clearAlert();
     if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
+    if(!SELECTED_COLONY){ showAlert('Selecciona una colonia.', 'error'); return; }
 
     const name = document.getElementById('playerName').value.trim();
     const planetIndex = parseInt(planetSelect.value, 10);
@@ -574,7 +622,7 @@
     submitBtn.textContent = 'Verificando…';
 
     try{
-      const sameplanet = await fetchSamePlanet(planetIndex);
+      const sameplanet = await fetchSamePlanet(planetIndex, SELECTED_COLONY.id);
       for(const e of sameplanet){
         const d = distanciaPasos(lat, lon, e.lat, e.lon);
         if(d <= MIN_DISTANCE_PASOS){
@@ -588,6 +636,7 @@
       const newEntry = {
         id: '#M01-' + Math.floor(1000 + Math.random()*9000),
         name, planetIndex, lat, lon,
+        colonyId: SELECTED_COLONY.id,
         profession: document.getElementById('professionSelect').value || '',
         platform: document.getElementById('platformSelect').value || '',
         friendCode: document.getElementById('friendCode').value.trim() || '',
@@ -598,9 +647,6 @@
       };
       const docRef = await addDoc(citizensCol, newEntry);
 
-      // Si eligió foto, se sube después de crear el registro (necesitamos
-      // el ID del documento para nombrar el archivo). Si esto falla, la
-      // base ya quedó registrada de todas formas — solo avisamos.
       if(selectedPhotoFile){
         try{
           const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
@@ -623,6 +669,7 @@
     submitBtn.textContent = 'Ser Ciudadano';
   });
 
+  initColonies();
   subscribeRegistry();
 </script>
 </body>
