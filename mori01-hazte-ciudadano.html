@@ -744,7 +744,7 @@
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
     const colonyId = SELECTED_COLONY ? SELECTED_COLONY.id : null;
-    const filtered = colonyId ? entries.filter(e => e.colonyId === colonyId) : entries;
+    const filtered = colonyId ? entries.filter(e => (e.colonyId || 'mori-01') === colonyId) : entries;
     if(!filtered.length){
       list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados en esta colonia.</div>';
       return;
