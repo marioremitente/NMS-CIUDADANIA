@@ -22,20 +22,25 @@
   :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
   input,select,button{font-family:inherit; font-size:14px;}
 
+
   .wrap{max-width:760px; margin:0 auto; padding:48px 24px 80px;}
   .wrap.wide{max-width:980px;}
+
 
   .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
   .top-eyebrow::before{content:""; width:20px; height:1px; background:var(--accent-gold); opacity:.6;}
   h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,5vw,40px); letter-spacing:.03em; margin-bottom:12px;}
   .lede{color:var(--text-muted); font-size:15px; max-width:600px; margin-bottom:32px;}
 
+
   .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
   .back-link:hover{color:var(--accent-cyan);}
+
 
   .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:28px; margin-bottom:24px;}
   .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
   .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
+
 
   .field{margin-bottom:18px;}
   .field label{display:block; font-size:12px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);}
@@ -45,6 +50,7 @@
   }
   .field input:focus{border-color:var(--accent-cyan);}
 
+
   .btn{font-weight:600; letter-spacing:.03em; padding:12px 22px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
   .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
   .btn-primary:hover:not(:disabled){background:#31cbe6;}
@@ -52,17 +58,18 @@
   .btn-ghost{border-color:var(--border-bright); color:var(--text-primary); background:transparent; font-size:13px; padding:9px 16px;}
   .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
+
   .alert{padding:13px 16px; border-radius:5px; font-size:13.5px; margin-bottom:18px; display:none;}
   .alert.show{display:block;}
   .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
   .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
 
-  /* admin bar */
+
   .admin-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
   .admin-who{font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted);}
   .admin-who b{color:var(--accent-cyan); font-weight:600;}
 
-  /* uso de storage */
+
   .usage-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:8px;}
   .usage-label{font-family:var(--font-mono); font-size:12px; color:var(--text-muted); letter-spacing:.05em;}
   .usage-figure{font-family:var(--font-mono); font-size:13px; color:var(--text-primary);}
@@ -72,6 +79,7 @@
   .usage-fill.warn{background:var(--accent-gold);}
   .usage-fill.danger{background:var(--accent-red);}
   .usage-note{font-size:11.5px; color:var(--text-dim); font-family:var(--font-mono); margin-top:8px;}
+
 
   .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
   .tab{
@@ -83,7 +91,7 @@
   .tab .count{color:var(--text-dim); margin-left:4px;}
   .tab.active .count{color:var(--accent-cyan);}
 
-  /* registry rows */
+
   .reg-row{border-bottom:1px solid var(--border-soft); padding:16px 0;}
   .reg-row:last-child{border-bottom:none;}
   .reg-top{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;}
@@ -116,7 +124,7 @@
   .act-btn.delete:hover{border-color:var(--accent-red); color:var(--accent-red); background:rgba(232,84,107,.08);}
   .act-btn:disabled{opacity:.4; cursor:not-allowed;}
 
-  /* inline edit */
+
   .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
   .edit-grid input, .edit-grid select{
     width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
@@ -124,9 +132,10 @@
   }
   .edit-grid .full{grid-column:1 / -1;}
 
+
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
 
-  /* moderación de fotos */
+
   .photo-row{display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--border-soft); align-items:flex-start;}
   .photo-row:last-child{border-bottom:none;}
   .photo-thumb{width:96px; height:96px; border-radius:6px; overflow:hidden; background:var(--bg-panel-2); border:1px solid var(--border-soft); flex-shrink:0;}
@@ -135,7 +144,7 @@
   .photo-info .pname{font-weight:600; font-size:14.5px; margin-bottom:3px;}
   .photo-info .pmeta{font-size:12px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:10px;}
 
-  /* imágenes de planetas */
+
   .planet-img-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px;}
   .planet-img-card{background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px; padding:12px; text-align:center;}
   .planet-img-preview{width:100%; aspect-ratio:1; border-radius:5px; overflow:hidden; background:var(--bg-panel); margin-bottom:10px; display:flex; align-items:center; justify-content:center;}
@@ -148,10 +157,78 @@
   }
   .planet-img-filebtn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
 
+
   #adminView{display:none;}
+
+
+  .colony-list{display:flex; flex-direction:column; gap:10px;}
+  .colony-row{
+    display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg-panel-2);
+    border:1px solid var(--border-soft); border-radius:6px; transition:border-color .2s; flex-wrap:wrap;
+  }
+  .colony-row:hover{border-color:var(--accent-cyan);}
+  .colony-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .colony-dot.active{background:var(--accent-green);}
+  .colony-dot.inactive{background:var(--accent-red);}
+  .colony-dot.draft{background:var(--accent-gold);}
+  .colony-info{flex:1; min-width:120px;}
+  .colony-info .cname{font-weight:600; font-size:14.5px; margin-bottom:2px;}
+  .colony-info .cmeta{font-size:12px; color:var(--text-muted); font-family:var(--font-mono);}
+  .colony-status-pill{
+    font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; white-space:nowrap;
+  }
+  .colony-status-pill.active{background:rgba(61,220,151,.12); border:1px solid rgba(61,220,151,.4); color:var(--accent-green);}
+  .colony-status-pill.inactive{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
+  .colony-status-pill.draft{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
+
+
+  .colony-form{margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft);}
+  .colony-form h3{font-family:var(--font-display); font-size:16px; margin-bottom:14px;}
+  .colony-form-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .colony-form-grid .full{grid-column:1 / -1;}
+  .colony-form-grid input, .colony-form-grid select{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 11px; border-radius:4px; font-size:13px;
+  }
+  .colony-form-grid input:focus, .colony-form-grid select:focus{border-color:var(--accent-cyan);}
+  .colony-form-grid label{display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:5px; font-family:var(--font-mono);}
+
+
+  .glyph-row-admin{display:flex; gap:4px; margin-bottom:14px;}
+  .glyph-row-admin input{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 6px; border-radius:4px; font-size:13px; text-align:center;
+  }
+  .glyph-row-admin input:focus{border-color:var(--accent-cyan);}
+
+
+  .planet-block{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
+    padding:14px; margin-bottom:10px; position:relative;
+  }
+  .planet-block-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .planet-block-header span{font-weight:600; font-size:13px;}
+  .planet-block-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .planet-block-grid .full{grid-column:1 / -1;}
+  .planet-block-grid input{
+    width:100%; background:var(--bg-deep); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:8px 10px; border-radius:4px; font-size:12.5px;
+  }
+  .planet-block-grid input:focus{border-color:var(--accent-cyan);}
+  .planet-block-grid label{display:block; font-size:10px; letter-spacing:.05em; color:var(--text-dim); text-transform:uppercase; margin-bottom:3px; font-family:var(--font-mono);}
+  .planet-block-capital{display:flex; align-items:center; gap:6px; margin-top:8px;}
+  .planet-block-capital input[type=radio]{accent-color:var(--accent-gold);}
+  .planet-block-capital label{font-size:12px; color:var(--accent-gold); cursor:pointer;}
+
+
+  .colony-photo-area{margin-top:14px;}
+  .colony-photo-preview{width:120px; height:80px; border-radius:6px; overflow:hidden; background:var(--bg-panel); border:1px solid var(--border-soft); margin-top:8px; display:flex; align-items:center; justify-content:center;}
+  .colony-photo-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+  .colony-photo-preview .placeholder{color:var(--text-dim); font-size:10px; font-family:var(--font-mono);}
 </style>
 </head>
 <body>
+
 
 <!-- LOGIN -->
 <div class="wrap" id="loginView">
@@ -160,11 +237,14 @@
   <h1>Panel de Administración</h1>
   <p class="lede">Inicia sesión con tu correo de administrador para gestionar las solicitudes de ciudadanía.</p>
 
+
   <div class="panel">
     <h2>Iniciar sesión</h2>
     <p class="sub">Solo cuentas creadas manualmente en Firebase Authentication pueden entrar aquí.</p>
 
+
     <div id="loginAlert" class="alert"></div>
+
 
     <div class="field">
       <label for="loginEmail">Correo</label>
@@ -178,6 +258,7 @@
   </div>
 </div>
 
+
 <!-- ADMIN -->
 <div class="wrap wide" id="adminView">
   <a class="back-link" href="./index.html" id="backLinkAdmin">← Volver</a>
@@ -185,12 +266,13 @@
   <h1>Solicitudes de Ciudadanía</h1>
   <p class="lede">Revisa, aprueba, rechaza o edita cada solicitud registrada en Mori-01.</p>
 
+
   <div class="admin-bar">
     <div class="admin-who">Sesión iniciada como <b id="whoami">—</b></div>
     <button class="btn btn-ghost" id="logoutBtn">Cerrar sesión</button>
   </div>
 
-  <!-- USO DE STORAGE -->
+
   <div class="panel" id="usagePanel">
     <h2>Uso de Storage</h2>
     <p class="sub">Cuota gratuita del plan Blaze: 5GB. El límite de subida está fijado en 4.5GB para dejar margen.</p>
@@ -201,26 +283,40 @@
     </div>
   </div>
 
-  <!-- MODERACIÓN DE FOTOS -->
+
   <div class="panel">
     <h2>Fotos de bases pendientes de aprobación</h2>
     <p class="sub">Solo las fotos que apruebes aquí se muestran en la galería pública.</p>
     <div id="photoModList"></div>
   </div>
 
-  <!-- MODERACIÓN DE FOTOS DE CARNET -->
+
   <div class="panel">
     <h2>Fotos de carnet pendientes de aprobación</h2>
     <p class="sub">Foto real que cada jugador sube para SU credencial en "Mi Ciudadanía". Nunca aparece en la galería pública — solo en su carnet.</p>
     <div id="idPhotoModList"></div>
   </div>
 
-  <!-- IMÁGENES DE PLANETAS -->
+
   <div class="panel">
     <h2>Imágenes de planetas</h2>
     <p class="sub">Foto de referencia para cada planeta. Se muestra en "Mi Ciudadanía" para los planetas donde un jugador tiene bases; si no subes una, ahí aparece "Por explorar".</p>
     <div id="planetImgGrid" class="planet-img-grid"></div>
   </div>
+
+
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h2>Colonias</h2>
+        <p class="sub" style="margin-bottom:0;">Gestiona los sistemas estelares de la comunidad. Cada colonia tiene sus propios planetas, glifos y ubicación galáctica.</p>
+      </div>
+      <button class="act-btn approve" id="newColonyBtn">+ Nueva Colonia</button>
+    </div>
+    <div id="colonyList" class="colony-list" style="margin-top:16px;"></div>
+    <div id="colonyFormWrap" class="colony-form" style="display:none;"></div>
+  </div>
+
 
   <div class="panel">
     <div class="tabs" id="tabs">
@@ -234,9 +330,11 @@
   </div>
 </div>
 
+
 <script type="module">
   import { db, auth, storage } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
+  import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus } from './colonies-data.js';
   import {
     collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -247,9 +345,11 @@
     ref, uploadBytes, getDownloadURL, deleteObject, getMetadata
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
+
   document.title = `Panel de Administración · ${SYSTEM_INFO.shortName}`;
   document.getElementById('backLinkLogin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
   document.getElementById('backLinkAdmin').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+
 
   const PROFESSIONS = [
     'Arquitecto','Explorador','Guardián','Comerciante','Científico','Cazarrecompensas',
@@ -262,34 +362,33 @@
   ];
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
 
+
   const citizensCol = collection(db, 'citizens');
   const loginView = document.getElementById('loginView');
   const adminView = document.getElementById('adminView');
 
-  // Mismos correos que reconoce isAdmin() en firestore.rules. Esto NO es lo
-  // que protege los datos (eso lo hacen las reglas del servidor) — es solo
-  // para decidir qué pantalla mostrar. Si alguien con sesión de Google ya
-  // iniciada (por ejemplo desde "Hazte Ciudadano") entra a esta página, no
-  // debe ver el panel aunque las reglas igual le bloquearían cualquier
-  // intento de editar algo.
+
   const ADMIN_EMAILS = ['remitente2008@gmail.com', 'moringostv@gmail.com'];
+
 
   let allEntries = [];
   let currentFilter = 'all';
   let unsubscribe = null;
   let unsubscribeUsage = null;
 
-  // ---------- LOGIN ----------
+
   function showLoginAlert(msg){
     const box = document.getElementById('loginAlert');
     box.textContent = msg;
     box.className = 'alert show alert-error';
   }
 
+
   document.getElementById('loginBtn').addEventListener('click', async ()=>{
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     if(!email || !password){ showLoginAlert('Completa correo y contraseña.'); return; }
+
 
     const btn = document.getElementById('loginBtn');
     btn.disabled = true; btn.textContent = 'Verificando…';
@@ -301,9 +400,11 @@
     btn.disabled = false; btn.textContent = 'Entrar';
   });
 
+
   document.getElementById('logoutBtn').addEventListener('click', async ()=>{
     await signOut(auth);
   });
+
 
   onAuthStateChanged(auth, user=>{
     if(user && ADMIN_EMAILS.includes(user.email)){
@@ -313,33 +414,34 @@
       subscribeRegistry();
       subscribeUsage();
       renderPlanetImages();
+      renderColonies();
     }else{
       if(unsubscribe){ unsubscribe(); unsubscribe = null; }
       if(unsubscribeUsage){ unsubscribeUsage(); unsubscribeUsage = null; }
       loginView.style.display = 'block';
       adminView.style.display = 'none';
       if(user){
-        // Sesión válida (ej. Google, de otra página del sitio) pero no es
-        // un correo admin — la cerramos para que el formulario de abajo
-        // pueda iniciar sesión limpio con correo/contraseña.
         signOut(auth);
         showLoginAlert('Esta cuenta no tiene acceso al panel de administración.');
       }
     }
   });
 
-  // ---------- USO DE STORAGE ----------
-  const USAGE_CAP_BYTES = 4.5 * 1024 * 1024 * 1024; // mismo límite que storage.rules
+
+  const USAGE_CAP_BYTES = 4.5 * 1024 * 1024 * 1024;
+
 
   function formatGB(bytes){
     return (bytes / (1024*1024*1024)).toFixed(2);
   }
+
 
   function renderUsage(bytesUsed){
     const pct = Math.min(100, (bytesUsed / USAGE_CAP_BYTES) * 100);
     let fillClass = '';
     if(pct >= 90) fillClass = 'danger';
     else if(pct >= 70) fillClass = 'warn';
+
 
     document.getElementById('usageContent').innerHTML = `
       <div class="usage-row">
@@ -350,6 +452,7 @@
       <p class="usage-note">Este número se actualiza cuando alguien sube una foto desde el sitio. Si notas que no cuadra con lo que ves en la consola de Firebase, puede tardar en reflejarse o alguna subida falló a mitad de camino.</p>
     `;
   }
+
 
   async function subscribeUsage(){
     const usageRef = doc(db, 'meta', 'storageUsage');
@@ -374,7 +477,7 @@
     });
   }
 
-  // ---------- REGISTRY ----------
+
   function subscribeRegistry(){
     const q = query(citizensCol, orderBy('ts', 'desc'));
     unsubscribe = onSnapshot(q, snap=>{
@@ -389,12 +492,14 @@
     });
   }
 
+
   function renderCounts(){
     document.getElementById('countAll').textContent = allEntries.length;
     document.getElementById('countPending').textContent = allEntries.filter(e=>(e.status||'pending')==='pending').length;
     document.getElementById('countApproved').textContent = allEntries.filter(e=>e.status==='citizen').length;
     document.getElementById('countRejected').textContent = allEntries.filter(e=>e.status==='rejected').length;
   }
+
 
   document.getElementById('tabs').addEventListener('click', e=>{
     const tab = e.target.closest('.tab');
@@ -405,15 +510,18 @@
     renderList();
   });
 
+
   function escapeHtml(s){
     const d = document.createElement('div');
     d.textContent = s ?? '';
     return d.innerHTML;
   }
 
+
   function planetOptions(selectedIndex){
     return PLANETS.map(p=>`<option value="${p.i}" ${p.i===selectedIndex?'selected':''}>${p.name} (glifo ${p.i})</option>`).join('');
   }
+
 
   function selectOptions(list, selected){
     const opts = ['<option value="">—</option>']
@@ -421,14 +529,16 @@
     return opts.join('');
   }
 
+
   function roleOptions(selected){
     const opts = ['<option value="">Sin rol</option>']
       .concat(ROLES.map(r=>`<option value="${r}" ${r===selected?'selected':''}>${r}</option>`));
     return opts.join('');
   }
 
-  // ---------- IMÁGENES DE PLANETAS ----------
-  const PLANET_IMG_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+
+  const PLANET_IMG_MAX_BYTES = 5 * 1024 * 1024;
+
 
   async function renderPlanetImages(){
     const grid = document.getElementById('planetImgGrid');
@@ -443,12 +553,14 @@
       </div>
     `).join('');
 
+
     for(const p of PLANETS){
       loadPlanetImage(p.i);
       const input = document.getElementById(`planetImgInput-${p.i}`);
       input.addEventListener('change', ()=> uploadPlanetImage(p.i, input));
     }
   }
+
 
   async function loadPlanetImage(planetIndex){
     const preview = document.getElementById(`planetImgPreview-${planetIndex}`);
@@ -463,6 +575,7 @@
       preview.innerHTML = '<span class="placeholder">Error al cargar</span>';
     }
   }
+
 
   async function uploadPlanetImage(planetIndex, input){
     const file = input.files[0];
@@ -494,7 +607,343 @@
     input.value = '';
   }
 
-  // ---------- CONTADOR DE USO DE STORAGE: descuento al borrar ----------
+
+  let allColonies = [];
+
+
+  async function renderColonies(){
+    try{
+      allColonies = await loadAllColoniesAdmin();
+    }catch(e){
+      allColonies = [];
+    }
+    const list = document.getElementById('colonyList');
+    if(!allColonies.length){
+      list.innerHTML = '<div class="empty-state">No hay colonias registradas. Crea la primera con el botón de arriba.</div>';
+      return;
+    }
+    list.innerHTML = allColonies.map(c => {
+      const planetCount = (c.planets || []).length;
+      const statusClass = c.status || 'draft';
+      return `
+        <div class="colony-row" data-colony-id="${escapeHtml(c.id)}">
+          <div class="colony-dot ${statusClass}"></div>
+          <div class="colony-info">
+            <div class="cname">${escapeHtml(c.name)} ${c.tag ? '<span style="color:var(--text-dim); font-family:var(--font-mono); font-size:12px;">' + escapeHtml(c.tag) + '</span>' : ''}</div>
+            <div class="cmeta">${escapeHtml(c.region || '—')} · ${planetCount} planeta${planetCount !== 1 ? 's' : ''} · ${escapeHtml(c.galaxy || '—')}</div>
+          </div>
+          <span class="colony-status-pill ${statusClass}">${statusClass === 'active' ? 'Activa' : statusClass === 'inactive' ? 'Inactiva' : 'Borrador'}</span>
+          <div class="reg-actions">
+            <button class="act-btn" data-colony-action="edit">Editar</button>
+            <button class="act-btn" data-colony-action="toggle">${statusClass === 'active' ? 'Desactivar' : 'Activar'}</button>
+            <button class="act-btn delete" data-colony-action="delete">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+
+  document.getElementById('colonyList').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-colony-action]');
+    if(!btn) return;
+    const row = e.target.closest('.colony-row');
+    const colonyId = row.dataset.colonyId;
+    const action = btn.dataset.colonyAction;
+    const colony = allColonies.find(c => c.id === colonyId);
+    if(!colony) return;
+
+
+    if(action === 'edit'){
+      openColonyForm(colony);
+    }else if(action === 'toggle'){
+      const newStatus = colony.status === 'active' ? 'inactive' : 'active';
+      try{
+        await setColonyStatus(colonyId, newStatus);
+        showAdminAlert(`Colonia ${newStatus === 'active' ? 'activada' : 'desactivada'}.`, 'ok');
+        renderColonies();
+      }catch(err){
+        showAdminAlert('No se pudo cambiar el estado. Revisa las reglas.', 'error');
+      }
+    }else if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la colonia "${colony.name}"? Esta acción no se puede deshacer.`)) return;
+      try{
+        await deleteColony(colonyId);
+        showAdminAlert('Colonia eliminada.', 'ok');
+        renderColonies();
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas.', 'error');
+      }
+    }
+  });
+
+
+  document.getElementById('newColonyBtn').addEventListener('click', () => openColonyForm(null));
+
+
+  function openColonyForm(existing){
+    const wrap = document.getElementById('colonyFormWrap');
+    const isEdit = !!existing;
+    const colony = existing || {
+      id: '', name: '', shortName: '', tag: '', region: '', race: '', economy: '', conflict: '',
+      galaxy: '', signature: [1,1,1,1,1,1,1,1,1,1,1,1],
+      galacticPos: { x: 0, y: 0 }, planets: [], capitalPlanetIndex: null,
+      capitalCoords: { lat: 0, lon: 0 }, capitalPhotoUrl: null, status: 'draft'
+    };
+    const planetsJson = JSON.stringify(colony.planets || []);
+    const signatureArr = Array.isArray(colony.signature) ? colony.signature : [1,1,1,1,1,1,1,1,1,1,1,1];
+    const sigStr = signatureArr.join(',');
+
+
+    wrap.innerHTML = `
+      <h3>${isEdit ? 'Editar Colonia' : 'Nueva Colonia'}</h3>
+      <div id="colonyAlert" class="alert"></div>
+
+
+      <div class="colony-form-grid">
+        <div class="full"><label>ID (sin espacios, minúsculas, ej: mori-02)</label><input type="text" id="cfId" value="${escapeHtml(colony.id)}" placeholder="mori-02" ${isEdit ? 'disabled' : ''}></div>
+        <div><label>Nombre del sistema</label><input type="text" id="cfName" value="${escapeHtml(colony.name)}" placeholder="Nombre completo"></div>
+        <div><label>Nombre corto</label><input type="text" id="cfShortName" value="${escapeHtml(colony.shortName || colony.name || '')}" placeholder="Nombre corto"></div>
+        <div><label>Tag</label><input type="text" id="cfTag" value="${escapeHtml(colony.tag)}" placeholder="[TAG]"></div>
+        <div><label>Región</label><input type="text" id="cfRegion" value="${escapeHtml(colony.region)}" placeholder="Nombre de la región"></div>
+        <div><label>Raza</label><input type="text" id="cfRace" value="${escapeHtml(colony.race)}" placeholder="Korvax, Vy'keen, Gek"></div>
+        <div><label>Economía</label><input type="text" id="cfEconomy" value="${escapeHtml(colony.economy)}" placeholder="Tipo de economía"></div>
+        <div><label>Conflicto</label><input type="text" id="cfConflict" value="${escapeHtml(colony.conflict)}" placeholder="2 · Tempestuoso"></div>
+        <div><label>Galaxia</label><input type="text" id="cfGalaxy" value="${escapeHtml(colony.galaxy)}" placeholder="Galaxia de Euclides"></div>
+      </div>
+
+
+      <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Firma del sistema (12 glifos, separados por coma)</label>
+      <input type="text" id="cfSignature" value="${escapeHtml(sigStr)}" placeholder="1,2,3,4,5,6,7,8,9,10,11,12" style="width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary); padding:9px 11px; border-radius:4px; font-size:13px; font-family:var(--font-mono); margin-bottom:14px;">
+
+
+      <div class="colony-form-grid" style="margin-bottom:14px;">
+        <div><label>Posición X galáctica (-1 a 1)</label><input type="number" step="0.01" min="-1" max="1" id="cfPosX" value="${colony.galacticPos ? colony.galacticPos.x : 0}"></div>
+        <div><label>Posición Y galáctica (-1 a 1)</label><input type="number" step="0.01" min="-1" max="1" id="cfPosY" value="${colony.galacticPos ? colony.galacticPos.y : 0}"></div>
+      </div>
+
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <label style="font-size:13px; font-weight:600;">Planetas</label>
+        <button class="act-btn approve" id="cfAddPlanet">+ Agregar planeta</button>
+      </div>
+      <div id="cfPlanetsWrap"></div>
+
+
+      <div class="colony-photo-area">
+        <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Foto de la capital</label>
+        <label class="act-btn" for="cfCapitalPhoto" style="cursor:pointer;">Elegir imagen</label>
+        <input type="file" id="cfCapitalPhoto" accept="image/*" style="display:none">
+        <div class="colony-photo-preview" id="cfPhotoPreview">${colony.capitalPhotoUrl ? `<img src="${colony.capitalPhotoUrl}" alt="">` : '<span class="placeholder">Sin foto</span>'}</div>
+      </div>
+
+
+      <div style="margin-top:14px; display:flex; gap:12px; align-items:center;">
+        <label style="font-size:12px; color:var(--text-muted);">Estado:</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="active" ${colony.status === 'active' ? 'checked' : ''}> Activa</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="draft" ${colony.status === 'draft' || !colony.status ? 'checked' : ''}> Borrador</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="inactive" ${colony.status === 'inactive' ? 'checked' : ''}> Inactiva</label>
+      </div>
+
+
+      <div style="margin-top:18px; display:flex; gap:8px;">
+        <button class="act-btn approve" id="cfSaveBtn">${isEdit ? 'Guardar cambios' : 'Crear colonia'}</button>
+        <button class="act-btn" id="cfCancelBtn">Cancelar</button>
+      </div>
+    `;
+
+
+    wrap.style.display = 'block';
+
+
+    let currentPlanets = JSON.parse(planetsJson);
+    let capitalPhotoFile = null;
+    renderPlanetBlocks(currentPlanets);
+
+
+    document.getElementById('cfCancelBtn').addEventListener('click', () => {
+      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+    });
+
+
+    document.getElementById('cfAddPlanet').addEventListener('click', () => {
+      currentPlanets.push({ i: currentPlanets.length + 1, name: '', capital: false, clima: '', centinela: '', flora: '', fauna: '', rec: '' });
+      renderPlanetBlocks(currentPlanets);
+    });
+
+
+    document.getElementById('cfCapitalPhoto').addEventListener('change', e => {
+      capitalPhotoFile = e.target.files[0] || null;
+      if(capitalPhotoFile){
+        const preview = document.getElementById('cfPhotoPreview');
+        preview.innerHTML = `<img src="${URL.createObjectURL(capitalPhotoFile)}" alt="">`;
+      }
+    });
+
+
+    document.getElementById('cfSaveBtn').addEventListener('click', async () => {
+      const cfAlert = document.getElementById('colonyAlert');
+      const saveBtn = document.getElementById('cfSaveBtn');
+
+
+      const id = document.getElementById('cfId').value.trim();
+      const name = document.getElementById('cfName').value.trim();
+      const shortName = document.getElementById('cfShortName').value.trim() || name;
+      const tag = document.getElementById('cfTag').value.trim();
+      const region = document.getElementById('cfRegion').value.trim();
+      const race = document.getElementById('cfRace').value.trim();
+      const economy = document.getElementById('cfEconomy').value.trim();
+      const conflict = document.getElementById('cfConflict').value.trim();
+      const galaxy = document.getElementById('cfGalaxy').value.trim();
+      const sigRaw = document.getElementById('cfSignature').value.trim();
+      const posX = parseFloat(document.getElementById('cfPosX').value) || 0;
+      const posY = parseFloat(document.getElementById('cfPosY').value) || 0;
+      const status = document.querySelector('input[name="cfStatus"]:checked').value;
+
+
+      if(!id){ showColonyAlert('El ID es obligatorio.', 'error'); return; }
+      if(!name){ showColonyAlert('El nombre del sistema es obligatorio.', 'error'); return; }
+
+
+      const signature = sigRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 16);
+      if(signature.length !== 12){ showColonyAlert('La firma debe tener exactamente 12 glifos (1-16).', 'error'); return; }
+
+
+      const planetBlocks = document.querySelectorAll('.planet-block');
+      const planets = [];
+      let capitalIdx = null;
+      planetBlocks.forEach((block, i) => {
+        const pname = block.querySelector('.pb-name').value.trim();
+        const pindex = parseInt(block.querySelector('.pb-index').value, 10);
+        const pclima = block.querySelector('.pb-clima').value.trim();
+        const pcentinela = block.querySelector('.pb-centinela').value.trim();
+        const pflora = block.querySelector('.pb-flora').value.trim();
+        const pfauna = block.querySelector('.pb-fauna').value.trim();
+        const prec = block.querySelector('.pb-rec').value.trim();
+        const isCapital = block.querySelector('.pb-capital').checked;
+        if(isCapital) capitalIdx = pindex;
+        planets.push({
+          i: isNaN(pindex) ? i + 1 : pindex,
+          name: pname,
+          capital: isCapital,
+          clima: pclima,
+          centinela: pcentinela,
+          flora: pflora,
+          fauna: pfauna,
+          rec: prec ? prec.split(',').map(r => r.trim()).filter(Boolean) : []
+        });
+      });
+
+
+      if(!planets.length){ showColonyAlert('Agrega al menos un planeta.', 'error'); return; }
+      if(capitalIdx === null){ showColonyAlert('Marca un planeta como capital.', 'error'); return; }
+
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
+
+
+      try{
+        const colonyData = {
+          id, name, shortName, tag, region, race, economy, conflict, galaxy,
+          signature, galacticPos: { x: posX, y: posY },
+          planets, capitalPlanetIndex: capitalIdx,
+          capitalCoords: existing ? (existing.capitalCoords || { lat: 0, lon: 0 }) : { lat: 0, lon: 0 },
+          capitalPhotoUrl: existing ? existing.capitalPhotoUrl : null,
+          status,
+          createdAt: existing ? existing.createdAt : Date.now(),
+          updatedAt: Date.now(),
+          createdBy: existing ? existing.createdBy : ''
+        };
+
+
+        await saveColony(colonyData);
+
+
+        if(capitalPhotoFile){
+          try{
+            const ext = (capitalPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+            const storageRef = ref(storage, `colonies/${id}/capital.${ext}`);
+            await uploadBytes(storageRef, capitalPhotoFile);
+            const url = await getDownloadURL(storageRef);
+            await updateDoc(doc(db, 'colonies', id), { capitalPhotoUrl: url });
+          }catch(photoErr){
+            console.warn('No se pudo subir la foto de la capital', photoErr);
+          }
+        }
+
+
+        showAdminAlert(isEdit ? 'Colonia actualizada.' : 'Colonia creada.', 'ok');
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        renderColonies();
+      }catch(err){
+        showColonyAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = isEdit ? 'Guardar cambios' : 'Crear colonia';
+    });
+
+
+    function showColonyAlert(msg, type){
+      const box = document.getElementById('colonyAlert');
+      box.textContent = msg;
+      box.className = 'alert show ' + (type === 'error' ? 'alert-error' : 'alert-ok');
+      setTimeout(() => { box.className = 'alert'; }, 4000);
+    }
+
+
+    function renderPlanetBlocks(planets){
+      const wrap = document.getElementById('cfPlanetsWrap');
+      wrap.innerHTML = planets.map((p, idx) => `
+        <div class="planet-block" data-idx="${idx}">
+          <div class="planet-block-header">
+            <span>Planeta ${idx + 1}</span>
+            <button class="act-btn delete cf-remove-planet" data-idx="${idx}">× Eliminar</button>
+          </div>
+          <div class="planet-block-grid">
+            <div><label>Nombre</label><input type="text" class="pb-name" value="${escapeHtml(p.name || '')}" placeholder="Nombre del planeta"></div>
+            <div><label>Índice glifo (1-16)</label><input type="number" class="pb-index" min="1" max="16" value="${p.i || idx + 1}"></div>
+            <div><label>Clima</label><input type="text" class="pb-clima" value="${escapeHtml(p.clima || '')}" placeholder="Apacible, Ácido, etc."></div>
+            <div><label>Centinela</label><input type="text" class="pb-centinela" value="${escapeHtml(p.centinela || '')}" placeholder="Remoto, Abandonado, etc."></div>
+            <div><label>Flora</label><input type="text" class="pb-flora" value="${escapeHtml(p.flora || '')}" placeholder="Generoso, Abundante, etc."></div>
+            <div><label>Fauna</label><input type="text" class="pb-fauna" value="${escapeHtml(p.fauna || '')}" placeholder="Abundante, Copioso, etc."></div>
+            <div class="full"><label>Recursos (separados por coma)</label><input type="text" class="pb-rec" value="${escapeHtml(Array.isArray(p.rec) ? p.rec.join(', ') : (p.rec || ''))}" placeholder="Bulbo Estelar, Plata, Parafino"></div>
+          </div>
+          <div class="planet-block-capital">
+            <input type="radio" name="cfCapital" class="pb-capital" value="${p.i || idx + 1}" ${p.capital ? 'checked' : ''} id="cap-${idx}">
+            <label for="cap-${idx}">Capital del sistema</label>
+          </div>
+        </div>
+      `).join('');
+
+
+      wrap.querySelectorAll('.cf-remove-planet').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const blocks = document.querySelectorAll('.planet-block');
+          const currentPlanets = [];
+          blocks.forEach((block, i) => {
+            if(i === idx) return;
+            currentPlanets.push({
+              i: parseInt(block.querySelector('.pb-index').value, 10) || i + 1,
+              name: block.querySelector('.pb-name').value.trim(),
+              capital: block.querySelector('.pb-capital').checked,
+              clima: block.querySelector('.pb-clima').value.trim(),
+              centinela: block.querySelector('.pb-centinela').value.trim(),
+              flora: block.querySelector('.pb-flora').value.trim(),
+              fauna: block.querySelector('.pb-fauna').value.trim(),
+              rec: block.querySelector('.pb-rec').value.trim()
+            });
+          });
+          currentPlanets.splice(idx, 1);
+          renderPlanetBlocks(currentPlanets);
+        });
+      });
+    }
+  }
+
+
   async function subtractStorageUsage(bytes){
     const usageRef = doc(db, 'meta', 'storageUsage');
     try{
@@ -508,14 +957,12 @@
     }
   }
 
-  // Borra el archivo real de Storage (a partir de su URL de descarga) y
-  // descuenta su tamaño del contador. Si el archivo ya no existe en
-  // Storage, igual sigue adelante para limpiar el campo en Firestore.
+
   async function deleteStorageFile(url){
     try{
       const fileRef = ref(storage, url);
       let size = 0;
-      try{ size = (await getMetadata(fileRef)).size || 0; }catch(e){ /* puede ya no existir */ }
+      try{ size = (await getMetadata(fileRef)).size || 0; }catch(e){}
       await deleteObject(fileRef);
       if(size > 0) subtractStorageUsage(size);
     }catch(e){
@@ -523,16 +970,14 @@
     }
   }
 
-  // ---------- MODERACIÓN DE FOTOS ----------
+
   function photoStatusPillHtml(status){
     if(status === 'approved') return '<span class="status-pill approved">Aprobada</span>';
     if(status === 'rejected') return '<span class="status-pill rejected">Rechazada</span>';
     return '<span class="status-pill pending">Pendiente</span>';
   }
 
-  // Muestra TODAS las fotos de base (no solo las pendientes) — aprobar y
-  // rechazar solo tienen sentido mientras está pendiente, pero eliminar
-  // siempre está disponible, esté aprobada, rechazada o pendiente.
+
   function renderPhotoModeration(){
     const box = document.getElementById('photoModList');
     const withPhoto = allEntries.filter(e => e.photoUrl);
@@ -561,6 +1006,7 @@
     }).join('');
   }
 
+
   document.getElementById('photoModList').addEventListener('click', async e=>{
     const btn = e.target.closest('[data-photo-action]');
     if(!btn) return;
@@ -569,6 +1015,7 @@
     const action = btn.dataset.photoAction;
     const entry = allEntries.find(x=>x.docId===docId);
     if(!entry) return;
+
 
     if(action === 'delete'){
       if(!confirm(`¿Eliminar definitivamente la foto de la base de ${entry.name}? Ya no aparecerá en la galería.`)) return;
@@ -582,6 +1029,7 @@
       return;
     }
 
+
     try{
       await updateDoc(doc(db, 'citizens', docId), { photoStatus: action === 'approve' ? 'approved' : 'rejected' });
       showAdminAlert(action === 'approve' ? 'Foto aprobada — ya es pública en la galería.' : 'Foto rechazada.', 'ok');
@@ -590,10 +1038,7 @@
     }
   });
 
-  // ---------- MODERACIÓN DE FOTOS DE CARNET (idPhotoUrl/idPhotoStatus) ----------
-  // Campo totalmente separado de photoUrl/photoStatus — esta foto nunca
-  // sale en la galería, solo en la credencial de "Mi Ciudadanía". Igual
-  // que arriba: se muestran todas, eliminar siempre disponible.
+
   function renderIdPhotoModeration(){
     const box = document.getElementById('idPhotoModList');
     const withPhoto = allEntries.filter(e => e.idPhotoUrl);
@@ -622,6 +1067,7 @@
     }).join('');
   }
 
+
   document.getElementById('idPhotoModList').addEventListener('click', async e=>{
     const btn = e.target.closest('[data-idphoto-action]');
     if(!btn) return;
@@ -630,6 +1076,7 @@
     const action = btn.dataset.idphotoAction;
     const entry = allEntries.find(x=>x.docId===docId);
     if(!entry) return;
+
 
     if(action === 'delete'){
       if(!confirm(`¿Eliminar definitivamente la foto de carnet de ${entry.name}?`)) return;
@@ -643,6 +1090,7 @@
       return;
     }
 
+
     try{
       await updateDoc(doc(db, 'citizens', docId), { idPhotoStatus: action === 'approve' ? 'approved' : 'rejected' });
       showAdminAlert(action === 'approve' ? 'Foto de carnet aprobada.' : 'Foto de carnet rechazada.', 'ok');
@@ -651,17 +1099,21 @@
     }
   });
 
+
   function renderList(){
+
 
     const list = document.getElementById('registryList');
     const filtered = currentFilter === 'all'
       ? allEntries
       : allEntries.filter(e=>(e.status||'pending') === currentFilter);
 
+
     if(!filtered.length){
       list.innerHTML = '<div class="empty-state">No hay solicitudes en esta categoría.</div>';
       return;
     }
+
 
     list.innerHTML = filtered.map(e=>{
       const status = e.status || 'pending';
@@ -701,12 +1153,14 @@
     }).join('');
   }
 
+
   function showAdminAlert(msg, type){
     const box = document.getElementById('adminAlert');
     box.textContent = msg;
     box.className = 'alert show ' + (type==='error' ? 'alert-error' : 'alert-ok');
     setTimeout(()=>{ box.className = 'alert'; }, 3500);
   }
+
 
   document.getElementById('registryList').addEventListener('click', async (e)=>{
     const btn = e.target.closest('.act-btn');
@@ -717,11 +1171,12 @@
     const entry = allEntries.find(x=>x.docId===docId);
     if(!entry) return;
 
+
     if(action === 'approve'){
       await setStatus(docId, 'citizen');
     }else if(action === 'reject'){
       const reason = prompt(`Motivo del rechazo para ${entry.name} (opcional, se le mostrará al solicitante):`, entry.rejectionReason || '');
-      if(reason === null) return; // canceló el diálogo
+      if(reason === null) return;
       await setStatus(docId, 'rejected', reason.trim());
     }else if(action === 'delete'){
       if(!confirm(`¿Eliminar definitivamente la solicitud ${entry.id} de ${entry.name}?`)) return;
@@ -736,13 +1191,14 @@
     }
   });
 
+
   async function setStatus(docId, status, rejectionReason){
     try{
       const payload = { status };
       if(status === 'rejected'){
         payload.rejectionReason = rejectionReason || null;
       }else if(status === 'citizen'){
-        payload.rejectionReason = null; // limpia un motivo previo si se re-aprueba
+        payload.rejectionReason = null;
       }
       await updateDoc(doc(db, 'citizens', docId), payload);
       showAdminAlert(status === 'citizen' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
@@ -750,6 +1206,7 @@
       showAdminAlert('No se pudo actualizar. Revisa las reglas de Firestore.', 'error');
     }
   }
+
 
   function openEdit(row, entry){
     row.innerHTML = `
