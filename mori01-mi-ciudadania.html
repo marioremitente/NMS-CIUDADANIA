@@ -286,7 +286,8 @@
 
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
+  import { SYSTEM_INFO, planetImg as legacyPlanetImg } from './mori01-data.js';
+  import { loadAllColonies, loadColony, planetImg as colonyPlanetImg } from './colonies-data.js';
   import {
     collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -304,6 +305,41 @@
   ];
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+  // ---------- COLONIES ----------
+  let ALL_COLONIES = [];
+  let coloniesLoaded = false;
+
+  async function ensureColonies(){
+    if(coloniesLoaded) return;
+    try{ ALL_COLONIES = await loadAllColonies(); }catch(e){ ALL_COLONIES = []; }
+    coloniesLoaded = true;
+  }
+
+  function getColonyName(colonyId){
+    if(!colonyId || colonyId === 'mori-01') return 'MORI-01';
+    const c = ALL_COLONIES.find(c => c.id === colonyId);
+    return c ? (c.shortName || c.name) : colonyId;
+  }
+
+  function getPlanetName(colonyId, planetIndex){
+    if(colonyId === 'mori-01' || !colonyId){
+      const p = ALL_COLONIES.find(c => c.id === 'mori-01');
+      if(p){
+        const pl = (p.planets || []).find(pl => pl.i === planetIndex);
+        if(pl) return pl.name;
+      }
+      return '—';
+    }
+    const colony = ALL_COLONIES.find(c => c.id === colonyId);
+    if(!colony) return '—';
+    const p = (colony.planets || []).find(p => p.i === planetIndex);
+    return p ? p.name : '—';
+  }
+
+  function planetImgForColony(colonyId, planet){
+    return colonyId === 'mori-01' ? legacyPlanetImg(planet) : colonyPlanetImg(planet);
+  }
 
   // Distancia en "pasos" — misma fórmula que "Hazte Ciudadano".
   const PASOS_FACTOR = 16.02747435;
@@ -404,11 +440,13 @@
       return;
     }
 
+    await ensureColonies();
+
     const profileSrc = myBases[0]; // la más reciente — de ahí sale el perfil general y la credencial
 
-    // Planetas donde tiene base, sin repetir.
-    const myPlanetIndexes = [...new Set(myBases.map(b => b.planetIndex))];
-    const planetImages = await loadPlanetImages(myPlanetIndexes);
+    // Planetas donde tiene base, sin repetir, agrupados por colonia.
+    const myPlanetKeys = [...new Set(myBases.map(b => `${b.colonyId||'mori-01'}:${b.planetIndex}`))];
+    const planetImages = await loadPlanetImages(myBases.filter(b => (b.colonyId||'mori-01') === 'mori-01').map(b => b.planetIndex));
 
     // Insignias, calculadas contra todos los ciudadanos aprobados (igual que en la tarjeta).
     let myBadges = [];
@@ -421,7 +459,11 @@
       }catch(e){ /* si falla, la credencial sigue sin insignias */ }
     }
 
-    const planet = PLANETS.find(p => p.i === profileSrc.planetIndex);
+    const profileColonyId = profileSrc.colonyId || 'mori-01';
+    const profileColony = ALL_COLONIES.find(c => c.id === profileColonyId);
+    const profilePlanet = profileColony
+      ? (profileColony.planets || []).find(p => p.i === profileSrc.planetIndex)
+      : null;
     const statusText = profileSrc.status === 'citizen' ? 'Ciudadano'
       : profileSrc.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
     // Foto DEL CARNET (idPhotoUrl/idPhotoStatus) — nunca la foto de la
@@ -483,7 +525,7 @@
                   </div>` : ''}
                   <div class="cred-field">
                     <div class="f-label">Asentamiento</div>
-                    <div class="f-value cyan">${planet ? escapeHtml(planet.name) : '—'}</div>
+                    <div class="f-value cyan">${profilePlanet ? escapeHtml(profilePlanet.name) : '—'}</div>
                   </div>
                 </div>
                 <div class="cred-right">
@@ -619,28 +661,40 @@
 
     // ---- planetas ----
     const planetGrid = document.getElementById('planetGrid');
-    planetGrid.innerHTML = myPlanetIndexes.map(idx=>{
-      const p = PLANETS.find(pl=>pl.i===idx);
-      const url = planetImages[idx];
-      const imgHtml = url ? `<img src="${url}" alt="">` : '<span class="placeholder">Por explorar</span>';
+    planetGrid.innerHTML = myPlanetKeys.map(key=>{
+      const [colonyId, planetIndexStr] = key.split(':');
+      const idx = parseInt(planetIndexStr, 10);
+      const pName = getPlanetName(colonyId, idx);
+      const cName = getColonyName(colonyId);
+      let imgUrl = null;
+      if(colonyId === 'mori-01'){
+        imgUrl = planetImages[idx];
+      } else {
+        const colony = ALL_COLONIES.find(c => c.id === colonyId);
+        const pl = colony ? (colony.planets || []).find(p => p.i === idx) : null;
+        if(pl && pl.photo) imgUrl = pl.photo;
+      }
+      const imgHtml = imgUrl ? `<img src="${imgUrl}" alt="">` : '<span class="placeholder">Por explorar</span>';
       return `
         <div class="planet-tile">
           <div class="planet-tile-img">${imgHtml}</div>
-          <div class="planet-tile-name">${p ? escapeHtml(p.name) : '—'}</div>
+          <div class="planet-tile-name">${escapeHtml(pName)}</div>
+          <div class="pglyph" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">${escapeHtml(cName)}</div>
         </div>`;
     }).join('');
 
     // ---- lista de bases ----
     const basesList = document.getElementById('basesList');
     basesList.innerHTML = myBases.map(b=>{
-      const p = PLANETS.find(pl=>pl.i===b.planetIndex);
+      const pName = getPlanetName(b.colonyId, b.planetIndex);
+      const cName = getColonyName(b.colonyId);
       const pillClass = b.status === 'citizen' ? 'citizen' : b.status === 'rejected' ? 'rejected' : '';
       const pillText = b.status === 'citizen' ? 'Ciudadano' : b.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
       return `
         <div class="base-row">
           <div class="base-info">
-            <b>${p ? escapeHtml(p.name) : '—'}</b>
-            <span>${b.id} · ${b.lat}, ${b.lon}</span>
+            <b>${escapeHtml(pName)}</b>
+            <span>${b.id} · ${cName} · ${b.lat}, ${b.lon}</span>
           </div>
           <span class="status-pill ${pillClass}">${pillText}</span>
         </div>`;
@@ -663,10 +717,10 @@
     });
 
     // ---- agregar otra base ----
-    document.getElementById('showAddBaseBtn').addEventListener('click', ()=>{
-      renderAddBaseForm(profileSrc);
-      document.getElementById('addBaseForm').style.display = 'block';
+    document.getElementById('showAddBaseBtn').addEventListener('click', async ()=>{
       document.getElementById('showAddBaseBtn').style.display = 'none';
+      document.getElementById('addBaseForm').style.display = 'block';
+      await renderAddBaseForm(profileSrc);
     });
   }
 
@@ -681,12 +735,30 @@
     return result;
   }
 
-  function renderAddBaseForm(profileSrc){
+  async function renderAddBaseForm(profileSrc){
+    await ensureColonies();
     const box = document.getElementById('addBaseForm');
+
+    if(!ALL_COLONIES.length){
+      box.innerHTML = `
+        <h2>Agregar otra base</h2>
+        <p class="sub">No hay colonias activas disponibles.</p>
+        <button class="btn btn-ghost" id="cancelAddBaseBtn">Cerrar</button>`;
+      document.getElementById('cancelAddBaseBtn').addEventListener('click', ()=>{
+        box.style.display = 'none'; box.innerHTML = '';
+        document.getElementById('showAddBaseBtn').style.display = 'inline-block';
+      });
+      return;
+    }
+
     box.innerHTML = `
       <h2>Agregar otra base</h2>
       <p class="sub">No necesitas repetir el checklist de misiones — ya eres ciudadano con esta cuenta.</p>
       <div id="addBaseAlert" class="alert"></div>
+      <div class="field" style="margin-bottom:14px;">
+        <label for="addColonySelect">Colonia</label>
+        <select id="addColonySelect"></select>
+      </div>
       <div class="planet-picker" id="planetPicker"></div>
       <select id="planetSelect" style="display:none"></select>
       <div class="field-row">
@@ -704,39 +776,54 @@
       <button class="btn btn-ghost" id="cancelAddBaseBtn" style="margin-left:8px;">Cancelar</button>
     `;
 
+    const colonySelect = document.getElementById('addColonySelect');
     const planetSelect = document.getElementById('planetSelect');
     const planetPicker = document.getElementById('planetPicker');
-    PLANETS.forEach(p=>{
-      const opt = document.createElement('option');
-      opt.value = p.i;
-      opt.textContent = `${p.name} (glifo ${p.i})`;
-      planetSelect.appendChild(opt);
-
-      const card = document.createElement('div');
-      card.className = 'planet-choice';
-      card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
-      card.addEventListener('click', ()=>{
-        planetSelect.value = p.i;
-        document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
-        card.classList.add('selected');
-        updateSubmitState();
-      });
-      planetPicker.appendChild(card);
-    });
-
     const submitBtn = document.getElementById('submitAddBaseBtn');
     const latInput = document.getElementById('addLat');
     const lonInput = document.getElementById('addLon');
+    let selectedColony = null;
+
+    colonySelect.innerHTML = ALL_COLONIES.map(c =>
+      `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    function renderPickerPlanets(){
+      planetSelect.innerHTML = '';
+      planetPicker.innerHTML = '';
+      selectedColony = ALL_COLONIES.find(c => c.id === colonySelect.value) || null;
+      if(!selectedColony) return;
+      const planets = selectedColony.planets || [];
+      planets.forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = p.i;
+        opt.textContent = `${p.name} (glifo ${p.i})`;
+        planetSelect.appendChild(opt);
+        const card = document.createElement('div');
+        card.className = 'planet-choice';
+        card.innerHTML = `<div class="pimg">${planetImgForColony(selectedColony.id, p)}</div><div class="pname">${escapeHtml(p.name || 'Planeta')}</div><div class="pglyph">Glifo ${p.i}</div>`;
+        card.addEventListener('click', ()=>{
+          planetSelect.value = p.i;
+          document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
+          card.classList.add('selected');
+          updateSubmitState();
+        });
+        planetPicker.appendChild(card);
+      });
+      updateSubmitState();
+    }
 
     function updateSubmitState(){
-      submitBtn.disabled = !(planetSelect.value && latInput.value.trim() && lonInput.value.trim());
+      submitBtn.disabled = !(selectedColony && planetSelect.value && latInput.value.trim() && lonInput.value.trim());
     }
+
+    colonySelect.addEventListener('change', renderPickerPlanets);
     latInput.addEventListener('input', updateSubmitState);
     lonInput.addEventListener('input', updateSubmitState);
+    renderPickerPlanets();
 
     document.getElementById('cancelAddBaseBtn').addEventListener('click', ()=>{
-      box.style.display = 'none';
-      box.innerHTML = '';
+      box.style.display = 'none'; box.innerHTML = '';
       document.getElementById('showAddBaseBtn').style.display = 'inline-block';
     });
 
@@ -748,22 +835,29 @@
     submitBtn.addEventListener('click', async ()=>{
       const alertBox = document.getElementById('addBaseAlert');
       alertBox.className = 'alert';
+      const colonyId = colonySelect.value;
       const planetIndex = parseInt(planetSelect.value, 10);
       const lat = parseCoord(latInput.value);
       const lon = parseCoord(lonInput.value);
+      if(!colonyId){ alertBox.textContent = 'Selecciona una colonia.'; alertBox.className = 'alert show alert-error'; return; }
       if(!planetIndex){ alertBox.textContent = 'Selecciona un planeta.'; alertBox.className = 'alert show alert-error'; return; }
       if(lat===null || lon===null){ alertBox.textContent = 'Coordenadas inválidas.'; alertBox.className = 'alert show alert-error'; return; }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Verificando…';
       try{
-        const q = query(citizensCol, where('planetIndex', '==', planetIndex));
+        const constraints = [
+          where('planetIndex', '==', planetIndex),
+          where('status', '!=', 'rejected')
+        ];
+        if(colonyId) constraints.push(where('colonyId', '==', colonyId));
+        const q = query(citizensCol, ...constraints);
         const snap = await getDocs(q);
-        const sameplanet = snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
-        for(const e of sameplanet){
+        for(const e of snap.docs.map(d=>d.data())){
           const d = distanciaPasos(lat, lon, e.lat, e.lon);
           if(d <= MIN_DISTANCE_PASOS){
-            alertBox.textContent = `Ese punto está ocupado por ${e.name} (${e.id}) — a ~${Math.round(d)} pasos. Muévete al menos ${MIN_DISTANCE_PASOS} pasos.`;
+            const colonyLabel = getColonyName(e.colonyId);
+            alertBox.textContent = `Ese punto está ocupado por ${e.name} (${e.id}) en ${colonyLabel} — a ~${Math.round(d)} pasos. Muévete al menos ${MIN_DISTANCE_PASOS} pasos.`;
             alertBox.className = 'alert show alert-error';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Registrar base';
@@ -774,7 +868,7 @@
         const newEntry = {
           id: '#M01-' + Math.floor(1000 + Math.random()*9000),
           name: profileSrc.name,
-          planetIndex, lat, lon,
+          colonyId, planetIndex, lat, lon,
           profession: profileSrc.profession || '',
           platform: profileSrc.platform || '',
           friendCode: profileSrc.friendCode || '',
@@ -784,7 +878,9 @@
           ownerEmail: currentUser.email || ''
         };
         await addDoc(citizensCol, newEntry);
-        alertBox.textContent = `Base registrada como ${newEntry.id}. Esperando decisión del Arcade.`;
+        const colonyLabel = getColonyName(colonyId);
+        const planetLabel = getPlanetName(colonyId, planetIndex);
+        alertBox.textContent = `Base en ${planetLabel} (${colonyLabel}) registrada como ${newEntry.id}. Esperando decisión del Arcade.`;
         alertBox.className = 'alert show alert-ok';
         setTimeout(()=>{
           box.style.display = 'none';
