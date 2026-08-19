@@ -362,6 +362,18 @@
   ];
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
 
+  function parseGlyphs(str){
+    if(!str) return null;
+    const tokens = str.split(',').map(s => s.trim()).filter(Boolean);
+    if(tokens.length !== 12) return null;
+    const result = [];
+    for(const t of tokens){
+      const v = parseInt(t, 16);
+      if(isNaN(v) || v < 0 || v > 15) return null;
+      result.push(v + 1);
+    }
+    return result;
+  }
 
   const citizensCol = collection(db, 'citizens');
   const loginView = document.getElementById('loginView');
@@ -691,7 +703,7 @@
     };
     const planetsJson = JSON.stringify(colony.planets || []);
     const signatureArr = Array.isArray(colony.signature) ? colony.signature : [1,1,1,1,1,1,1,1,1,1,1,1];
-    const sigStr = signatureArr.join(',');
+    const sigStr = signatureArr.map(v => (v - 1).toString(16).toUpperCase()).join(',');
 
 
     wrap.innerHTML = `
@@ -712,8 +724,8 @@
       </div>
 
 
-      <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Firma del sistema (12 glifos, separados por coma)</label>
-      <input type="text" id="cfSignature" value="${escapeHtml(sigStr)}" placeholder="1,2,3,4,5,6,7,8,9,10,11,12" style="width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary); padding:9px 11px; border-radius:4px; font-size:13px; font-family:var(--font-mono); margin-bottom:14px;">
+      <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Firma del sistema (12 glifos hex, separados por coma, ej: 0-F)</label>
+      <input type="text" id="cfSignature" value="${escapeHtml(sigStr)}" placeholder="3,4,1,4,0,0,6,0,5,C,3,9" style="width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary); padding:9px 11px; border-radius:4px; font-size:13px; font-family:var(--font-mono); margin-bottom:14px;">
 
 
       <div class="colony-form-grid" style="margin-bottom:14px;">
@@ -755,9 +767,8 @@
     wrap.style.display = 'block';
 
     document.getElementById('cfSignature').addEventListener('input', function(){
-      const sigRaw = this.value.trim();
-      const sig = sigRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 16);
-      if(sig.length === 12){
+      const sig = parseGlyphs(this.value);
+      if(sig){
         const pos = glyphToPosition(sig);
         if(pos){
           document.getElementById('cfPosX').value = pos.x.toFixed(4);
@@ -816,8 +827,8 @@
       if(!name){ showColonyAlert('El nombre del sistema es obligatorio.', 'error'); return; }
 
 
-      const signature = sigRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 16);
-      if(signature.length !== 12){ showColonyAlert('La firma debe tener exactamente 12 glifos (1-16).', 'error'); return; }
+      const signature = parseGlyphs(sigRaw);
+      if(!signature){ showColonyAlert('La firma debe tener exactamente 12 glifos (0-F, separados por coma).', 'error'); return; }
 
 
       const planetBlocks = document.querySelectorAll('.planet-block');
