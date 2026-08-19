@@ -209,15 +209,9 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE, glyphSVG, planetImg } from './mori01-data.js';
+  import { SYSTEM_INFO, SYSTEM_SIGNATURE, glyphSVG, planetImg as planetImgFn } from './mori01-data.js';
+  import { loadAllColonies, MORI01_COLONY, glyphToPosition } from './colonies-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
-  document.title = `Atlas Galáctico · ${SYSTEM_INFO.shortName}`;
-  document.getElementById('lede').textContent =
-    `Vista general de ${SYSTEM_INFO.shortName}, sus mundos y las bases activas de la comunidad.`;
-
-  let BASES = [];
 
   function escapeHtml(s){
     const d = document.createElement('div');
@@ -225,86 +219,151 @@
     return d.innerHTML;
   }
 
-  document.getElementById('legendSystem').textContent = SYSTEM_INFO.shortName;
-  document.getElementById('legendRegion').textContent = SYSTEM_INFO.region;
-  document.getElementById('mapCoords').textContent = SYSTEM_SIGNATURE.join('-');
-  document.getElementById('signatureCount').textContent = `${SYSTEM_SIGNATURE.length} glifos`;
+  function glyphHex(val){ return (val - 1).toString(16).toUpperCase(); }
 
-  document.getElementById('systemDataRows').innerHTML = [
-    ['Galaxia', SYSTEM_INFO.galaxy, 'cyan'],
-    ['Región', SYSTEM_INFO.region, ''],
-    ['Raza', SYSTEM_INFO.race, 'green'],
-    ['Economía', SYSTEM_INFO.economy, ''],
-    ['Conflicto', SYSTEM_INFO.conflict, 'gold'],
-  ].map(([key, val, cls]) => `
-    <div class="data-row">
-      <span class="data-key">${key}</span>
-      <span class="data-value ${cls}">${val}</span>
-    </div>
-  `).join('');
-
-  document.getElementById('portalCode').innerHTML = SYSTEM_SIGNATURE.map((n, i) => `
-    <div class="glyph" data-index="${i + 1}" title="Glifo ${n}">${glyphSVG(n)}</div>
-  `).join('');
-
+  let ALL_COLONIES = [];
+  let activeColony = null;
+  let ALL_BASES = [];
   let selectedPlanetIdx = null;
 
-  function renderPlanets(){
+  const selectorWrap = document.createElement('div');
+  selectorWrap.className = 'panel';
+  selectorWrap.id = 'colonySelectorWrap';
+  selectorWrap.innerHTML = `
+    <div class="panel-label">Seleccionar Sistema Estelar</div>
+    <div id="colonySelector" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+  `;
+  const firstPanel = document.querySelector('.panel');
+  firstPanel.parentNode.insertBefore(selectorWrap, firstPanel);
+
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.title = `Atlas Galáctico · ${SYSTEM_INFO.shortName}`;
+  document.getElementById('lede').textContent = `Vista general de los sistemas estelares de la comunidad y sus bases activas.`;
+
+  async function init(){
+    ALL_COLONIES = await loadAllColonies();
+    renderColonySelector();
+    selectColony(ALL_COLONIES[0]);
+  }
+
+  function renderColonySelector(){
+    const sel = document.getElementById('colonySelector');
+    sel.innerHTML = ALL_COLONIES.map((c, i) => `
+      <button class="btn btn-ghost colony-sel-btn" data-idx="${i}" style="font-size:12px;padding:8px 14px;${i === 0 ? 'border-color:var(--accent-cyan);color:var(--accent-cyan);' : ''}">
+        ${escapeHtml(c.shortName || c.name)}
+        ${c.tag ? '<span style="color:var(--text-dim);margin-left:4px;">' + escapeHtml(c.tag) + '</span>' : ''}
+      </button>
+    `).join('');
+
+    sel.querySelectorAll('.colony-sel-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.idx, 10);
+        sel.querySelectorAll('.colony-sel-btn').forEach(b => { b.style.borderColor = ''; b.style.color = ''; });
+        btn.style.borderColor = 'var(--accent-cyan)';
+        btn.style.color = 'var(--accent-cyan)';
+        selectColony(ALL_COLONIES[idx]);
+      });
+    });
+  }
+
+  function selectColony(colony){
+    activeColony = colony;
+    document.getElementById('legendSystem').textContent = colony.shortName || colony.name;
+    document.getElementById('legendRegion').textContent = colony.region || '—';
+
+    const sig = colony.signature || SYSTEM_SIGNATURE;
+    const sigHex = sig.map(v => glyphHex(v));
+    document.getElementById('mapCoords').textContent = sigHex.join(' · ');
+    document.getElementById('signatureCount').textContent = `${sig.length} glifos`;
+
+    document.getElementById('portalCode').innerHTML = sig.map((n, i) => `
+      <div class="glyph" data-index="${i + 1}" title="Glifo ${glyphHex(n)} (${n})">${glyphSVG(n)}</div>
+    `).join('');
+
+    document.getElementById('systemDataRows').innerHTML = [
+      ['Galaxia', colony.galaxy || '—', 'cyan'],
+      ['Región', colony.region || '—', ''],
+      ['Raza', colony.race || '—', 'green'],
+      ['Economía', colony.economy || '—', ''],
+      ['Conflicto', colony.conflict || '—', 'gold'],
+      ['Tag', colony.tag || '—', ''],
+    ].map(([key, val, cls]) => `
+      <div class="data-row">
+        <span class="data-key">${key}</span>
+        <span class="data-value ${cls}">${escapeHtml(val)}</span>
+      </div>
+    `).join('');
+
+    const planets = colony.planets || [];
+    renderPlanets(planets);
+
+    const colonyBases = ALL_BASES.filter(b => b.colonyId === colony.id || (!b.colonyId && colony.id === 'mori-01'));
+    renderBases(colonyBases, planets);
+  }
+
+  function renderPlanets(planets){
     const grid = document.getElementById('planetGrid');
-    grid.innerHTML = PLANETS.map((p, idx) => `
+    if(!planets.length){
+      grid.innerHTML = '<div class="no-bases">No hay planetas registrados.</div>';
+      document.getElementById('planetDetail').classList.remove('visible');
+      return;
+    }
+    grid.innerHTML = planets.map((p, idx) => `
       <div class="planet-card ${p.capital ? 'active' : ''}" data-idx="${idx}">
-        <div class="planet-card-img">${planetImg(p)}</div>
-        <div class="planet-card-name">${p.name}</div>
-        <div class="planet-card-climate">${p.clima}</div>
+        <div class="planet-card-img">${planetImgFn(p)}</div>
+        <div class="planet-card-name">${escapeHtml(p.name || 'Planeta ' + (idx+1))}</div>
+        <div class="planet-card-climate">${escapeHtml(p.clima || '—')}</div>
       </div>
     `).join('');
 
     grid.querySelectorAll('.planet-card').forEach(card => {
-      card.addEventListener('click', () => selectPlanet(parseInt(card.dataset.idx, 10)));
+      card.addEventListener('click', () => selectPlanet(planets, parseInt(card.dataset.idx, 10)));
     });
 
-    const capitalIdx = PLANETS.findIndex(p => p.capital);
-    selectPlanet(capitalIdx >= 0 ? capitalIdx : 0);
+    const capitalIdx = planets.findIndex(p => p.capital);
+    selectPlanet(planets, capitalIdx >= 0 ? capitalIdx : 0);
   }
 
-  function selectPlanet(idx){
-    const p = PLANETS[idx];
+  function selectPlanet(planets, idx){
+    const p = planets[idx];
+    if(!p) return;
     selectedPlanetIdx = idx;
     document.querySelectorAll('.planet-card').forEach((card, i) => card.classList.toggle('active', i === idx));
 
-    const planetBases = BASES.filter(b => b.planetIndex === p.i);
+    const colonyBases = ALL_BASES.filter(b => b.colonyId === activeColony.id || (!b.colonyId && activeColony.id === 'mori-01'));
+    const planetBases = colonyBases.filter(b => b.planetIndex === p.i);
     const detail = document.getElementById('planetDetail');
     detail.classList.add('visible');
     detail.innerHTML = `
       <div class="planet-detail-header">
-        <div class="planet-detail-img">${planetImg(p)}</div>
+        <div class="planet-detail-img">${planetImgFn(p)}</div>
         <div>
-          <div class="planet-detail-name">${p.name}${p.capital ? ' ★' : ''}</div>
-          <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${p.i}</div>
+          <div class="planet-detail-name">${escapeHtml(p.name || 'Planeta ' + (idx+1))}${p.capital ? ' ★' : ''}</div>
+          <div class="planet-detail-type">${p.capital ? 'Capital · ' : ''}Glifo ${glyphHex(p.i)} (${p.i})</div>
         </div>
       </div>
       <div class="planet-stats">
-        <div class="planet-stat"><span class="planet-stat-key">Clima</span><span class="planet-stat-val">${p.clima}</span></div>
-        <div class="planet-stat"><span class="planet-stat-key">Centinela</span><span class="planet-stat-val">${p.centinela}</span></div>
-        <div class="planet-stat"><span class="planet-stat-key">Flora</span><span class="planet-stat-val">${p.flora}</span></div>
-        <div class="planet-stat"><span class="planet-stat-key">Fauna</span><span class="planet-stat-val">${p.fauna}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Clima</span><span class="planet-stat-val">${escapeHtml(p.clima || '—')}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Centinela</span><span class="planet-stat-val">${escapeHtml(p.centinela || '—')}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Flora</span><span class="planet-stat-val">${escapeHtml(p.flora || '—')}</span></div>
+        <div class="planet-stat"><span class="planet-stat-key">Fauna</span><span class="planet-stat-val">${escapeHtml(p.fauna || '—')}</span></div>
         <div class="planet-stat"><span class="planet-stat-key">Bases</span><span class="planet-stat-val" style="color:var(--accent-gold)">${planetBases.length}</span></div>
       </div>
-      <div class="planet-resources">${p.rec.map(r => `<span class="resource-chip">${r}</span>`).join('')}</div>
+      <div class="planet-resources">${(p.rec || []).map(r => `<span class="resource-chip">${escapeHtml(r)}</span>`).join('')}</div>
     `;
   }
 
-  function renderBases(){
+  function renderBases(bases, planets){
     const container = document.getElementById('basesList');
-    document.getElementById('totalBases').textContent = BASES.length;
+    document.getElementById('totalBases').textContent = bases.length;
 
-    if(!BASES.length){
-      container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún.</div>';
+    if(!bases.length){
+      container.innerHTML = '<div class="no-bases">No hay bases aprobadas en este sistema.</div>';
       return;
     }
 
-    container.innerHTML = BASES.map(base => {
-      const planet = PLANETS.find(p => p.i === base.planetIndex);
+    container.innerHTML = bases.map(base => {
+      const planet = planets.find(p => p.i === base.planetIndex);
       const planetName = planet ? planet.name : '—';
       const initials = (base.name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
       const tags = [
@@ -322,8 +381,8 @@
           <div class="base-avatar">${avatarContent}</div>
           <div class="base-info">
             <h3>${escapeHtml(base.name || 'Sin nombre')}</h3>
-            <p><span class="status-dot"></span>${base.id}</p>
-            <p>Planeta: <span class="highlight">${planetName}</span> · Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
+            <p><span class="status-dot"></span>${escapeHtml(base.id)}</p>
+            <p>Planeta: <span class="highlight">${escapeHtml(planetName)}</span> · Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
             <div class="base-tags">${tags}</div>
           </div>
         </div>
@@ -340,7 +399,6 @@
   let lastShootingStar = 0;
   let markerPhase = 0;
   let animFrame = null;
-  let lastTime = 0;
 
   function initNebulas(w, h){
     NEBULAS.length = 0;
@@ -567,7 +625,8 @@
 
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = '#06b6d4';
-    ctx.fillText(SYSTEM_INFO.shortName, markerX + 14, markerY + 4);
+    const label = activeColony ? (activeColony.shortName || activeColony.name) : SYSTEM_INFO.shortName;
+    ctx.fillText(label, markerX + 14, markerY + 4);
   }
 
   function drawFrame(time){
@@ -603,16 +662,18 @@
     const citizensCol = collection(db, 'citizens');
     const q = query(citizensCol, where('status', '==', 'citizen'));
     onSnapshot(q, snap => {
-      BASES = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-      renderBases();
-      if(selectedPlanetIdx !== null) selectPlanet(selectedPlanetIdx);
+      ALL_BASES = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+      if(activeColony){
+        const colonyBases = ALL_BASES.filter(b => b.colonyId === activeColony.id || (!b.colonyId && activeColony.id === 'mori-01'));
+        renderBases(colonyBases, activeColony.planets || []);
+      }
     }, err => {
       document.getElementById('basesList').innerHTML =
         '<div class="no-bases">No se pudo cargar. Revisa las reglas de Firestore.</div>';
     });
   }
 
-  renderPlanets();
+  init();
   subscribeBases();
   animate(0);
 
