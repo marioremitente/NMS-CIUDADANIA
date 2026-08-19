@@ -156,64 +156,6 @@
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
   .disclaimer{font-size:12px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
 
-  .glyph-selector{margin-bottom:8px;}
-  .glyph-slots{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:12px;}
-  .glyph-slot{
-    width:48px; height:48px; border:1px solid var(--border-bright); border-radius:4px;
-    display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2);
-    cursor:pointer; transition:border-color .15s, transform .15s; position:relative;
-  }
-  .glyph-slot:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
-  .glyph-slot.filled{border-color:var(--accent-gold); background:rgba(245,184,73,.06);}
-  .glyph-slot img{width:28px; height:28px; object-fit:contain;}
-  .glyph-slot .slot-num{
-    position:absolute; bottom:-14px; font-family:var(--font-mono); font-size:9px; color:var(--text-dim);
-  }
-  .glyph-slot .slot-remove{
-    position:absolute; top:-6px; right:-6px; width:14px; height:14px; border-radius:50%;
-    background:var(--accent-red); color:#fff; font-size:9px; display:none;
-    align-items:center; justify-content:center; cursor:pointer; line-height:1;
-  }
-  .glyph-slot.filled .slot-remove{display:flex;}
-
-  .glyph-picker-overlay{
-    position:fixed; inset:0; z-index:100; background:rgba(7,8,13,.85);
-    display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  .glyph-picker-overlay.hidden{display:none;}
-  .glyph-picker-panel{
-    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;
-    padding:24px; max-width:400px; width:100%;
-  }
-  .glyph-picker-panel h3{
-    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; color:var(--accent-gold);
-    text-transform:uppercase; margin-bottom:14px; text-align:center;
-  }
-  .glyph-picker-grid{
-    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
-  }
-  .glyph-picker-opt{
-    width:100%; aspect-ratio:1; border:1px solid var(--border-soft); border-radius:4px;
-    display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2);
-    cursor:pointer; transition:border-color .15s, transform .15s;
-  }
-  .glyph-picker-opt:hover{border-color:var(--accent-cyan); transform:scale(1.08);}
-  .glyph-picker-opt img{width:32px; height:32px; object-fit:contain;}
-  .glyph-picker-cancel{
-    display:block; width:100%; margin-top:12px; padding:10px; text-align:center;
-    font-family:var(--font-mono); font-size:12px; color:var(--text-muted);
-    background:none; border:1px solid var(--border-soft); border-radius:4px; cursor:pointer;
-  }
-  .glyph-picker-cancel:hover{border-color:var(--accent-red); color:var(--accent-red);}
-
-  .glyph-decoded{
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
-    padding:14px; margin-top:12px; font-family:var(--font-mono); font-size:12px; line-height:1.8;
-  }
-  .glyph-decoded .decoded-label{color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em; font-size:10px;}
-  .glyph-decoded .decoded-val{color:var(--accent-cyan);}
-  .glyph-decoded .decoded-err{color:var(--accent-red);}
-
   .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
   .back-link:hover{color:var(--accent-cyan);}
 
@@ -292,15 +234,6 @@
         <label>Planeta elegido</label>
         <div class="planet-picker" id="planetPicker"></div>
         <select id="planetSelect" style="display:none"></select>
-      </div>
-
-      <div class="field">
-        <label>Codigo de portal (12 glifos)</label>
-        <div class="glyph-selector">
-          <div class="glyph-slots" id="glyphSlots"></div>
-          <div class="glyph-decoded" id="glyphDecoded" style="display:none"></div>
-        </div>
-        <p class="hint">Haz clic en cada casilla y selecciona el glifo del portal. El sistema decodifica automaticamente las coordenadas.</p>
       </div>
 
       <div class="field-row">
@@ -388,32 +321,15 @@
   </div>
 </div>
 
-<div class="glyph-picker-overlay hidden" id="glyphPickerOverlay">
-  <div class="glyph-picker-panel">
-    <h3 id="glyphPickerTitle">Selecciona glifo</h3>
-    <div class="glyph-picker-grid" id="glyphPickerGrid"></div>
-    <button class="glyph-picker-cancel" id="glyphPickerCancel">Cancelar</button>
-  </div>
-</div>
-
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { loadAllColonies, planetImg, glyphSVG } from './colonies-data.js';
+  import { loadAllColonies, planetImg } from './colonies-data.js';
   import {
     collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     ref, uploadBytes, getDownloadURL
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-  let validateSignature = null, glyphsToCartesian = null, formatHexAddress = null;
-  import('./nms-glyphs.js').then(m => {
-    validateSignature = m.validateSignature;
-    glyphsToCartesian = m.glyphsToCartesian;
-    formatHexAddress = m.formatHexAddress;
-  }).catch(() => {
-    console.warn('nms-glyphs.js no disponible — selector de glifos desactivado');
-  });
 
   const citizensCol = collection(db, 'citizens');
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -423,97 +339,6 @@
 
   let ALL_COLONIES = [];
   let SELECTED_COLONY = null;
-
-  var selectedGlyphs = [null,null,null,null,null,null,null,null,null,null,null,null];
-  var activeSlotIndex = null;
-
-  function renderGlyphSlots(){
-    var container = document.getElementById('glyphSlots');
-    container.innerHTML = '';
-    for(var i = 0; i < 12; i++){
-      (function(idx){
-        var slot = document.createElement('div');
-        slot.className = 'glyph-slot' + (selectedGlyphs[idx] !== null ? ' filled' : '');
-        slot.innerHTML = (selectedGlyphs[idx] !== null ? glyphSVG(selectedGlyphs[idx]) : '') +
-          '<span class="slot-num">' + (idx + 1) + '</span>' +
-          '<span class="slot-remove" data-i="' + idx + '">×</span>';
-        slot.addEventListener('click', function(e){
-          if(e.target.classList.contains('slot-remove')){
-            selectedGlyphs[idx] = null;
-            renderGlyphSlots();
-            decodeAndShowGlyphs();
-            return;
-          }
-          openGlyphPicker(idx);
-        });
-        container.appendChild(slot);
-      })(i);
-    }
-  }
-
-  function openGlyphPicker(slotIndex){
-    activeSlotIndex = slotIndex;
-    var overlay = document.getElementById('glyphPickerOverlay');
-    var grid = document.getElementById('glyphPickerGrid');
-    document.getElementById('glyphPickerTitle').textContent = 'Glifo ' + (slotIndex + 1) + ' de 12';
-    grid.innerHTML = '';
-    for(var g = 1; g <= 16; g++){
-      (function(glyph){
-        var opt = document.createElement('div');
-        opt.className = 'glyph-picker-opt';
-        opt.innerHTML = glyphSVG(glyph);
-        opt.addEventListener('click', function(){
-          selectedGlyphs[activeSlotIndex] = glyph;
-          overlay.classList.add('hidden');
-          activeSlotIndex = null;
-          renderGlyphSlots();
-          decodeAndShowGlyphs();
-        });
-        grid.appendChild(opt);
-      })(g);
-    }
-    overlay.classList.remove('hidden');
-  }
-
-  document.getElementById('glyphPickerCancel').addEventListener('click', function(){
-    document.getElementById('glyphPickerOverlay').classList.add('hidden');
-    activeSlotIndex = null;
-  });
-  document.getElementById('glyphPickerOverlay').addEventListener('click', function(e){
-    if(e.target === e.currentTarget){
-      e.currentTarget.classList.add('hidden');
-      activeSlotIndex = null;
-    }
-  });
-
-  function decodeAndShowGlyphs(){
-    var box = document.getElementById('glyphDecoded');
-    var allFilled = selectedGlyphs.every(function(g){ return g !== null; });
-    if(!allFilled){ box.style.display = 'none'; return; }
-    if(!validateSignature || !glyphsToCartesian || !formatHexAddress){
-      box.style.display = 'block';
-      box.innerHTML = '<span class="decoded-err">Decoder no disponible. Sube nms-glyphs.js al servidor.</span>';
-      return;
-    }
-    var v = validateSignature(selectedGlyphs);
-    if(!v.valid){
-      box.style.display = 'block';
-      box.innerHTML = '<span class="decoded-err">' + escapeHtml(v.error) + '</span>';
-      return;
-    }
-    var coords = glyphsToCartesian(selectedGlyphs);
-    var hex = formatHexAddress(selectedGlyphs);
-    box.style.display = 'block';
-    box.innerHTML =
-      '<span class="decoded-label">Direccion hexadecimal</span><br>' +
-      '<span class="decoded-val">' + escapeHtml(hex) + '</span><br>' +
-      '<span class="decoded-label">Coordenadas Cartesianas</span><br>' +
-      '<span class="decoded-val">X: ' + coords.x + ' &nbsp; Y: ' + coords.y + ' &nbsp; Z: ' + coords.z + '</span><br>' +
-      '<span class="decoded-label">Planeta (P)</span> <span class="decoded-val">' + coords.planetIndex + '</span> &nbsp;' +
-      '<span class="decoded-label">Sistema (SSS)</span> <span class="decoded-val">' + coords.systemIndex + '</span>';
-  }
-
-  renderGlyphSlots();
 
   function escapeHtml(s){
     const d = document.createElement('div');
@@ -614,7 +439,6 @@
   colonySelect.addEventListener('change', ()=>{
     SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || null;
     renderPlanetPicker();
-    renderRegistry(currentEntries);
     if(SELECTED_COLONY){
       const name = SELECTED_COLONY.name;
       document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
@@ -743,13 +567,11 @@
 
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
-    const colonyId = SELECTED_COLONY ? SELECTED_COLONY.id : null;
-    const filtered = colonyId ? entries.filter(e => (e.colonyId || 'mori-01') === colonyId) : entries;
-    if(!filtered.length){
-      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados en esta colonia.</div>';
+    if(!entries.length){
+      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
       return;
     }
-    const groups = groupByPlayer(filtered);
+    const groups = groupByPlayer(entries);
     list.innerHTML = groups.map(g=>{
       const basesHtml = g.bases.map(e=>{
         const colonyLabel = getColonyName(e.colonyId);
@@ -791,27 +613,7 @@
 
     if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
     if(!planetIndex){ showAlert('Selecciona un planeta.', 'error'); return; }
-    if(lat===null || lon===null){ showAlert('Coordenadas invalidas. Usa el formato +14.32, -21.96.', 'error'); return; }
-
-    var allGlyphsFilled = selectedGlyphs.every(function(g){ return g !== null; });
-    var portalData = {};
-    if(allGlyphsFilled){
-      if(!validateSignature || !glyphsToCartesian){
-        showAlert('El decoder de glifos no está disponible. Sube nms-glyphs.js al servidor.', 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Ser Ciudadano';
-        return;
-      }
-      var gv = validateSignature(selectedGlyphs);
-      if(!gv.valid){ showAlert('Glifos invalidos: ' + gv.error, 'error'); return; }
-      var gc = glyphsToCartesian(selectedGlyphs);
-      portalData = {
-        signature: selectedGlyphs.slice(),
-        hexAddress: gc.hexAddress,
-        cartesian: { x: gc.x, y: gc.y, z: gc.z },
-        systemIndex: gc.systemIndex
-      };
-    }
+    if(lat===null || lon===null){ showAlert('Coordenadas inválidas. Usa el formato +14.32, -21.96.', 'error'); return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Verificando…';
@@ -828,7 +630,7 @@
         }
       }
 
-      const newEntry = Object.assign({
+      const newEntry = {
         id: '#M01-' + Math.floor(1000 + Math.random()*9000),
         name, planetIndex, lat, lon,
         colonyId: SELECTED_COLONY.id,
@@ -839,7 +641,7 @@
         ts: Date.now(),
         ownerUid: currentUser.uid,
         ownerEmail: currentUser.email || ''
-      }, portalData);
+      };
       const docRef = await addDoc(citizensCol, newEntry);
 
       if(selectedPhotoFile){

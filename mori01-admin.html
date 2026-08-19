@@ -149,6 +149,68 @@
   .planet-img-filebtn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
 
   #adminView{display:none;}
+
+  /* colonias */
+  .colony-list{display:flex; flex-direction:column; gap:10px;}
+  .colony-row{
+    display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg-panel-2);
+    border:1px solid var(--border-soft); border-radius:6px; transition:border-color .2s; flex-wrap:wrap;
+  }
+  .colony-row:hover{border-color:var(--accent-cyan);}
+  .colony-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .colony-dot.active{background:var(--accent-green);}
+  .colony-dot.inactive{background:var(--accent-red);}
+  .colony-dot.draft{background:var(--accent-gold);}
+  .colony-info{flex:1; min-width:120px;}
+  .colony-info .cname{font-weight:600; font-size:14.5px; margin-bottom:2px;}
+  .colony-info .cmeta{font-size:12px; color:var(--text-muted); font-family:var(--font-mono);}
+  .colony-status-pill{
+    font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; white-space:nowrap;
+  }
+  .colony-status-pill.active{background:rgba(61,220,151,.12); border:1px solid rgba(61,220,151,.4); color:var(--accent-green);}
+  .colony-status-pill.inactive{background:rgba(232,84,107,.12); border:1px solid rgba(232,84,107,.4); color:var(--accent-red);}
+  .colony-status-pill.draft{background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold);}
+
+  .colony-form{margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft);}
+  .colony-form h3{font-family:var(--font-display); font-size:16px; margin-bottom:14px;}
+  .colony-form-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .colony-form-grid .full{grid-column:1 / -1;}
+  .colony-form-grid input, .colony-form-grid select{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 11px; border-radius:4px; font-size:13px;
+  }
+  .colony-form-grid input:focus, .colony-form-grid select:focus{border-color:var(--accent-cyan);}
+  .colony-form-grid label{display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:5px; font-family:var(--font-mono);}
+
+  .glyph-row-admin{display:flex; gap:4px; margin-bottom:14px;}
+  .glyph-row-admin input{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:9px 6px; border-radius:4px; font-size:13px; text-align:center;
+  }
+  .glyph-row-admin input:focus{border-color:var(--accent-cyan);}
+
+  .planet-block{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
+    padding:14px; margin-bottom:10px; position:relative;
+  }
+  .planet-block-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .planet-block-header span{font-weight:600; font-size:13px;}
+  .planet-block-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .planet-block-grid .full{grid-column:1 / -1;}
+  .planet-block-grid input{
+    width:100%; background:var(--bg-deep); border:1px solid var(--border-soft); color:var(--text-primary);
+    padding:8px 10px; border-radius:4px; font-size:12.5px;
+  }
+  .planet-block-grid input:focus{border-color:var(--accent-cyan);}
+  .planet-block-grid label{display:block; font-size:10px; letter-spacing:.05em; color:var(--text-dim); text-transform:uppercase; margin-bottom:3px; font-family:var(--font-mono);}
+  .planet-block-capital{display:flex; align-items:center; gap:6px; margin-top:8px;}
+  .planet-block-capital input[type=radio]{accent-color:var(--accent-gold);}
+  .planet-block-capital label{font-size:12px; color:var(--accent-gold); cursor:pointer;}
+
+  .colony-photo-area{margin-top:14px;}
+  .colony-photo-preview{width:120px; height:80px; border-radius:6px; overflow:hidden; background:var(--bg-panel); border:1px solid var(--border-soft); margin-top:8px; display:flex; align-items:center; justify-content:center;}
+  .colony-photo-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+  .colony-photo-preview .placeholder{color:var(--text-dim); font-size:10px; font-family:var(--font-mono);}
 </style>
 </head>
 <body>
@@ -222,6 +284,19 @@
     <div id="planetImgGrid" class="planet-img-grid"></div>
   </div>
 
+  <!-- COLONIAS -->
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h2>Colonias</h2>
+        <p class="sub" style="margin-bottom:0;">Gestiona los sistemas estelares de la comunidad. Cada colonia tiene sus propios planetas, glifos y ubicación galáctica.</p>
+      </div>
+      <button class="act-btn approve" id="newColonyBtn">+ Nueva Colonia</button>
+    </div>
+    <div id="colonyList" class="colony-list" style="margin-top:16px;"></div>
+    <div id="colonyFormWrap" class="colony-form" style="display:none;"></div>
+  </div>
+
   <div class="panel">
     <div class="tabs" id="tabs">
       <div class="tab active" data-filter="all">Todos <span class="count" id="countAll">0</span></div>
@@ -237,6 +312,7 @@
 <script type="module">
   import { db, auth, storage } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
+  import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus } from './colonies-data.js';
   import {
     collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -313,6 +389,7 @@
       subscribeRegistry();
       subscribeUsage();
       renderPlanetImages();
+      renderColonies();
     }else{
       if(unsubscribe){ unsubscribe(); unsubscribe = null; }
       if(unsubscribeUsage){ unsubscribeUsage(); unsubscribeUsage = null; }
@@ -492,6 +569,310 @@
       loadPlanetImage(planetIndex);
     }
     input.value = '';
+  }
+
+  // ---------- COLONIAS ----------
+  let allColonies = [];
+
+  async function renderColonies(){
+    try{
+      allColonies = await loadAllColoniesAdmin();
+    }catch(e){
+      allColonies = [];
+    }
+    const list = document.getElementById('colonyList');
+    if(!allColonies.length){
+      list.innerHTML = '<div class="empty-state">No hay colonias registradas. Crea la primera con el botón de arriba.</div>';
+      return;
+    }
+    list.innerHTML = allColonies.map(c => {
+      const planetCount = (c.planets || []).length;
+      const statusClass = c.status || 'draft';
+      return `
+        <div class="colony-row" data-colony-id="${escapeHtml(c.id)}">
+          <div class="colony-dot ${statusClass}"></div>
+          <div class="colony-info">
+            <div class="cname">${escapeHtml(c.name)} ${c.tag ? '<span style="color:var(--text-dim); font-family:var(--font-mono); font-size:12px;">' + escapeHtml(c.tag) + '</span>' : ''}</div>
+            <div class="cmeta">${escapeHtml(c.region || '—')} · ${planetCount} planeta${planetCount !== 1 ? 's' : ''} · ${escapeHtml(c.galaxy || '—')}</div>
+          </div>
+          <span class="colony-status-pill ${statusClass}">${statusClass === 'active' ? 'Activa' : statusClass === 'inactive' ? 'Inactiva' : 'Borrador'}</span>
+          <div class="reg-actions">
+            <button class="act-btn" data-colony-action="edit">Editar</button>
+            <button class="act-btn" data-colony-action="toggle">${statusClass === 'active' ? 'Desactivar' : 'Activar'}</button>
+            <button class="act-btn delete" data-colony-action="delete">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('colonyList').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-colony-action]');
+    if(!btn) return;
+    const row = e.target.closest('.colony-row');
+    const colonyId = row.dataset.colonyId;
+    const action = btn.dataset.colonyAction;
+    const colony = allColonies.find(c => c.id === colonyId);
+    if(!colony) return;
+
+    if(action === 'edit'){
+      openColonyForm(colony);
+    }else if(action === 'toggle'){
+      const newStatus = colony.status === 'active' ? 'inactive' : 'active';
+      try{
+        await setColonyStatus(colonyId, newStatus);
+        showAdminAlert(`Colonia ${newStatus === 'active' ? 'activada' : 'desactivada'}.`, 'ok');
+        renderColonies();
+      }catch(err){
+        showAdminAlert('No se pudo cambiar el estado. Revisa las reglas.', 'error');
+      }
+    }else if(action === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la colonia "${colony.name}"? Esta acción no se puede deshacer.`)) return;
+      try{
+        await deleteColony(colonyId);
+        showAdminAlert('Colonia eliminada.', 'ok');
+        renderColonies();
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas.', 'error');
+      }
+    }
+  });
+
+  document.getElementById('newColonyBtn').addEventListener('click', () => openColonyForm(null));
+
+  function openColonyForm(existing){
+    const wrap = document.getElementById('colonyFormWrap');
+    const isEdit = !!existing;
+    const colony = existing || {
+      id: '', name: '', shortName: '', tag: '', region: '', race: '', economy: '', conflict: '',
+      galaxy: '', signature: [1,1,1,1,1,1,1,1,1,1,1,1],
+      galacticPos: { x: 0, y: 0 }, planets: [], capitalPlanetIndex: null,
+      capitalCoords: { lat: 0, lon: 0 }, capitalPhotoUrl: null, status: 'draft'
+    };
+    const planetsJson = JSON.stringify(colony.planets || []);
+    const signatureArr = Array.isArray(colony.signature) ? colony.signature : [1,1,1,1,1,1,1,1,1,1,1,1];
+    const sigStr = signatureArr.join(',');
+
+    wrap.innerHTML = `
+      <h3>${isEdit ? 'Editar Colonia' : 'Nueva Colonia'}</h3>
+      <div id="colonyAlert" class="alert"></div>
+
+      <div class="colony-form-grid">
+        <div class="full"><label>ID (sin espacios, minúsculas, ej: mori-02)</label><input type="text" id="cfId" value="${escapeHtml(colony.id)}" placeholder="mori-02" ${isEdit ? 'disabled' : ''}></div>
+        <div><label>Nombre del sistema</label><input type="text" id="cfName" value="${escapeHtml(colony.name)}" placeholder="Nombre completo"></div>
+        <div><label>Nombre corto</label><input type="text" id="cfShortName" value="${escapeHtml(colony.shortName || colony.name || '')}" placeholder="Nombre corto"></div>
+        <div><label>Tag</label><input type="text" id="cfTag" value="${escapeHtml(colony.tag)}" placeholder="[TAG]"></div>
+        <div><label>Región</label><input type="text" id="cfRegion" value="${escapeHtml(colony.region)}" placeholder="Nombre de la región"></div>
+        <div><label>Raza</label><input type="text" id="cfRace" value="${escapeHtml(colony.race)}" placeholder="Korvax, Vy'keen, Gek"></div>
+        <div><label>Economía</label><input type="text" id="cfEconomy" value="${escapeHtml(colony.economy)}" placeholder="Tipo de economía"></div>
+        <div><label>Conflicto</label><input type="text" id="cfConflict" value="${escapeHtml(colony.conflict)}" placeholder="2 · Tempestuoso"></div>
+        <div><label>Galaxia</label><input type="text" id="cfGalaxy" value="${escapeHtml(colony.galaxy)}" placeholder="Galaxia de Euclides"></div>
+      </div>
+
+      <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Firma del sistema (12 glifos, separados por coma)</label>
+      <input type="text" id="cfSignature" value="${escapeHtml(sigStr)}" placeholder="1,2,3,4,5,6,7,8,9,10,11,12" style="width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary); padding:9px 11px; border-radius:4px; font-size:13px; font-family:var(--font-mono); margin-bottom:14px;">
+
+      <div class="colony-form-grid" style="margin-bottom:14px;">
+        <div><label>Posición X galáctica (-1 a 1)</label><input type="number" step="0.01" min="-1" max="1" id="cfPosX" value="${colony.galacticPos ? colony.galacticPos.x : 0}"></div>
+        <div><label>Posición Y galáctica (-1 a 1)</label><input type="number" step="0.01" min="-1" max="1" id="cfPosY" value="${colony.galacticPos ? colony.galacticPos.y : 0}"></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <label style="font-size:13px; font-weight:600;">Planetas</label>
+        <button class="act-btn approve" id="cfAddPlanet">+ Agregar planeta</button>
+      </div>
+      <div id="cfPlanetsWrap"></div>
+
+      <div class="colony-photo-area">
+        <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Foto de la capital</label>
+        <label class="act-btn" for="cfCapitalPhoto" style="cursor:pointer;">Elegir imagen</label>
+        <input type="file" id="cfCapitalPhoto" accept="image/*" style="display:none">
+        <div class="colony-photo-preview" id="cfPhotoPreview">${colony.capitalPhotoUrl ? `<img src="${colony.capitalPhotoUrl}" alt="">` : '<span class="placeholder">Sin foto</span>'}</div>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:12px; align-items:center;">
+        <label style="font-size:12px; color:var(--text-muted);">Estado:</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="active" ${colony.status === 'active' ? 'checked' : ''}> Activa</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="draft" ${colony.status === 'draft' || !colony.status ? 'checked' : ''}> Borrador</label>
+        <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="radio" name="cfStatus" value="inactive" ${colony.status === 'inactive' ? 'checked' : ''}> Inactiva</label>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:8px;">
+        <button class="act-btn approve" id="cfSaveBtn">${isEdit ? 'Guardar cambios' : 'Crear colonia'}</button>
+        <button class="act-btn" id="cfCancelBtn">Cancelar</button>
+      </div>
+    `;
+
+    wrap.style.display = 'block';
+
+    let currentPlanets = JSON.parse(planetsJson);
+    let capitalPhotoFile = null;
+    renderPlanetBlocks(currentPlanets);
+
+    document.getElementById('cfCancelBtn').addEventListener('click', () => {
+      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+    });
+
+    document.getElementById('cfAddPlanet').addEventListener('click', () => {
+      currentPlanets.push({ i: currentPlanets.length + 1, name: '', capital: false, clima: '', centinela: '', flora: '', fauna: '', rec: '' });
+      renderPlanetBlocks(currentPlanets);
+    });
+
+    document.getElementById('cfCapitalPhoto').addEventListener('change', e => {
+      capitalPhotoFile = e.target.files[0] || null;
+      if(capitalPhotoFile){
+        const preview = document.getElementById('cfPhotoPreview');
+        preview.innerHTML = `<img src="${URL.createObjectURL(capitalPhotoFile)}" alt="">`;
+      }
+    });
+
+    document.getElementById('cfSaveBtn').addEventListener('click', async () => {
+      const cfAlert = document.getElementById('cfAlert');
+      const saveBtn = document.getElementById('cfSaveBtn');
+
+      const id = document.getElementById('cfId').value.trim();
+      const name = document.getElementById('cfName').value.trim();
+      const shortName = document.getElementById('cfShortName').value.trim() || name;
+      const tag = document.getElementById('cfTag').value.trim();
+      const region = document.getElementById('cfRegion').value.trim();
+      const race = document.getElementById('cfRace').value.trim();
+      const economy = document.getElementById('cfEconomy').value.trim();
+      const conflict = document.getElementById('cfConflict').value.trim();
+      const galaxy = document.getElementById('cfGalaxy').value.trim();
+      const sigRaw = document.getElementById('cfSignature').value.trim();
+      const posX = parseFloat(document.getElementById('cfPosX').value) || 0;
+      const posY = parseFloat(document.getElementById('cfPosY').value) || 0;
+      const status = document.querySelector('input[name="cfStatus"]:checked').value;
+
+      if(!id){ showColonyAlert('El ID es obligatorio.', 'error'); return; }
+      if(!name){ showColonyAlert('El nombre del sistema es obligatorio.', 'error'); return; }
+
+      const signature = sigRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 16);
+      if(signature.length !== 12){ showColonyAlert('La firma debe tener exactamente 12 glifos (1-16).', 'error'); return; }
+
+      const planetBlocks = document.querySelectorAll('.planet-block');
+      const planets = [];
+      let capitalIdx = null;
+      planetBlocks.forEach((block, i) => {
+        const pname = block.querySelector('.pb-name').value.trim();
+        const pindex = parseInt(block.querySelector('.pb-index').value, 10);
+        const pclima = block.querySelector('.pb-clima').value.trim();
+        const pcentinela = block.querySelector('.pb-centinela').value.trim();
+        const pflora = block.querySelector('.pb-flora').value.trim();
+        const pfauna = block.querySelector('.pb-fauna').value.trim();
+        const prec = block.querySelector('.pb-rec').value.trim();
+        const isCapital = block.querySelector('.pb-capital').checked;
+        if(isCapital) capitalIdx = pindex;
+        planets.push({
+          i: isNaN(pindex) ? i + 1 : pindex,
+          name: pname,
+          capital: isCapital,
+          clima: pclima,
+          centinela: pcentinela,
+          flora: pflora,
+          fauna: pfauna,
+          rec: prec ? prec.split(',').map(r => r.trim()).filter(Boolean) : []
+        });
+      });
+
+      if(!planets.length){ showColonyAlert('Agrega al menos un planeta.', 'error'); return; }
+      if(capitalIdx === null){ showColonyAlert('Marca un planeta como capital.', 'error'); return; }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
+
+      try{
+        const colonyData = {
+          id, name, shortName, tag, region, race, economy, conflict, galaxy,
+          signature, galacticPos: { x: posX, y: posY },
+          planets, capitalPlanetIndex: capitalIdx,
+          capitalCoords: existing ? (existing.capitalCoords || { lat: 0, lon: 0 }) : { lat: 0, lon: 0 },
+          capitalPhotoUrl: existing ? existing.capitalPhotoUrl : null,
+          status,
+          createdAt: existing ? existing.createdAt : Date.now(),
+          updatedAt: Date.now(),
+          createdBy: existing ? existing.createdBy : ''
+        };
+
+        await saveColony(colonyData);
+
+        if(capitalPhotoFile){
+          try{
+            const ext = (capitalPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+            const storageRef = ref(storage, `colonies/${id}/capital.${ext}`);
+            await uploadBytes(storageRef, capitalPhotoFile);
+            const url = await getDownloadURL(storageRef);
+            await updateDoc(doc(db, 'colonies', id), { capitalPhotoUrl: url });
+          }catch(photoErr){
+            console.warn('No se pudo subir la foto de la capital', photoErr);
+          }
+        }
+
+        showAdminAlert(isEdit ? 'Colonia actualizada.' : 'Colonia creada.', 'ok');
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        renderColonies();
+      }catch(err){
+        showColonyAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = isEdit ? 'Guardar cambios' : 'Crear colonia';
+    });
+
+    function showColonyAlert(msg, type){
+      const box = document.getElementById('colonyAlert');
+      box.textContent = msg;
+      box.className = 'alert show ' + (type === 'error' ? 'alert-error' : 'alert-ok');
+      setTimeout(() => { box.className = 'alert'; }, 4000);
+    }
+
+    function renderPlanetBlocks(planets){
+      const wrap = document.getElementById('cfPlanetsWrap');
+      wrap.innerHTML = planets.map((p, idx) => `
+        <div class="planet-block" data-idx="${idx}">
+          <div class="planet-block-header">
+            <span>Planeta ${idx + 1}</span>
+            <button class="act-btn delete cf-remove-planet" data-idx="${idx}">× Eliminar</button>
+          </div>
+          <div class="planet-block-grid">
+            <div><label>Nombre</label><input type="text" class="pb-name" value="${escapeHtml(p.name || '')}" placeholder="Nombre del planeta"></div>
+            <div><label>Índice glifo (1-16)</label><input type="number" class="pb-index" min="1" max="16" value="${p.i || idx + 1}"></div>
+            <div><label>Clima</label><input type="text" class="pb-clima" value="${escapeHtml(p.clima || '')}" placeholder="Apacible, Ácido, etc."></div>
+            <div><label>Centinela</label><input type="text" class="pb-centinela" value="${escapeHtml(p.centinela || '')}" placeholder="Remoto, Abandonado, etc."></div>
+            <div><label>Flora</label><input type="text" class="pb-flora" value="${escapeHtml(p.flora || '')}" placeholder="Generoso, Abundante, etc."></div>
+            <div><label>Fauna</label><input type="text" class="pb-fauna" value="${escapeHtml(p.fauna || '')}" placeholder="Abundante, Copioso, etc."></div>
+            <div class="full"><label>Recursos (separados por coma)</label><input type="text" class="pb-rec" value="${escapeHtml(Array.isArray(p.rec) ? p.rec.join(', ') : (p.rec || ''))}" placeholder="Bulbo Estelar, Plata, Parafino"></div>
+          </div>
+          <div class="planet-block-capital">
+            <input type="radio" name="cfCapital" class="pb-capital" value="${p.i || idx + 1}" ${p.capital ? 'checked' : ''} id="cap-${idx}">
+            <label for="cap-${idx}">Capital del sistema</label>
+          </div>
+        </div>
+      `).join('');
+
+      wrap.querySelectorAll('.cf-remove-planet').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const blocks = document.querySelectorAll('.planet-block');
+          const currentPlanets = [];
+          blocks.forEach((block, i) => {
+            if(i === idx) return;
+            currentPlanets.push({
+              i: parseInt(block.querySelector('.pb-index').value, 10) || i + 1,
+              name: block.querySelector('.pb-name').value.trim(),
+              capital: block.querySelector('.pb-capital').checked,
+              clima: block.querySelector('.pb-clima').value.trim(),
+              centinela: block.querySelector('.pb-centinela').value.trim(),
+              flora: block.querySelector('.pb-flora').value.trim(),
+              fauna: block.querySelector('.pb-fauna').value.trim(),
+              rec: block.querySelector('.pb-rec').value.trim()
+            });
+          });
+          currentPlanets.splice(idx, 1);
+          renderPlanetBlocks(currentPlanets);
+        });
+      });
+    }
   }
 
   // ---------- CONTADOR DE USO DE STORAGE: descuento al borrar ----------

@@ -134,16 +134,14 @@
 
 <script type="module">
   import { db } from './firebase-config.js';
-  import { MORI01_COLONY, loadColony, glyphSVG, planetImg } from './colonies-data.js';
-  import { PLANETS as FALLBACK_PLANETS, SYSTEM_INFO, SYSTEM_SIGNATURE } from './mori01-data.js';
+  import { loadColony, loadAllColonies, glyphSVG, planetImg } from './colonies-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  let COLONY = null;
+  let PLANETS = [];
+  let BASES = [];
   const params = new URLSearchParams(window.location.search);
   const colonyId = params.get('colony') || 'mori-01';
-
-  let COLONY = null;
-  let PLANETS = FALLBACK_PLANETS;
-  let BASES = [];
 
   function escapeHtml(s){
     const d = document.createElement('div');
@@ -157,7 +155,22 @@
 
   let selectedPlanetIdx = null;
   let hoveredBase = null;
+
   let PLANET_ORBITS = [];
+
+  // ============================================
+  // SYSTEM MAP — Enhanced with effects
+  // ============================================
+
+  let staticCanvas = null;
+  let staticW = 0, staticH = 0;
+  let starsData = [];
+  let twinkleData = [];
+  const NEBULAS = [];
+  const shootingStars = [];
+  let lastShootingStar = 0;
+  let animFrame = null;
+  let tooltipMouseX = 0, tooltipMouseY = 0, tooltipPageX = 0, tooltipPageY = 0;
 
   function coordsToPixels(lat, lon, planetCenterX, planetCenterY, radius){
     const x = planetCenterX + (lon / 180) * radius;
@@ -198,14 +211,14 @@
 
   function renderBases(){
     const container = document.getElementById('basesList');
-    const filtered = BASES.filter(b => !b.colonyId || b.colonyId === colonyId);
+    const colonyBases = BASES.filter(b => !b.colonyId || b.colonyId === colonyId);
 
-    if(!filtered.length){
+    if(!colonyBases.length){
       container.innerHTML = '<div class="no-bases">No hay bases aprobadas aún para esta colonia.</div>';
       return;
     }
 
-    container.innerHTML = filtered.map(base => {
+    container.innerHTML = colonyBases.map(base => {
       const planet = findPlanetByIndex(base.planetIndex);
       const planetName = planet ? planet.name : '—';
       const initials = (base.name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -214,9 +227,11 @@
         base.profession ? `<span class="base-tag">${escapeHtml(base.profession)}</span>` : '',
         base.platform ? `<span class="base-tag">${escapeHtml(base.platform)}</span>` : '',
       ].join('');
+
       const avatarContent = base.photoUrl
         ? `<img src="${escapeHtml(base.photoUrl)}" alt="${escapeHtml(base.name || '')}">`
         : initials;
+
       return `
         <div class="base-card" data-planet-index="${base.planetIndex}">
           <div class="base-avatar">${avatarContent}</div>
@@ -239,20 +254,7 @@
     });
   }
 
-  // ============================================
-  // SYSTEM MAP — Enhanced with effects
-  // ============================================
-
-  let staticCanvas = null;
-  let staticW = 0, staticH = 0;
-  let starsData = [];
-  let twinkleData = [];
-  const NEBULAS = [];
-  const shootingStars = [];
-  let lastShootingStar = 0;
-  let animFrame = null;
-  let tooltipMouseX = 0, tooltipMouseY = 0, tooltipPageX = 0, tooltipPageY = 0;
-
+  // --- Static layer (cached) ---
   function initStars(w, h){
     starsData = [];
     twinkleData = [];
@@ -328,6 +330,7 @@
     for(let y = 0; y < h; y += 40){ sCtx.beginPath(); sCtx.moveTo(0,y); sCtx.lineTo(w,y); sCtx.stroke(); }
   }
 
+  // --- Animated elements ---
   function drawStarCorona(ctx, cx, cy, time){
     const pulse = Math.sin(time * 0.001) * 0.5 + 0.5;
     const coronaR = 20 + pulse * 8;
@@ -362,7 +365,7 @@
     ctx.fillStyle = '#fff8e1';
     ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
 
-    const starLabel = COLONY ? (COLONY.shortName || COLONY.id) : SYSTEM_INFO.shortName;
+    const starLabel = COLONY ? (COLONY.shortName || COLONY.id) : 'MRNG';
     ctx.font = '9px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(255, 215, 64, 0.65)';
     ctx.fillText(starLabel, cx + 12, cy + 3);
@@ -467,8 +470,10 @@
       const alpha = progress < 0.2 ? progress * 5 : (1 - progress) * 1.25;
       for(let t = 0; t < s.trail.length; t++){
         const tp = t / s.trail.length;
-        ctx.strokeStyle = `rgba(200, 230, 255, ${tp * alpha * 0.5})`;
-        ctx.lineWidth = tp * 1.5;
+        const ta = tp * alpha * 0.5;
+        const tw = tp * 1.5;
+        ctx.strokeStyle = `rgba(200, 230, 255, ${ta})`;
+        ctx.lineWidth = tw;
         ctx.beginPath();
         if(t > 0){ ctx.moveTo(s.trail[t-1].x, s.trail[t-1].y); ctx.lineTo(s.trail[t].x, s.trail[t].y); }
         else { ctx.moveTo(s.trail[t].x, s.trail[t].y); ctx.lineTo(s.trail[t].x+0.1, s.trail[t].y); }
@@ -502,6 +507,7 @@
     });
   }
 
+  // --- Main frame ---
   function drawFrame(time){
     const canvas = document.getElementById('systemCanvas');
     const ctx = canvas.getContext('2d');
@@ -561,6 +567,7 @@
       if(isSelected && colonyBases.length > 0){
         drawConnectionLines(ctx, px, py, colonyBases, baseRadius);
       }
+
       drawBaseMarkers(ctx, colonyBases, px, py, baseRadius, time);
     });
 
@@ -621,10 +628,12 @@
     }
 
     if(!COLONY){
-      COLONY = MORI01_COLONY;
+      document.getElementById('lede').textContent = `No se encontró la colonia "${colonyId}".`;
+      document.title = `Mapa Local · No encontrada`;
+      return;
     }
 
-    PLANETS = COLONY.planets || FALLBACK_PLANETS;
+    PLANETS = COLONY.planets || [];
     PLANET_ORBITS = PLANETS.map((p, i) => {
       const angle = (i / PLANETS.length) * Math.PI * 2 - Math.PI / 2;
       return { planet: p, angle, _x: 0, _y: 0, _radius: 0 };
