@@ -156,64 +156,6 @@
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
   .disclaimer{font-size:12px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
 
-  .glyph-selector{margin-bottom:8px;}
-  .glyph-slots{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:12px;}
-  .glyph-slot{
-    width:48px; height:48px; border:1px solid var(--border-bright); border-radius:4px;
-    display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2);
-    cursor:pointer; transition:border-color .15s, transform .15s; position:relative;
-  }
-  .glyph-slot:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
-  .glyph-slot.filled{border-color:var(--accent-gold); background:rgba(245,184,73,.06);}
-  .glyph-slot img{width:28px; height:28px; object-fit:contain;}
-  .glyph-slot .slot-num{
-    position:absolute; bottom:-14px; font-family:var(--font-mono); font-size:9px; color:var(--text-dim);
-  }
-  .glyph-slot .slot-remove{
-    position:absolute; top:-6px; right:-6px; width:14px; height:14px; border-radius:50%;
-    background:var(--accent-red); color:#fff; font-size:9px; display:none;
-    align-items:center; justify-content:center; cursor:pointer; line-height:1;
-  }
-  .glyph-slot.filled .slot-remove{display:flex;}
-
-  .glyph-picker-overlay{
-    position:fixed; inset:0; z-index:100; background:rgba(7,8,13,.85);
-    display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  .glyph-picker-overlay.hidden{display:none;}
-  .glyph-picker-panel{
-    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;
-    padding:24px; max-width:400px; width:100%;
-  }
-  .glyph-picker-panel h3{
-    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; color:var(--accent-gold);
-    text-transform:uppercase; margin-bottom:14px; text-align:center;
-  }
-  .glyph-picker-grid{
-    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
-  }
-  .glyph-picker-opt{
-    width:100%; aspect-ratio:1; border:1px solid var(--border-soft); border-radius:4px;
-    display:flex; align-items:center; justify-content:center; background:var(--bg-panel-2);
-    cursor:pointer; transition:border-color .15s, transform .15s;
-  }
-  .glyph-picker-opt:hover{border-color:var(--accent-cyan); transform:scale(1.08);}
-  .glyph-picker-opt img{width:32px; height:32px; object-fit:contain;}
-  .glyph-picker-cancel{
-    display:block; width:100%; margin-top:12px; padding:10px; text-align:center;
-    font-family:var(--font-mono); font-size:12px; color:var(--text-muted);
-    background:none; border:1px solid var(--border-soft); border-radius:4px; cursor:pointer;
-  }
-  .glyph-picker-cancel:hover{border-color:var(--accent-red); color:var(--accent-red);}
-
-  .glyph-decoded{
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
-    padding:14px; margin-top:12px; font-family:var(--font-mono); font-size:12px; line-height:1.8;
-  }
-  .glyph-decoded .decoded-label{color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em; font-size:10px;}
-  .glyph-decoded .decoded-val{color:var(--accent-cyan);}
-  .glyph-decoded .decoded-err{color:var(--accent-red);}
-
   .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
   .back-link:hover{color:var(--accent-cyan);}
 
@@ -230,7 +172,7 @@
 
   <p class="top-eyebrow">Registro de ciudadanía</p>
   <h1>Hazte Ciudadano</h1>
-  <p class="lede">Inicia sesión, elige tu colonia, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
+  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
 
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
 
@@ -256,7 +198,7 @@
       </div>
       <div class="mission">
         <input type="checkbox" id="m2">
-        <label for="m2"><b>2. Elige tu colonia y uno de sus planetas</b><span>Primero selecciona la colonia, luego el planeta. Lo seleccionas abajo, en el formulario.</span></label>
+        <label for="m2"><b>2. Elige uno de los 6 planetas</b><span>Lo seleccionas abajo, en el formulario.</span></label>
       </div>
       <div class="mission">
         <input type="checkbox" id="m3">
@@ -284,23 +226,9 @@
       </div>
 
       <div class="field">
-        <label for="colonySelect">Colonia elegida</label>
-        <select id="colonySelect"></select>
-      </div>
-
-      <div class="field">
         <label>Planeta elegido</label>
         <div class="planet-picker" id="planetPicker"></div>
         <select id="planetSelect" style="display:none"></select>
-      </div>
-
-      <div class="field">
-        <label>Codigo de portal (12 glifos)</label>
-        <div class="glyph-selector">
-          <div class="glyph-slots" id="glyphSlots"></div>
-          <div class="glyph-decoded" id="glyphDecoded" style="display:none"></div>
-        </div>
-        <p class="hint">Haz clic en cada casilla y selecciona el glifo del portal. El sistema decodifica automaticamente las coordenadas.</p>
       </div>
 
       <div class="field-row">
@@ -388,17 +316,9 @@
   </div>
 </div>
 
-<div class="glyph-picker-overlay hidden" id="glyphPickerOverlay">
-  <div class="glyph-picker-panel">
-    <h3 id="glyphPickerTitle">Selecciona glifo</h3>
-    <div class="glyph-picker-grid" id="glyphPickerGrid"></div>
-    <button class="glyph-picker-cancel" id="glyphPickerCancel">Cancelar</button>
-  </div>
-</div>
-
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { loadAllColonies, planetImg, glyphSVG } from './colonies-data.js';
+  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
     collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -406,125 +326,27 @@
     ref, uploadBytes, getDownloadURL
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-  let validateSignature = null, glyphsToCartesian = null, formatHexAddress = null;
-  import('./nms-glyphs.js').then(m => {
-    validateSignature = m.validateSignature;
-    glyphsToCartesian = m.glyphsToCartesian;
-    formatHexAddress = m.formatHexAddress;
-  }).catch(() => {
-    console.warn('nms-glyphs.js no disponible — selector de glifos desactivado');
-  });
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+  document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
-  const MAX_FILE_BYTES = 5 * 1024 * 1024;
+  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
+
+  // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
+  // cuadrado, multiplicada por el factor de escala del sistema.
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
+  // La fórmula de pasos solo tiene sentido para puntos cercanos. Si la
+  // diferencia en grados ya es grande, los puntos están lejos de sobra —
+  // se descarta el choque sin necesidad de calcular pasos.
   const MAX_DELTA_DEG = 2;
-
-  let ALL_COLONIES = [];
-  let SELECTED_COLONY = null;
-
-  var selectedGlyphs = [null,null,null,null,null,null,null,null,null,null,null,null];
-  var activeSlotIndex = null;
-
-  function renderGlyphSlots(){
-    var container = document.getElementById('glyphSlots');
-    container.innerHTML = '';
-    for(var i = 0; i < 12; i++){
-      (function(idx){
-        var slot = document.createElement('div');
-        slot.className = 'glyph-slot' + (selectedGlyphs[idx] !== null ? ' filled' : '');
-        slot.innerHTML = (selectedGlyphs[idx] !== null ? glyphSVG(selectedGlyphs[idx]) : '') +
-          '<span class="slot-num">' + (idx + 1) + '</span>' +
-          '<span class="slot-remove" data-i="' + idx + '">×</span>';
-        slot.addEventListener('click', function(e){
-          if(e.target.classList.contains('slot-remove')){
-            selectedGlyphs[idx] = null;
-            renderGlyphSlots();
-            decodeAndShowGlyphs();
-            return;
-          }
-          openGlyphPicker(idx);
-        });
-        container.appendChild(slot);
-      })(i);
-    }
-  }
-
-  function openGlyphPicker(slotIndex){
-    activeSlotIndex = slotIndex;
-    var overlay = document.getElementById('glyphPickerOverlay');
-    var grid = document.getElementById('glyphPickerGrid');
-    document.getElementById('glyphPickerTitle').textContent = 'Glifo ' + (slotIndex + 1) + ' de 12';
-    grid.innerHTML = '';
-    for(var g = 1; g <= 16; g++){
-      (function(glyph){
-        var opt = document.createElement('div');
-        opt.className = 'glyph-picker-opt';
-        opt.innerHTML = glyphSVG(glyph);
-        opt.addEventListener('click', function(){
-          selectedGlyphs[activeSlotIndex] = glyph;
-          overlay.classList.add('hidden');
-          activeSlotIndex = null;
-          renderGlyphSlots();
-          decodeAndShowGlyphs();
-        });
-        grid.appendChild(opt);
-      })(g);
-    }
-    overlay.classList.remove('hidden');
-  }
-
-  document.getElementById('glyphPickerCancel').addEventListener('click', function(){
-    document.getElementById('glyphPickerOverlay').classList.add('hidden');
-    activeSlotIndex = null;
-  });
-  document.getElementById('glyphPickerOverlay').addEventListener('click', function(e){
-    if(e.target === e.currentTarget){
-      e.currentTarget.classList.add('hidden');
-      activeSlotIndex = null;
-    }
-  });
-
-  function decodeAndShowGlyphs(){
-    var box = document.getElementById('glyphDecoded');
-    var allFilled = selectedGlyphs.every(function(g){ return g !== null; });
-    if(!allFilled){ box.style.display = 'none'; return; }
-    if(!validateSignature || !glyphsToCartesian || !formatHexAddress){
-      box.style.display = 'block';
-      box.innerHTML = '<span class="decoded-err">Decoder no disponible. Sube nms-glyphs.js al servidor.</span>';
-      return;
-    }
-    var v = validateSignature(selectedGlyphs);
-    if(!v.valid){
-      box.style.display = 'block';
-      box.innerHTML = '<span class="decoded-err">' + escapeHtml(v.error) + '</span>';
-      return;
-    }
-    var coords = glyphsToCartesian(selectedGlyphs);
-    var hex = formatHexAddress(selectedGlyphs);
-    box.style.display = 'block';
-    box.innerHTML =
-      '<span class="decoded-label">Direccion hexadecimal</span><br>' +
-      '<span class="decoded-val">' + escapeHtml(hex) + '</span><br>' +
-      '<span class="decoded-label">Coordenadas Cartesianas</span><br>' +
-      '<span class="decoded-val">X: ' + coords.x + ' &nbsp; Y: ' + coords.y + ' &nbsp; Z: ' + coords.z + '</span><br>' +
-      '<span class="decoded-label">Planeta (P)</span> <span class="decoded-val">' + coords.planetIndex + '</span> &nbsp;' +
-      '<span class="decoded-label">Sistema (SSS)</span> <span class="decoded-val">' + coords.systemIndex + '</span>';
-  }
-
-  renderGlyphSlots();
-
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s ?? '';
-    return d.innerHTML;
-  }
 
   function distanciaPasos(lat1, lon1, lat2, lon2){
     const diffLat = lat2 - lat1;
     const diffLon = lon2 - lon1;
-    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG) return Infinity;
+    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
+      return Infinity; // demasiado lejos, ni se calcula
+    }
     const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
     return distCoord * PASOS_FACTOR;
   }
@@ -565,14 +387,24 @@
     if(user) redirectIfAlreadyCitizen(user.uid);
   });
 
+  // Si esta cuenta de Google ya tiene alguna base registrada, este
+  // formulario ya no es el lugar — lo mandamos a "Mi Ciudadanía", donde
+  // puede agregar otra base sin repetir el checklist. Si nunca ha
+  // registrado nada, se queda aquí para hacerlo por primera vez.
   async function redirectIfAlreadyCitizen(uid){
     try{
       const q = query(citizensCol, where('ownerUid', '==', uid));
       const snap = await getDocs(q);
-      if(!snap.empty) window.location.href = './mori01-mi-ciudadania.html';
-    }catch(e){}
+      if(!snap.empty){
+        window.location.href = './mori01-mi-ciudadania.html';
+      }
+    }catch(e){
+      // Si falla la consulta, no bloqueamos nada — se queda en el
+      // formulario normal como si fuera su primer registro.
+    }
   }
 
+  // ---------- CONTADOR DE USO DE STORAGE ----------
   async function addStorageUsage(bytes){
     const usageRef = doc(db, 'meta', 'storageUsage');
     try{
@@ -581,73 +413,31 @@
         const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
         tx.update(usageRef, { bytesUsed: current + bytes });
       });
-    }catch(e){ console.warn('No se pudo actualizar el contador de uso de Storage', e); }
+    }catch(e){
+      console.warn('No se pudo actualizar el contador de uso de Storage', e);
+    }
   }
-
-  // ---------- COLONIES ----------
-  const colonySelect = document.getElementById('colonySelect');
-
-  async function initColonies(){
-    try{ ALL_COLONIES = await loadAllColonies(); }catch(e){ ALL_COLONIES = []; }
-    if(!ALL_COLONIES.length){
-      colonySelect.innerHTML = '<option value="">No hay colonias activas</option>';
-      return;
-    }
-    colonySelect.innerHTML = ALL_COLONIES.map(c =>
-      `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`
-    ).join('');
-
-    const params = new URLSearchParams(window.location.search);
-    const preselect = params.get('colony');
-    if(preselect && ALL_COLONIES.find(c => c.id === preselect)){
-      colonySelect.value = preselect;
-    }
-    SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || ALL_COLONIES[0];
-    renderPlanetPicker();
-
-    const name = SELECTED_COLONY.name;
-    const short = SELECTED_COLONY.shortName || name;
-    document.getElementById('backLink').textContent = `← Volver a ${short}`;
-    document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
-  }
-
-  colonySelect.addEventListener('change', ()=>{
-    SELECTED_COLONY = ALL_COLONIES.find(c => c.id === colonySelect.value) || null;
-    renderPlanetPicker();
-    renderRegistry(currentEntries);
-    if(SELECTED_COLONY){
-      const name = SELECTED_COLONY.name;
-      document.getElementById('registryTitle').textContent = `Ciudadanía en ${name}`;
-    }
-  });
 
   // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
   const planetPicker = document.getElementById('planetPicker');
 
-  function renderPlanetPicker(){
-    planetSelect.innerHTML = '';
-    planetPicker.innerHTML = '';
-    if(!SELECTED_COLONY) return;
-    const planets = SELECTED_COLONY.planets || [];
+  PLANETS.forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value = p.i;
+    opt.textContent = `${p.name} (glifo ${p.i})`;
+    planetSelect.appendChild(opt);
 
-    planets.forEach(p=>{
-      const opt = document.createElement('option');
-      opt.value = p.i;
-      opt.textContent = `${p.name} (glifo ${p.i})`;
-      planetSelect.appendChild(opt);
-
-      const card = document.createElement('div');
-      card.className = 'planet-choice';
-      card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${escapeHtml(p.name || 'Planeta')}</div><div class="pglyph">Glifo ${p.i}</div>`;
-      card.addEventListener('click', ()=>{
-        planetSelect.value = p.i;
-        document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
-        card.classList.add('selected');
-      });
-      planetPicker.appendChild(card);
+    const card = document.createElement('div');
+    card.className = 'planet-choice';
+    card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+    card.addEventListener('click', ()=>{
+      planetSelect.value = p.i;
+      document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
     });
-  }
+    planetPicker.appendChild(card);
+  });
 
   // ---------- FOTO OPCIONAL ----------
   const basePhotoInput = document.getElementById('basePhotoInput');
@@ -680,9 +470,10 @@
   function updateProgress(){
     const checked = checkboxes.filter(c=>c.checked).length;
     progressFill.style.width = (checked/checkboxes.length*100)+'%';
-    submitBtn.disabled = checked < checkboxes.length || !currentUser || !SELECTED_COLONY;
+    submitBtn.disabled = checked < checkboxes.length || !currentUser;
   }
   checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
+  updateProgress();
 
   function showAlert(msg, type){
     const box = document.getElementById('alertBox');
@@ -707,17 +498,14 @@
     });
   }
 
-  async function fetchSamePlanet(planetIndex, colonyId){
-    const constraints = [
-      where('planetIndex', '==', planetIndex),
-      where('status', '!=', 'rejected')
-    ];
-    if(colonyId) constraints.push(where('colonyId', '==', colonyId));
-    const q = query(citizensCol, ...constraints);
+  async function fetchSamePlanet(planetIndex){
+    const q = query(citizensCol, where('planetIndex', '==', planetIndex));
     const snap = await getDocs(q);
-    return snap.docs.map(d=>d.data());
+    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
   }
 
+  // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
+  // = mismo jugador, así que sus bases se muestran juntas.
   function groupByPlayer(entries){
     const map = new Map();
     entries.forEach(e=>{
@@ -728,41 +516,25 @@
     return Array.from(map.values());
   }
 
-  function getColonyName(colonyId){
-    if(!colonyId || colonyId === 'mori-01') return 'MORI-01';
-    const c = ALL_COLONIES.find(c => c.id === colonyId);
-    return c ? (c.shortName || c.name) : colonyId;
-  }
-
-  function getPlanetName(colonyId, planetIndex){
-    const colony = ALL_COLONIES.find(c => c.id === colonyId);
-    if(!colony) return '—';
-    const p = (colony.planets || []).find(p => p.i === planetIndex);
-    return p ? p.name : '—';
-  }
-
   function renderRegistry(entries){
     const list = document.getElementById('registryList');
-    const colonyId = SELECTED_COLONY ? SELECTED_COLONY.id : null;
-    const filtered = colonyId ? entries.filter(e => (e.colonyId || 'mori-01') === colonyId) : entries;
-    if(!filtered.length){
-      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados en esta colonia.</div>';
+    if(!entries.length){
+      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
       return;
     }
-    const groups = groupByPlayer(filtered);
+    const groups = groupByPlayer(entries);
     list.innerHTML = groups.map(g=>{
       const basesHtml = g.bases.map(e=>{
-        const colonyLabel = getColonyName(e.colonyId);
-        const planetName = getPlanetName(e.colonyId, e.planetIndex);
+        const planet = PLANETS.find(p=>p.i===e.planetIndex);
         const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
         const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
         return `
           <div class="registry-row">
             <div class="registry-top">
-              <span class="registry-id">${escapeHtml(e.id)}</span>
+              <span class="registry-id">${e.id}</span>
               <span class="status-pill ${pillClass}">${pillText}</span>
             </div>
-            <span class="registry-meta">${escapeHtml(colonyLabel)} · ${escapeHtml(planetName)} · ${e.lat}, ${e.lon}</span>
+            <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
           </div>`;
       }).join('');
       const countBadge = g.bases.length > 1 ? `<span class="base-count">${g.bases.length} bases</span>` : '';
@@ -774,6 +546,12 @@
     }).join('');
   }
 
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
   function parseCoord(v){
     const n = parseFloat(String(v).replace(',', '.').trim());
     return isNaN(n) ? null : n;
@@ -782,7 +560,6 @@
   submitBtn.addEventListener('click', async ()=>{
     clearAlert();
     if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
-    if(!SELECTED_COLONY){ showAlert('Selecciona una colonia.', 'error'); return; }
 
     const name = document.getElementById('playerName').value.trim();
     const planetIndex = parseInt(planetSelect.value, 10);
@@ -791,33 +568,13 @@
 
     if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
     if(!planetIndex){ showAlert('Selecciona un planeta.', 'error'); return; }
-    if(lat===null || lon===null){ showAlert('Coordenadas invalidas. Usa el formato +14.32, -21.96.', 'error'); return; }
-
-    var allGlyphsFilled = selectedGlyphs.every(function(g){ return g !== null; });
-    var portalData = {};
-    if(allGlyphsFilled){
-      if(!validateSignature || !glyphsToCartesian){
-        showAlert('El decoder de glifos no está disponible. Sube nms-glyphs.js al servidor.', 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Ser Ciudadano';
-        return;
-      }
-      var gv = validateSignature(selectedGlyphs);
-      if(!gv.valid){ showAlert('Glifos invalidos: ' + gv.error, 'error'); return; }
-      var gc = glyphsToCartesian(selectedGlyphs);
-      portalData = {
-        signature: selectedGlyphs.slice(),
-        hexAddress: gc.hexAddress,
-        cartesian: { x: gc.x, y: gc.y, z: gc.z },
-        systemIndex: gc.systemIndex
-      };
-    }
+    if(lat===null || lon===null){ showAlert('Coordenadas inválidas. Usa el formato +14.32, -21.96.', 'error'); return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Verificando…';
 
     try{
-      const sameplanet = await fetchSamePlanet(planetIndex, SELECTED_COLONY.id);
+      const sameplanet = await fetchSamePlanet(planetIndex);
       for(const e of sameplanet){
         const d = distanciaPasos(lat, lon, e.lat, e.lon);
         if(d <= MIN_DISTANCE_PASOS){
@@ -828,10 +585,9 @@
         }
       }
 
-      const newEntry = Object.assign({
+      const newEntry = {
         id: '#M01-' + Math.floor(1000 + Math.random()*9000),
         name, planetIndex, lat, lon,
-        colonyId: SELECTED_COLONY.id,
         profession: document.getElementById('professionSelect').value || '',
         platform: document.getElementById('platformSelect').value || '',
         friendCode: document.getElementById('friendCode').value.trim() || '',
@@ -839,9 +595,12 @@
         ts: Date.now(),
         ownerUid: currentUser.uid,
         ownerEmail: currentUser.email || ''
-      }, portalData);
+      };
       const docRef = await addDoc(citizensCol, newEntry);
 
+      // Si eligió foto, se sube después de crear el registro (necesitamos
+      // el ID del documento para nombrar el archivo). Si esto falla, la
+      // base ya quedó registrada de todas formas — solo avisamos.
       if(selectedPhotoFile){
         try{
           const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
@@ -864,7 +623,6 @@
     submitBtn.textContent = 'Ser Ciudadano';
   });
 
-  initColonies();
   subscribeRegistry();
 </script>
 </body>
