@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Atlas Galáctico - Enfoque Interactivo</title>
+    <style>
+        body { margin: 0; background-color: #050510; color: #fff; font-family: sans-serif; overflow: hidden; }
+        #ui-container { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(10, 10, 30, 0.9); padding: 15px; border-radius: 8px; border: 1px solid #3a3a8a; width: 320px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        input, button { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; background: #1a1a3a; border: 1px solid #5a5a9a; color: white; border-radius: 4px; }
+        button { background: #3a3a9a; cursor: pointer; font-weight: bold; }
+        button:hover { background: #5a5eha; }
+        
+        #lista-sistemas { max-height: 300px; overflow-y: auto; font-size: 13px; margin-top: 15px; padding: 0; list-style: none; }
+        
+        /* Estilos interactivos para las tarjetas */
+        .sistema-card { 
+            background: rgba(25, 25, 60, 0.4); 
+            margin-bottom: 8px; 
+            padding: 10px; 
+            border-left: 4px solid #00ffff; 
+            border-radius: 0 4px 4px 0; 
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .sistema-card:hover { 
+            background: rgba(40, 40, 90, 0.6); 
+            transform: translateX(4px);
+        }
+        .base-item { font-size: 11px; color: #aaa; margin-left: 10px; padding: 2px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .instruccion { font-size: 11px; color: #8a8aba; font-style: italic; margin-bottom: 5px; }
+    </style>
+    <!-- Librerías 3D y de Animación -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <!-- Agregamos TWEEN para lograr transiciones de cámara ultra fluidas -->
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+
+    <div id="ui-container">
+        <h3>🌌 Atlas Galáctico</h3>
+        <label for="glyph-input">Código de Glifos (12 dígitos Hex):</label>
+        <input type="text" id="glyph-input" placeholder="Ej: 10A1FF7FF7FF" maxlength="12" value="10A1FF7FF7FF">
+        <input type="text" id="base-name" placeholder="Nombre de la Base (Opcional)" maxlength="20">
+        <button onclick="registrarUbicacion()">Registrar en el Atlas</button>
+        
+        <h4>📍 Sistemas en esta Región:</h4>
+        <p class="instruccion">💡 Haz clic en una tarjeta para enfocar la cámara.</p>
+        <div id="lista-sistemas"></div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN DE LA ESCENA 3D ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.0015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
+        camera.position.set(0, 400, 800);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+
+        // Centro Galáctico
+        const centroGalaxia = new THREE.Mesh(
+            new THREE.SphereGeometry(12, 16, 16),
+            new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true })
+        );
+        scene.add(centroGalaxia);
+
+        // --- 2. ESTRUCTURA DE DATOS ---
+        const mapaSistemas = {}; 
+
+        function decodificarPosicionSistema(hexStr) {
+            if (hexStr.length !== 12) return null;
+            
+            const pVal = parseInt(hexStr, 16);
+            const sssVal = parseInt(hexStr.slice(1, 4), 16);
+            const yVal = parseInt(hexStr.slice(4, 6), 16);
+            const zVal = parseInt(hexStr.slice(6, 9), 16);
+            const xVal = parseInt(hexStr.slice(9, 12), 16);
+
+            const x = xVal - 0x7FF;
+            const y = yVal - 0x7F;
+            const z = zVal - 0x7FF;
+
+            const llaveSistema = `${x}_${y}_${z}`;
+
+            return { x, y, z, planeta: pVal, sistemaId: sssVal, llave: llaveSistema };
+        }
+
+        // --- 3. REGISTRO Y AGRUPAMIENTO ---
+        function registrarUbicacion() {
+            const glyphInput = document.getElementById('glyph-input').value.trim().toUpperCase();
+            let baseName = document.getElementById('base-name').value.trim();
+
+            if (!/^[0-9A-F]{12}$/.test(glyphInput)) {
+                alert("Introduce un código hexadecimal válido.");
+                return;
+            }
+
+            if (!baseName) baseName = `Base Planeta ${glyphInput}`;
+
+            const info = decodificarPosicionSistema(glyphInput);
+            if (!info) return;
+
+            if (mapaSistemas[info.llave]) {
+                mapaSistemas[info.llave].bases.push({ nombre: baseName, glifo: glyphInput });
+                
+                const mesh = mapaSistemas[info.llave].mesh;
+                const factorEscala = 1 + (mapaSistemas[info.llave].bases.length * 0.25);
+                mesh.scale.set(factorEscala, factorEscala, factorEscala);
+                mesh.material.color.setHex(0xff00ff); 
+            } else {
+                const estrellaGeo = new THREE.SphereGeometry(6, 16, 16);
+                const estrellaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+                const estrellaMesh = new THREE.Mesh(estrellaGeo, estrellaMat);
+                
+                estrellaMesh.position.set(info.x, info.y, info.z);
+                scene.add(estrellaMesh);
+
+                const points = [new THREE.Vector3(info.x, 0, info.z), new THREE.Vector3(info.x, info.y, info.z)];
+                const linea = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints(points),
+                    new THREE.LineBasicMaterial({ color: 0x222244 })
+                );
+                scene.add(linea);
+
+                mapaSistemas[info.llave] = {
+                    x: info.x, y: info.y, z: info.z,
+                    sistemaId: info.sistemaId,
+                    mesh: estrellaMesh,
+                    bases: [{ nombre: baseName, glifo: glyphInput }]
+                };
+            }
+
+            document.getElementById('base-name').value = "";
+            actualizarInterfazHTML();
+        }
+
+        // --- 4. ANIMACIÓN DE ENFOQUE DE CÁMARA (NUEVO) ---
+        function enfocarSistema(llave) {
+            const sys = mapaSistemas[llave];
+            if (!sys) return;
+
+            // Desactivamos temporalmente los controles manuales para que no peleen con la animación
+            controls.enabled = false;
+
+            // Definimos la distancia ideal desde la que queremos observar la estrella enfocada
+            const distanciaObjetivo = 150;
+            
+            // Calculamos la posición final donde debe terminar la cámara (un poco elevada y desplazada)
+            const destinoCamara = {
+                x: sys.x,
+                y: sys.y + (distanciaObjetivo * 0.6),
+                z: sys.z + distanciaObjetivo
+            };
+
+            // 1. Animación para mover la posición de la cámara física
+            new TWEEN.Tween(camera.position)
+                .to(destinoCamara, 1200) // Duración de 1.2 segundos
+                .easing(TWEEN.Easing.Cubic.Out) // Curva de desaceleración suave
+                .start();
+
+            // 2. Animación para mover el punto de mira (pivote) de la cámara hacia el sistema estelar
+            new TWEEN.Tween(controls.target)
+                .to({ x: sys.x, y: sys.y, z: sys.z }, 1200)
+                .easing(TWEEN.Easing.Cubic.Out)
+                .onComplete(() => {
+                    // Al terminar la animación, reactivamos los controles orbitales
+                    controls.enabled = true;
+                })
+                .start();
+        }
+
+        // --- 5. RENDERIZADO DE LA INTERFAZ HTML ---
+        function actualizarInterfazHTML() {
+            const contenedor = document.getElementById('lista-sistemas');
+            contenedor.innerHTML = ""; 
+
+            for (const llave in mapaSistemas) {
+                const sys = mapaSistemas[llave];
+                
+                const card = document.createElement('div');
+                card.className = "sistema-card";
+                
+                // Al hacer clic, disparamos el enfoque pasándole la llave del diccionario
+                card.onclick = () => enfocarSistema(llave);
+                
+                card.innerHTML = `
+                    <b>✨ Sistema (ID: ${sys.sistemaId})</b><br>
+                    <small>Coords: [${sys.x}, ${sys.y}, ${sys.z}]</small><br>
+                    <strong>Bases (${sys.bases.length}):</strong>
+                `;
+
+                sys.bases.forEach(base => {
+                    const baseDiv = document.createElement('div');
+                    baseDiv.className = "base-item";
+                    baseDiv.innerHTML = `🏠 <b>${base.nombre}</b> — <code>${base.glifo}</code>`;
+                    card.appendChild(baseDiv);
+                });
+
+                contenedor.appendChild(card);
+            }
+        }
+
+        // --- 6. BUCLE DE ANIMACIÓN ACTUALIZADO ---
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update(); // REQUISITO: Actualiza los cálculos de transición en cada frame
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
