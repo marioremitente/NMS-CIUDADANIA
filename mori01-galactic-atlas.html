@@ -59,15 +59,6 @@
   .map-legend-item:last-child{margin-bottom:0;}
   .legend-dot{width:6px; height:6px; border-radius:50%; flex-shrink:0;}
 
-  .colony-selector{display:flex;gap:8px;flex-wrap:wrap;}
-  .colony-sel-btn{
-    font-family:var(--font-mono); font-size:11px; padding:6px 14px; border-radius:20px;
-    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-muted);
-    cursor:pointer; transition:all .2s; white-space:nowrap;
-  }
-  .colony-sel-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
-  .colony-sel-btn.active{border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(6,182,212,.08);}
-
   .data-row{display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border-soft);}
   .data-row:last-child{border-bottom:none;}
   .data-key{font-size:12.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;}
@@ -176,11 +167,6 @@
   <p class="top-eyebrow">Guía de comunidad</p>
   <h1>Atlas Galáctico</h1>
   <p class="lede" id="lede">Mapa 3D interactivo de los sistemas estelares de la comunidad.</p>
-
-  <div class="panel">
-    <div class="panel-label">Sistemas Registrados</div>
-    <div class="colony-selector" id="colonySelector"></div>
-  </div>
 
   <div class="panel" style="padding:0; overflow:hidden;">
     <div class="galaxy-map" id="galaxyMap">
@@ -296,7 +282,6 @@
 
   let scene, camera, renderer, controls;
   let colonyMarkers = [];
-  let depthLines = [];
   let galaxyCenterMarker;
   let raycaster, mouse;
   let hoveredMarker = null;
@@ -411,9 +396,16 @@
     galaxyCenterMarker.add(labelSprite);
   }
 
-  function createEclipticGrid(){
-    const gridSize = 2500;
-    const divisions = 20;
+  let eclipticGrid = null;
+
+  function createEclipticGrid(maxExtent){
+    if(eclipticGrid){
+      scene.remove(eclipticGrid);
+      eclipticGrid = null;
+    }
+    const extent = maxExtent || 2500;
+    const gridSize = extent * 2 + 200;
+    const divisions = Math.max(20, Math.ceil(gridSize / 150));
     const step = gridSize / divisions;
     const halfGrid = gridSize / 2;
     const positions = [];
@@ -424,8 +416,9 @@
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({ color: 0x232842, transparent: true, opacity: 0.3 });
-    scene.add(new THREE.LineSegments(geo, mat));
+    const mat = new THREE.LineBasicMaterial({ color: 0x232842, transparent: true, opacity: 0.25 });
+    eclipticGrid = new THREE.LineSegments(geo, mat);
+    scene.add(eclipticGrid);
   }
 
   function colonyColor(idx){
@@ -440,29 +433,51 @@
     if(!cart) return null;
 
     const group = new THREE.Group();
-    group.userData = { colonyId: colony.id, colony };
+    group.userData = { colonyId: colony.id, colony, cart };
 
-    const sphereGeo = new THREE.SphereGeometry(8, 16, 16);
-    const sphereMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx) });
+    const col = colonyColor(colorIdx);
+
+    const sphereGeo = new THREE.SphereGeometry(10, 24, 24);
+    const sphereMat = new THREE.MeshBasicMaterial({ color: col });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     sphere.position.set(cart.x, cart.y, cart.z);
     group.add(sphere);
 
-    const glowGeo = new THREE.SphereGeometry(14, 12, 12);
-    const glowMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.15 });
+    const glowGeo = new THREE.SphereGeometry(20, 16, 16);
+    const glowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.2 });
     const glow = new THREE.Mesh(glowGeo, glowMat);
     glow.position.copy(sphere.position);
     group.add(glow);
+
+    const outerGlowGeo = new THREE.SphereGeometry(35, 12, 12);
+    const outerGlowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.06 });
+    const outerGlow = new THREE.Mesh(outerGlowGeo, outerGlowMat);
+    outerGlow.position.copy(sphere.position);
+    group.add(outerGlow);
+
+    const ringGeo = new THREE.RingGeometry(18, 22, 48);
+    const ringMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.copy(sphere.position);
+    group.add(ring);
+
+    const ring2Geo = new THREE.RingGeometry(28, 30, 48);
+    const ring2Mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    ring2.rotation.x = -Math.PI / 2;
+    ring2.position.copy(sphere.position);
+    group.add(ring2);
 
     const points = [];
     points.push(new THREE.Vector3(cart.x, 0, cart.z));
     points.push(new THREE.Vector3(cart.x, cart.y, cart.z));
     const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.35 });
+    const lineMat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.3 });
     group.add(new THREE.Line(lineGeo, lineMat));
 
-    const discGeo = new THREE.RingGeometry(3, 5, 16);
-    const discMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+    const discGeo = new THREE.RingGeometry(4, 6, 16);
+    const discMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
     const disc = new THREE.Mesh(discGeo, discMat);
     disc.rotation.x = -Math.PI / 2;
     disc.position.set(cart.x, 0, cart.z);
@@ -472,20 +487,22 @@
     labelCanvas.width = 512; labelCanvas.height = 64;
     const lctx = labelCanvas.getContext('2d');
     lctx.clearRect(0, 0, 512, 64);
-    lctx.fillStyle = '#' + colonyColor(colorIdx).toString(16).padStart(6, '0');
+    lctx.fillStyle = '#' + col.toString(16).padStart(6, '0');
     lctx.font = 'bold 28px monospace';
     lctx.textAlign = 'center';
     lctx.fillText(colony.shortName || colony.name, 256, 42);
     const labelTexture = new THREE.CanvasTexture(labelCanvas);
-    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.85 });
+    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.9 });
     const labelSprite = new THREE.Sprite(labelMat);
     labelSprite.scale.set(60, 8, 1);
-    labelSprite.position.set(cart.x, cart.y + 20, cart.z);
+    labelSprite.position.set(cart.x, cart.y + 24, cart.z);
     group.add(labelSprite);
 
     group.userData.sphere = sphere;
     group.userData.glow = glow;
-    group.userData.cart = cart;
+    group.userData.outerGlow = outerGlow;
+    group.userData.ring = ring;
+    group.userData.ring2 = ring2;
 
     return group;
   }
@@ -493,16 +510,22 @@
   function rebuild3DMap(){
     colonyMarkers.forEach(m => scene.remove(m));
     colonyMarkers = [];
-    depthLines.forEach(l => scene.remove(l));
-    depthLines = [];
 
+    let maxExtent = 500;
     ALL_COLONIES.forEach((c, i) => {
       const marker = createColonyMarker(c, i);
       if(marker){
         scene.add(marker);
         colonyMarkers.push(marker);
+        const cart = marker.userData.cart;
+        if(cart){
+          const ext = Math.max(Math.abs(cart.x), Math.abs(cart.z));
+          if(ext > maxExtent) maxExtent = ext;
+        }
       }
     });
+
+    createEclipticGrid(maxExtent);
 
     document.getElementById('legendColonyCount').textContent = `${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''}`;
 
@@ -561,10 +584,6 @@
     if(hoveredMarker && hoveredMarker.userData.colonyId){
       const colony = hoveredMarker.userData.colony;
       selectColony(colony);
-
-      document.querySelectorAll('.colony-sel-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.id === colony.id);
-      });
     }
   }
 
@@ -580,41 +599,52 @@
     requestAnimationFrame(animate);
     controls.update();
 
+    const t = (time || 0) * 0.001;
+
     colonyMarkers.forEach((m, i) => {
-      const t = (time || 0) * 0.001;
-      if(m.userData.sphere){
-        const pulse = Math.sin(t * 2 + i * 0.7) * 0.1 + 0.15;
+      const offset = i * 1.3;
+      const phase = t + offset;
+
+      if(m.userData.glow){
+        const pulse = Math.sin(phase * 2.5) * 0.15 + 0.25;
         m.userData.glow.material.opacity = pulse;
-        m.userData.glow.scale.setScalar(1 + Math.sin(t * 1.5 + i) * 0.1);
+        m.userData.glow.scale.setScalar(1 + Math.sin(phase * 2) * 0.25);
+      }
+
+      if(m.userData.outerGlow){
+        const outerPulse = Math.sin(phase * 1.2) * 0.04 + 0.08;
+        m.userData.outerGlow.material.opacity = outerPulse;
+        m.userData.outerGlow.scale.setScalar(1 + Math.sin(phase * 0.8) * 0.15);
+      }
+
+      if(m.userData.ring){
+        const ringPulse = Math.sin(phase * 3) * 0.12 + 0.2;
+        m.userData.ring.material.opacity = ringPulse;
+        const ringScale = 1 + Math.sin(phase * 1.8) * 0.08;
+        m.userData.ring.scale.set(ringScale, ringScale, 1);
+      }
+
+      if(m.userData.ring2){
+        const ring2Pulse = Math.sin(phase * 1.5 + 1) * 0.06 + 0.12;
+        m.userData.ring2.material.opacity = ring2Pulse;
+        const ring2Scale = 1 + Math.sin(phase * 1.2 + 0.5) * 0.06;
+        m.userData.ring2.scale.set(ring2Scale, ring2Scale, 1);
+      }
+
+      if(m.userData.sphere && m === (hoveredMarker || selectedMarker)){
+        m.userData.sphere.scale.setScalar(1.3);
+      } else if(m.userData.sphere){
+        m.userData.sphere.scale.setScalar(1 + Math.sin(phase * 4) * 0.08);
       }
     });
 
     if(galaxyCenterMarker){
-      galaxyCenterMarker.rotation.y += 0.002;
+      galaxyCenterMarker.rotation.y += 0.003;
+      const corePulse = Math.sin(t * 1.5) * 0.05 + 0.6;
+      galaxyCenterMarker.material.opacity = corePulse;
     }
 
     renderer.render(scene, camera);
-  }
-
-  function renderColonySelector(){
-    const sel = document.getElementById('colonySelector');
-    sel.innerHTML = ALL_COLONIES.map(c => `
-      <button class="colony-sel-btn ${c.id === (activeColony && activeColony.id) ? 'active' : ''}" data-id="${escapeHtml(c.id)}">
-        ${escapeHtml(c.shortName || c.name)}
-        ${c.tag ? '<span style="color:var(--text-dim);margin-left:4px;">' + escapeHtml(c.tag) + '</span>' : ''}
-      </button>
-    `).join('');
-
-    sel.querySelectorAll('.colony-sel-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const colony = ALL_COLONIES.find(c => c.id === btn.dataset.id);
-        if(colony){
-          sel.querySelectorAll('.colony-sel-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          selectColony(colony);
-        }
-      });
-    });
   }
 
   function selectColony(colony){
@@ -767,7 +797,6 @@
     initThreeJS();
 
     ALL_COLONIES = await loadAllColonies();
-    renderColonySelector();
     rebuild3DMap();
 
     activeColony = ALL_COLONIES[0];
