@@ -107,3 +107,15 @@ export function formatHexAddress(signature) {
   var decoded = decodePortalCode(signature);
   return decoded ? decoded.hexAddress : null;
 }
+
+export class GlyphDecoder {
+  decode(hexString) {
+    if (!hexString || hexString.length !== 24) return null;
+    const signature = [];
+    for (let i = 0; i < 12; i++) {
+      const byte = parseInt(hexString.substr(i * 2, 2), 16);
+      signature.push(byte + 1);
+    }
+    return glyphsToCartesian(signature);
+  }
+}

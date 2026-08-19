@@ -3,600 +3,989 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hazte Ciudadano · MORI-01</title>
+<title>Hazte Ciudadano · NMS Colony</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg-deep:#07080d; --bg-panel:#0c0f1c; --bg-panel-2:#10142a;
-    --border-soft:#232842; --border-bright:#3a4270;
-    --text-primary:#e8eaf2; --text-muted:#8b93b3; --text-dim:#565d80;
-    --accent-cyan:#06b6d4; --accent-gold:#f5b849; --accent-violet:#7c6cff;
-    --accent-red:#e8546b;
-    --font-display:"Eurostile","Michroma","Orbitron",system-ui,sans-serif;
-    --font-body:"Titillium Web","Segoe UI",system-ui,sans-serif;
-    --font-mono:"JetBrains Mono","Fira Code",ui-monospace,monospace;
+  :root {
+    --primary: #00e5ff;
+    --primary-dim: rgba(0, 229, 255, 0.15);
+    --accent: #f5b849;
+    --danger: #ff5252;
+    --success: #4caf50;
+    --bg-dark: #0a0e1a;
+    --bg-card: #141929;
+    --bg-input: #1e2438;
+    --border: #2a3050;
+    --text: #e0e6f0;
+    --text-muted: #7a85a0;
+    --text-dim: #4a5270;
+    --font-display: 'Orbitron', monospace;
+    --font-body: 'Inter', sans-serif;
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg-deep); color:var(--text-primary); font-family:var(--font-body); line-height:1.5; min-height:100vh;}
-  @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important; transition-duration:.01ms !important;}}
-  a{color:inherit;}
-  :focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
-  input,select,button{font-family:inherit; font-size:14px;}
-
-  .wrap{max-width:920px; margin:0 auto; padding:48px 24px 80px;}
-
-  .top-eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.2em; color:var(--accent-gold); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
-  .top-eyebrow::before{content:""; width:20px; height:1px; background:var(--accent-gold); opacity:.6;}
-  h1{font-family:var(--font-display); font-weight:400; font-size:clamp(30px,5vw,44px); letter-spacing:.03em; margin-bottom:12px;}
-  .lede{color:var(--text-muted); font-size:15px; max-width:600px; margin-bottom:36px;}
-
-  .layout{display:grid; grid-template-columns:1fr; gap:24px;}
-
-  .panel{background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px; padding:28px;}
-  .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
-  .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
-
-  .auth-box{
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
-    padding:18px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    min-height: 100vh;
   }
-  .auth-status{font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:10px;}
-  .auth-avatar{width:32px; height:32px; border-radius:50%; border:1px solid var(--border-bright); flex-shrink:0;}
-  .auth-status b{color:var(--text-primary);}
-  .google-btn{
-    display:inline-flex; align-items:center; gap:10px; background:#fff; color:#1f1f1f;
-    font-weight:600; font-size:13.5px; padding:10px 18px; border-radius:4px; border:none; cursor:pointer;
-    transition:background .2s;
-  }
-  .google-btn:hover{background:#f1f1f1;}
-  .google-btn svg{width:16px; height:16px;}
-  .signout-btn{
-    font-family:var(--font-mono); font-size:12px; color:var(--text-muted); background:none; border:1px solid var(--border-bright);
-    border-radius:4px; padding:8px 14px; cursor:pointer;
-  }
-  .signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
-  .mission{display:flex; align-items:flex-start; gap:14px; padding:14px 0; border-bottom:1px solid var(--border-soft);}
-  .mission:last-child{border-bottom:none;}
-  .mission input[type=checkbox]{
-    appearance:none; width:20px; height:20px; border:1px solid var(--border-bright); border-radius:4px;
-    margin-top:2px; flex-shrink:0; cursor:pointer; position:relative; background:var(--bg-panel-2);
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 14, 26, 0.9);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
-  .mission input[type=checkbox]:checked{background:var(--accent-cyan); border-color:var(--accent-cyan);}
-  .mission input[type=checkbox]:checked::after{content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--bg-deep); font-size:13px; font-weight:700;}
-  .mission label{cursor:pointer; flex:1;}
-  .mission b{display:block; font-size:14.5px; margin-bottom:2px;}
-  .mission span{font-size:12.5px; color:var(--text-muted);}
-  .mission a.inline-link{color:var(--accent-cyan); text-decoration:underline;}
+  .top-bar a {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .top-bar a:hover { color: var(--primary); }
+  .top-bar-title {
+    font-family: var(--font-display);
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--primary);
+  }
 
-  .field{margin-bottom:18px;}
-  .field label{display:block; font-size:12px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);}
-  .field input, .field select{
-    width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary);
-    padding:11px 13px; border-radius:4px; transition:border-color .2s;
+  .auth-section {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
   }
-  .field input:focus, .field select:focus{border-color:var(--accent-cyan);}
-  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-  .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
+  .auth-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 24px;
+    background: #fff;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    justify-content: center;
+  }
+  .auth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(255,255,255,0.15);
+  }
+  .auth-btn svg { width: 20px; height: 20px; }
+  .auth-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .auth-info span { font-size: 14px; color: var(--text-muted); }
+  .auth-info b { color: var(--primary); }
+  .signout-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font-body);
+  }
+  .signout-btn:hover { border-color: var(--danger); color: var(--danger); }
 
-  .planet-picker{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;}
-  @media(min-width:480px){ .planet-picker{grid-template-columns:repeat(3,1fr);} }
-  .planet-choice{
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
-    padding:10px; cursor:pointer; text-align:center; transition:border-color .15s, transform .15s;
+  .main-content {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
   }
-  .planet-choice:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
-  .planet-choice.selected{border-color:var(--accent-gold); background:rgba(245,184,73,.08);}
-  .planet-choice .pimg{
-    width:100%; aspect-ratio:1; border-radius:5px; overflow:hidden; margin-bottom:8px;
-    background:var(--bg-panel); border:1px solid var(--border-soft);
-  }
-  .planet-choice .pimg img{width:100%; height:100%; object-fit:cover; display:block;}
-  .planet-choice .pname{font-size:12.5px; font-weight:600;}
-  .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
-  .file-btn{
-    font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
-    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-primary);
-    display:inline-flex; align-items:center; gap:8px;
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
   }
-  .file-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
-  .photo-preview{
-    width:110px; height:110px; border-radius:6px; overflow:hidden; margin-top:10px;
-    background:var(--bg-panel-2); border:1px solid var(--border-soft); display:none;
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--primary);
+    margin-bottom: 8px;
   }
-  .photo-preview img{width:100%; height:100%; object-fit:cover; display:block;}
-  .photo-preview.show{display:block;}
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
 
-  .btn{font-weight:600; letter-spacing:.03em; padding:13px 24px; border-radius:4px; border:1px solid transparent; cursor:pointer; transition:all .2s;}
-  .btn-primary{background:var(--accent-cyan); color:var(--bg-deep); width:100%; font-size:15px;}
-  .btn-primary:hover:not(:disabled){background:#31cbe6;}
-  .btn-primary:disabled{opacity:.35; cursor:not-allowed;}
-  .btn-ghost{
-    background:transparent; border-color:var(--border-bright); color:var(--text-primary);
-    width:100%; font-size:14px; text-align:center; display:block; text-decoration:none; box-sizing:border-box;
+  .form-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
   }
-  .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
-
-  .alert{padding:13px 16px; border-radius:5px; font-size:13.5px; margin-bottom:18px; display:none;}
-  .alert.show{display:block;}
-  .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
-  .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
-
-  .progress-track{height:4px; background:var(--border-soft); border-radius:2px; overflow:hidden; margin-bottom:24px;}
-  .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
-
-  .registry-group{padding:16px 0; border-bottom:1px solid var(--border-soft);}
-  .registry-group:last-child{border-bottom:none;}
-  .registry-group-name{
-    display:flex; align-items:center; gap:10px; font-weight:600; font-size:14.5px; margin-bottom:10px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  .form-panel h2 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
   }
-  .base-count{
-    font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border-radius:20px;
-    background:rgba(124,108,255,.12); border:1px solid rgba(124,108,255,.4); color:var(--accent-violet);
-    white-space:nowrap; flex-shrink:0;
+  .form-panel .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
   }
-  .registry-row{padding:8px 0 8px 14px; border-left:2px solid var(--border-soft); font-size:13.5px; margin-bottom:6px;}
-  .registry-row:last-child{margin-bottom:0;}
-  .registry-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:5px;}
-  .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
-  .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); display:block;}
-  .status-pill{
-    font-family:var(--font-mono); font-size:10.5px; padding:4px 10px; border-radius:20px; flex-shrink:0;
-    background:rgba(245,184,73,.12); border:1px solid rgba(245,184,73,.4); color:var(--accent-gold); white-space:nowrap;
-  }
-  .status-pill.citizen{background:rgba(61,220,151,.12); border-color:rgba(61,220,151,.4); color:#3ddc97;}
-  .status-pill.rejected{background:rgba(232,84,107,.1); border-color:rgba(232,84,107,.4); color:#ff8fa0;}
-  .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:24px 0; font-family:var(--font-mono);}
-  .disclaimer{font-size:12px; color:var(--text-dim); margin-top:16px; line-height:1.6;}
 
-  .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:28px;}
-  .back-link:hover{color:var(--accent-cyan);}
-
-  @media(min-width:760px){
-    .layout{grid-template-columns:1.1fr .9fr;}
-    .field-row{grid-template-columns:1fr 1fr;}
+  .field-group {
+    margin-bottom: 18px;
   }
+  .field-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .field-group input,
+  .field-group select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-body);
+  }
+  .field-group input:focus,
+  .field-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-dim);
+  }
+  .field-group input::placeholder { color: var(--text-dim); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 500px) {
+    .field-row { grid-template-columns: 1fr; }
+  }
+
+  .coord-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .coord-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-family: monospace;
+  }
+
+  .portal-glyphs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .portal-glyphs input {
+    width: 42px;
+    height: 42px;
+    text-align: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--primary);
+    font-size: 16px;
+    font-family: monospace;
+  }
+  .portal-glyphs input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .portal-glyphs input::placeholder { color: var(--text-dim); font-size: 12px; }
+
+  .glifos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(0,229,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-bottom: 8px;
+    z-index: 10;
+    display: none;
+  }
+  .glifos-grid.visible { display: grid; }
+  .glifos-grid span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+    background: var(--bg-input);
+  }
+  .glifos-grid span:hover {
+    background: var(--primary-dim);
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid var(--border);
+  }
+  .checkbox-group:hover {
+    background: rgba(0,229,255,0.08);
+  }
+  .checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+  }
+  .checkbox-group .cb-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .checkbox-group .cb-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+  }
+  .submit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .msg-box {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    display: none;
+  }
+  .msg-box.show { display: block; }
+  .msg-box.error {
+    background: rgba(255, 82, 82, 0.12);
+    border: 1px solid rgba(255, 82, 82, 0.4);
+    color: #ff8a80;
+  }
+  .msg-box.success {
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: var(--primary);
+  }
+
+  .view-card-btn {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    margin-top: 12px;
+    transition: border-color 0.15s;
+  }
+  .view-card-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  .file-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .file-upload-area:hover {
+    border-color: var(--primary);
+    background: rgba(0, 229, 255, 0.03);
+  }
+  .file-upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .file-upload-area .upload-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+  }
+  .file-upload-area .upload-text {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .file-upload-area .upload-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .photo-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 12px;
+    display: none;
+  }
+  .photo-preview.show { display: block; }
+
+  .registry-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .registry-section h2 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .registry-section .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+
+  .registry-group {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .registry-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .registry-group-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .registry-group-title .base-count {
+    font-size: 11px;
+    background: rgba(0, 229, 255, 0.12);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .registry-entry {
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--text-dim);
+  }
+  .registry-entry.status-citizen { border-left-color: var(--success); }
+  .registry-entry.status-pending { border-left-color: var(--accent); }
+  .registry-entry.status-rejected { border-left-color: var(--danger); }
+
+  .entry-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .entry-id {
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .entry-status {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .entry-status.pendiente {
+    background: rgba(245, 184, 73, 0.15);
+    color: var(--accent);
+  }
+  .entry-status.ciudadano {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--success);
+  }
+  .entry-status.rechazada {
+    background: rgba(255, 82, 82, 0.12);
+    color: var(--danger);
+  }
+
+  .entry-details {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .entry-details span {
+    margin-right: 12px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .progress-bar-container {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .glyph-assistant-toggle {
+    font-size: 12px;
+    color: var(--primary);
+    cursor: pointer;
+    margin-top: 6px;
+    display: inline-block;
+  }
+  .glyph-assistant-toggle:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <a class="back-link" href="./index.html" id="backLink">← Volver</a>
+<div class="top-bar">
+  <a href="./index.html">Volver a Inicio</a>
+  <div class="top-bar-title">REGISTRO DE CIUDADANÍA</div>
+</div>
 
-  <p class="top-eyebrow">Registro de ciudadanía</p>
-  <h1>Hazte Ciudadano</h1>
-  <p class="lede">Inicia sesión, completa las cinco misiones en el juego y márcalas aquí. Al enviar, tu solicitud entra a la lista pública en espera de la decisión del Arcade. Puedes registrar más de una base con tu mismo correo — aparecerán juntas en el listado.</p>
+<div id="authSection" class="auth-section">
+  <button class="auth-btn" id="googleLoginBtn">
+    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+    Iniciar sesión con Google
+  </button>
+</div>
 
-  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="main-content">
+  <div class="page-header">
+    <h1 id="pageTitle">HAZTE CIUDADANO</h1>
+    <p>Selecciona tu colonia, elige tu planeta, completa las 5 misiones y envía tu solicitud de ciudadanía. Tu solicitud quedará pendiente de aprobación por el Arcade.</p>
+  </div>
 
-  <div class="layout">
+  <div class="form-panel">
+    <h2>CHECKLIST DE MISIONES</h2>
+    <p class="subtitle">Debes completar las 5 misiones para enviar tu solicitud.</p>
 
-    <!-- FORM -->
-    <div class="panel">
-
-      <div class="auth-box" id="authBox">
-        <div class="auth-status">Debes iniciar sesión con Google para enviar tu solicitud.</div>
-        <button class="google-btn" id="googleBtn">
-          <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-          Iniciar sesión con Google
-        </button>
-      </div>
-
-      <h2>Checklist de misiones</h2>
-      <p class="sub">Sistema de honor: márcalas cuando ya las hayas completado en el juego.</p>
-
-      <div class="mission">
-        <input type="checkbox" id="m1">
-        <label for="m1"><b>1. Entra al Discord del canal</b><span>Es requisito para todo lo demás. <a class="inline-link" href="https://discord.gg/EhDc6ydhMq" target="_blank" rel="noopener">discord.gg/EhDc6ydhMq</a></span></label>
-      </div>
-      <div class="mission">
-        <input type="checkbox" id="m2">
-        <label for="m2"><b>2. Elige uno de los 6 planetas</b><span>Lo seleccionas abajo, en el formulario.</span></label>
-      </div>
-      <div class="mission">
-        <input type="checkbox" id="m3">
-        <label for="m3"><b>3. Reporta la ubicación de tu base</b><span>Coordenadas exactas, abajo.</span></label>
-      </div>
-      <div class="mission">
-        <input type="checkbox" id="m4">
-        <label for="m4"><b>4. Construye tu base</b><span>En el planeta y punto que registraste.</span></label>
-      </div>
-      <div class="mission">
-        <input type="checkbox" id="m5">
-        <label for="m5"><b>5. Publica la base en la red</b><span>Desde la computadora de base, en el juego.</span></label>
-      </div>
-
-      <div style="height:24px"></div>
-
-      <h2>Datos del asentamiento</h2>
-      <p class="sub">Se validan contra la base de datos para evitar choques con otro ciudadano.</p>
-
-      <div id="alertBox" class="alert"></div>
-
-      <div class="field">
-        <label for="playerName">Nombre de jugador</label>
-        <input type="text" id="playerName" placeholder="Tu nombre en el juego">
-      </div>
-
-      <div class="field">
-        <label>Planeta elegido</label>
-        <div class="planet-picker" id="planetPicker"></div>
-        <select id="planetSelect" style="display:none"></select>
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="lat">Latitud</label>
-          <input type="text" id="lat" placeholder="+14.32">
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+      <label class="checkbox-group">
+        <input type="checkbox" id="mission1">
+        <div>
+          <span class="cb-label">1. Entra al Discord</span>
+          <span class="cb-sub">Únete al servidor oficial del canal</span>
         </div>
-        <div class="field">
-          <label for="lon">Longitud</label>
-          <input type="text" id="lon" placeholder="-21.96">
+      </label>
+      <label class="checkbox-group">
+        <input type="checkbox" id="mission2">
+        <div>
+          <span class="cb-label">2. Elige colonia y planeta</span>
+          <span class="cb-sub">Selecciona dónde construirás tu base</span>
         </div>
-      </div>
-      <p class="hint">Formato del juego: signo, grados, dos decimales. Ej: +14.32, -21.96</p>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="professionSelect">Profesión (opcional)</label>
-          <select id="professionSelect">
-            <option value="">Selecciona…</option>
-            <option>Arquitecto</option>
-            <option>Explorador</option>
-            <option>Guardián</option>
-            <option>Comerciante</option>
-            <option>Científico</option>
-            <option>Cazarrecompensas</option>
-            <option>Consejo del Arcade</option>
-            <option>Guardia de Sentinelas</option>
-            <option>Cronista de Mori-01</option>
-            <option>Ministerio de Comercio y Recursos</option>
-            <option>Ministerio de Ciencia y Tecnología</option>
-            <option>Ministerio de Comunicaciones</option>
-            <option>Ministerio de Infraestructura y Asentamientos</option>
-            <option>Ministerio de Cultura</option>
-            <option>Ministerio de Salud</option>
-            <option>Ministerio de Trabajo</option>
-            <option>Ministerio de Exploración Estelar</option>
-            <option>Ministerio de Arqueología Xenológica</option>
-            <option>Ministerio de Cartografía Galáctica</option>
-            <option>Ministerio de Xenobiología</option>
-            <option>Ministerio de Ingeniería de Naves</option>
-            <option>Ministerio de Relaciones Interraciales</option>
-            <option>Ministerio de Minería y Extracción</option>
-          </select>
+      </label>
+      <label class="checkbox-group">
+        <input type="checkbox" id="mission3">
+        <div>
+          <span class="cb-label">3. Reporta la ubicación</span>
+          <span class="cb-sub">Ingresa coordenadas exactas o usa el selector de glifos</span>
         </div>
-        <div class="field">
-          <label for="platformSelect">Plataforma (opcional)</label>
-          <select id="platformSelect">
-            <option value="">Selecciona…</option>
-            <option>PC</option>
-            <option>PlayStation</option>
-            <option>Xbox</option>
-            <option>Switch</option>
-          </select>
+      </label>
+      <label class="checkbox-group">
+        <input type="checkbox" id="mission4">
+        <div>
+          <span class="cb-label">4. Construye tu base</span>
+          <span class="cb-sub">Construye en el planeta y punto que registraste</span>
         </div>
-      </div>
-      <div class="field">
-        <label for="friendCode">Código de amigo (opcional)</label>
-        <input type="text" id="friendCode" placeholder="0000-0000-00000">
-      </div>
-      <p class="hint">Estos tres se usan para autocompletar tu Tarjeta de Ciudadano más adelante.</p>
-
-      <div class="field">
-        <label>Foto de tu base (opcional)</label>
-        <label class="file-btn" for="basePhotoInput">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
-          Elegir imagen
-        </label>
-        <input type="file" id="basePhotoInput" accept="image/*" style="display:none">
-        <div class="photo-preview" id="photoPreview"><img id="photoPreviewImg" alt=""></div>
-        <p class="hint">JPG o PNG, máximo 5MB. Queda pendiente de aprobación del Arcade antes de salir en la galería pública — puedes agregarla o cambiarla luego desde tu Tarjeta de Ciudadano.</p>
-      </div>
-
-      <div style="height:10px"></div>
-      <button class="btn btn-primary" id="submitBtn" disabled>Ser Ciudadano</button>
-      <a class="btn btn-ghost" href="./mori01-id-card.html" style="margin-top:10px;">Ver mi Tarjeta de Ciudadano</a>
+      </label>
+      <label class="checkbox-group">
+        <input type="checkbox" id="mission5">
+        <div>
+          <span class="cb-label">5. Publica tu base</span>
+          <span class="cb-sub">Comparte desde la computadora de base en el juego</span>
+        </div>
+      </label>
     </div>
 
-    <!-- REGISTRY -->
-    <div class="panel">
-      <h2 id="registryTitle">Ciudadanía</h2>
-      <p class="sub">Prospectos y ciudadanos, agrupados por correo de Google. Cada uno puede tener varias bases.</p>
-      <div id="registryList"></div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
     </div>
 
+    <div id="msgBox" class="msg-box"></div>
+
+    <div class="field-group">
+      <label>Nombre de Jugador *</label>
+      <input type="text" id="playerName" placeholder="Tu nombre exacto en el juego">
+    </div>
+
+    <div class="field-group">
+      <label>Colonia *</label>
+      <select id="colonySelect">
+        <option value="">Cargando colonias...</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>Planeta *</label>
+      <select id="planetSelect">
+        <option value="">Primero selecciona una colonia</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label style="display:flex; align-items:center; justify-content:space-between;">
+        Coordenadas (Portal Glyphs) *
+        <span class="glyph-assistant-toggle" id="toggleGlyphs">Usar selector de glifos</span>
+      </label>
+      <div class="coord-row">
+        <div>
+          <input type="text" id="coordLat" placeholder="+14.32">
+          <div class="coord-label">Latitud (+ / -)</div>
+        </div>
+        <div>
+          <input type="text" id="coordLon" placeholder="-21.96">
+          <div class="coord-label">Longitud (+ / -)</div>
+        </div>
+      </div>
+
+      <div id="glyphAssistant" style="position:relative;">
+        <div class="portal-glyphs" id="glyphInputs">
+          <input type="text" maxlength="1" data-idx="0" placeholder="0">
+          <input type="text" maxlength="1" data-idx="1" placeholder="1">
+          <input type="text" maxlength="1" data-idx="2" placeholder="2">
+          <input type="text" maxlength="1" data-idx="3" placeholder="3">
+          <input type="text" maxlength="1" data-idx="4" placeholder="4">
+          <input type="text" maxlength="1" data-idx="5" placeholder="5">
+          <input type="text" maxlength="1" data-idx="6" placeholder="6">
+          <input type="text" maxlength="1" data-idx="7" placeholder="7">
+          <input type="text" maxlength="1" data-idx="8" placeholder="8">
+          <input type="text" maxlength="1" data-idx="9" placeholder="9">
+          <input type="text" maxlength="1" data-idx="10" placeholder="A">
+          <input type="text" maxlength="1" data-idx="11" placeholder="B">
+        </div>
+        <div class="glifos-grid" id="glifosGrid"></div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Profesión (opcional)</label>
+        <select id="profession">
+          <option value="">Seleccionar...</option>
+          <option>Explorador</option>
+          <option>Constructor</option>
+          <option>Comerciante</option>
+          <option>Agricultor</option>
+          <option>Mecánico de Naves</option>
+          <option>Minero</option>
+          <option>Guerrero</option>
+          <option>Científico</option>
+          <option>Artesano</option>
+          <option>Smuggler</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Plataforma (opcional)</label>
+        <select id="platform">
+          <option value="">Seleccionar...</option>
+          <option>PC (Steam)</option>
+          <option>PC (GOG)</option>
+          <option>PlayStation</option>
+          <option>Xbox</option>
+          <option>Nintendo Switch</option>
+          <option>Game Pass</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Código de Amigo (opcional)</label>
+      <input type="text" id="friendCode" placeholder="Ej: XXXX-XXXX-XXXXX">
+    </div>
+
+    <div class="field-group">
+      <label>Foto de la Base (opcional)</label>
+      <div class="file-upload-area" id="uploadArea">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text">Haz clic o arrastra una imagen aquí</div>
+        <div class="upload-hint">JPG o PNG, máximo 5MB</div>
+        <input type="file" id="basePhoto" accept="image/*">
+      </div>
+      <img class="photo-preview" id="photoPreview">
+    </div>
+
+    <button class="submit-btn" id="submitBtn" disabled>ENVIAR SOLICITUD</button>
+    <a class="view-card-btn" href="./mori01-id-card.html">Ver mi Tarjeta de Ciudadano →</a>
+  </div>
+
+  <div class="registry-section">
+    <h2>REGISTRO DE CIUDADANÍA</h2>
+    <p class="subtitle">Todos los ciudadanos activos de todas las colonias</p>
+    <div id="registryList">
+      <div class="empty-state">Cargando registro...</div>
+    </div>
   </div>
 </div>
 
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
-  import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
+  import { loadAllColonies, planetImg } from './colonies-data.js';
+  import { GlyphDecoder } from './nms-glyphs.js';
+
   import {
-    collection, doc, addDoc, updateDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
+    collection, addDoc, query, orderBy, onSnapshot, where, getDocs, updateDoc, doc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    ref, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
-  document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
+  const citizensRef = collection(db, 'citizens');
 
-  const citizensCol = collection(db, 'citizens');
-  const MAX_FILE_BYTES = 5 * 1024 * 1024;
+  let currentUser = null;
+  let allColonies = [];
+  let selectedColonyId = null;
+  let selectedPlanetIdx = null;
+  let uploadedFile = null;
 
-  const PASOS_FACTOR = 16.02747435;
-  const MIN_DISTANCE_PASOS = 500;
-  const MAX_DELTA_DEG = 2;
+  const authSection = document.getElementById('authSection');
+  const submitBtn = document.getElementById('submitBtn');
+  const msgBox = document.getElementById('msgBox');
+  const progressBar = document.getElementById('progressBar');
 
-  function distanciaPasos(lat1, lon1, lat2, lon2){
-    const diffLat = lat2 - lat1;
-    const diffLon = lon2 - lon1;
-    if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
-      return Infinity;
-    }
-    const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
-    return distCoord * PASOS_FACTOR;
+  const checkboxes = [
+    document.getElementById('mission1'),
+    document.getElementById('mission2'),
+    document.getElementById('mission3'),
+    document.getElementById('mission4'),
+    document.getElementById('mission5'),
+  ];
+
+  function updateProgress() {
+    const done = checkboxes.filter(c => c.checked).length;
+    progressBar.style.width = ((done / 5) * 100) + '%';
+    submitBtn.disabled = done < 5 || !currentUser;
   }
 
-  const authBox = document.getElementById('authBox');
-  let currentUser = null;
+  checkboxes.forEach(c => c.addEventListener('change', updateProgress));
 
-  function renderAuthBox(){
-    if(currentUser){
-      authBox.innerHTML = `
-        <div class="auth-status">
-          <img class="auth-avatar" src="${currentUser.photoURL || ''}" alt="">
-          Sesión iniciada como <b>${escapeHtml(currentUser.displayName || currentUser.email || 'jugador')}</b>
+  function renderAuthUI() {
+    if (currentUser) {
+      authSection.innerHTML = `
+        <div class="auth-info">
+          <span>Sesión activa: <b>${currentUser.displayName || currentUser.email}</b></span>
+          <button class="signout-btn" id="signOutBtn">Cerrar sesión</button>
         </div>
-        <button class="signout-btn" id="signoutBtn">Cerrar sesión</button>
       `;
-      document.getElementById('signoutBtn').addEventListener('click', ()=> signOutPlayer());
-    }else{
-      authBox.innerHTML = `
-        <div class="auth-status">Debes iniciar sesión con Google para enviar tu solicitud.</div>
-        <button class="google-btn" id="googleBtn">
+      document.getElementById('signOutBtn').addEventListener('click', () => signOutPlayer());
+    } else {
+      authSection.innerHTML = `
+        <button class="auth-btn" id="googleLoginBtn">
           <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.3 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.4 0-9.9-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.4l6.5 5.5C40.7 37.5 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
           Iniciar sesión con Google
         </button>
       `;
-      document.getElementById('googleBtn').addEventListener('click', async ()=>{
-        try{ await signInWithGoogle(); }
-        catch(e){ showAlert('No se pudo iniciar sesión con Google.', 'error'); }
+      document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+        try { await signInWithGoogle(); }
+        catch (e) { showMsg('Error al iniciar sesión', 'error'); }
       });
     }
   }
 
-  onAuthStateChanged(auth, user=>{
+  onAuthStateChanged(auth, user => {
     currentUser = user;
-    renderAuthBox();
+    renderAuthUI();
     updateProgress();
-    if(user) redirectIfAlreadyCitizen(user.uid);
   });
 
-  async function redirectIfAlreadyCitizen(uid){
-    try{
-      const q = query(citizensCol, where('ownerUid', '==', uid));
-      const snap = await getDocs(q);
-      if(!snap.empty){
-        window.location.href = './mori01-mi-ciudadania.html';
-      }
-    }catch(e){}
+  async function loadColonies() {
+    allColonies = await loadAllColonies();
+    const sel = document.getElementById('colonySelect');
+    sel.innerHTML = '<option value="">Seleccionar colonia...</option>';
+    allColonies.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
   }
 
-  async function addStorageUsage(bytes){
-    const usageRef = doc(db, 'meta', 'storageUsage');
-    try{
-      await runTransaction(db, async (tx)=>{
-        const snap = await tx.get(usageRef);
-        const current = snap.exists() ? (snap.data().bytesUsed || 0) : 0;
-        tx.update(usageRef, { bytesUsed: current + bytes });
+  document.getElementById('colonySelect').addEventListener('change', (e) => {
+    selectedColonyId = e.target.value || null;
+    selectedPlanetIdx = null;
+    const colony = allColonies.find(c => c.id === selectedColonyId);
+    const planetSel = document.getElementById('planetSelect');
+    planetSel.innerHTML = '<option value="">Seleccionar planeta...</option>';
+    if (colony && colony.planets) {
+      colony.planets.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${p.name} (Glifo ${p.glyph || idx})`;
+        planetSel.appendChild(opt);
       });
-    }catch(e){
-      console.warn('No se pudo actualizar el contador de uso de Storage', e);
     }
-  }
-
-  const planetSelect = document.getElementById('planetSelect');
-  const planetPicker = document.getElementById('planetPicker');
-
-  PLANETS.forEach(p=>{
-    const opt = document.createElement('option');
-    opt.value = p.i;
-    opt.textContent = `${p.name} (glifo ${p.i})`;
-    planetSelect.appendChild(opt);
-
-    const card = document.createElement('div');
-    card.className = 'planet-choice';
-    card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
-    card.addEventListener('click', ()=>{
-      planetSelect.value = p.i;
-      document.querySelectorAll('.planet-choice').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-    });
-    planetPicker.appendChild(card);
+    document.getElementById('pageTitle').textContent = colony ? `HAZTE CIUDADANO — ${colony.name.toUpperCase()}` : 'HAZTE CIUDADANO';
   });
 
-  const basePhotoInput = document.getElementById('basePhotoInput');
+  document.getElementById('planetSelect').addEventListener('change', (e) => {
+    selectedPlanetIdx = e.target.value !== '' ? parseInt(e.target.value) : null;
+  });
+
+  function showMsg(text, type) {
+    msgBox.textContent = text;
+    msgBox.className = 'msg-box show ' + type;
+  }
+
+  const fileInput = document.getElementById('basePhoto');
   const photoPreview = document.getElementById('photoPreview');
-  const photoPreviewImg = document.getElementById('photoPreviewImg');
-  let selectedPhotoFile = null;
+  const uploadArea = document.getElementById('uploadArea');
 
-  basePhotoInput.addEventListener('change', ()=>{
-    const file = basePhotoInput.files[0];
-    if(!file) return;
-    if(!file.type.startsWith('image/')){
-      showAlert('Solo se permiten imágenes.', 'error');
-      basePhotoInput.value = '';
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showMsg('La imagen supera los 5MB', 'error');
       return;
     }
-    if(file.size > MAX_FILE_BYTES){
-      showAlert('La imagen pesa más de 5MB. Usa una más liviana.', 'error');
-      basePhotoInput.value = '';
-      return;
-    }
-    selectedPhotoFile = file;
-    photoPreviewImg.src = URL.createObjectURL(file);
+    uploadedFile = file;
+    photoPreview.src = URL.createObjectURL(file);
     photoPreview.classList.add('show');
+    uploadArea.querySelector('.upload-text').textContent = file.name;
   });
 
-  const checkboxes = ['m1','m2','m3','m4','m5'].map(id=>document.getElementById(id));
-  const progressFill = document.getElementById('progressFill');
-  const submitBtn = document.getElementById('submitBtn');
+  const glyphToggle = document.getElementById('toggleGlyphs');
+  const glyphInputs = document.getElementById('glyphInputs');
+  const glifosGrid = document.getElementById('glifosGrid');
+  let glyphMode = false;
 
-  function updateProgress(){
-    const checked = checkboxes.filter(c=>c.checked).length;
-    progressFill.style.width = (checked/checkboxes.length*100)+'%';
-    submitBtn.disabled = checked < checkboxes.length || !currentUser;
-  }
-  checkboxes.forEach(c=>c.addEventListener('change', updateProgress));
-  updateProgress();
+  const GLYPH_SYMBOLS = ['Sun','Moon','DN','NE','NW','SE','SW','W','E','Triangle','Diamond','Swirl','Cloud','Balloon','Dino','Bird','Diplo','Squid','Monster','Fish','Bug','Shroom','Trident','Beetle'];
 
-  function showAlert(msg, type){
-    const box = document.getElementById('alertBox');
-    box.textContent = msg;
-    box.className = 'alert show ' + (type==='error' ? 'alert-error' : 'alert-ok');
-  }
-  function clearAlert(){
-    const box = document.getElementById('alertBox');
-    box.className = 'alert';
-  }
-
-  let currentEntries = [];
-
-  function subscribeRegistry(){
-    const q = query(citizensCol, orderBy('ts', 'desc'));
-    onSnapshot(q, snap=>{
-      currentEntries = snap.docs.map(d=>({ docId: d.id, ...d.data() }));
-      renderRegistry(currentEntries);
-    }, err=>{
-      document.getElementById('registryList').innerHTML =
-        '<div class="empty-state">No se pudo cargar el registro. Revisa las reglas de Firestore.</div>';
+  function buildGlifosGrid() {
+    glifosGrid.innerHTML = '';
+    GLYPH_SYMBOLS.forEach((s, i) => {
+      const sp = document.createElement('span');
+      sp.textContent = i.toString(16).toUpperCase();
+      sp.title = s;
+      sp.addEventListener('click', () => {
+        const active = document.querySelector('.portal-glyphs input:focus');
+        if (active) {
+          active.value = sp.textContent;
+          active.dispatchEvent(new Event('input'));
+          const next = active.nextElementSibling;
+          if (next && next.tagName === 'INPUT') next.focus();
+        }
+      });
+      glifosGrid.appendChild(sp);
     });
   }
+  buildGlifosGrid();
 
-  async function fetchSamePlanet(planetIndex){
-    const q = query(citizensCol, where('planetIndex', '==', planetIndex));
-    const snap = await getDocs(q);
-    return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
-  }
+  glyphToggle.addEventListener('click', () => {
+    glyphMode = !glyphMode;
+    glyphInputs.style.display = glyphMode ? 'flex' : 'none';
+    glyphToggle.textContent = glyphMode ? 'Cerrar selector' : 'Usar selector de glifos';
+    if (!glyphMode) glifosGrid.classList.remove('visible');
+  });
 
-  function groupByPlayer(entries){
-    const map = new Map();
-    entries.forEach(e=>{
-      const key = e.ownerEmail || e.ownerUid || (e.name || '').trim().toLowerCase();
-      if(!map.has(key)) map.set(key, { name: e.name, bases: [] });
-      map.get(key).bases.push(e);
+  const glyphFields = document.querySelectorAll('#glyphInputs input');
+  glyphFields.forEach(f => {
+    f.addEventListener('focus', () => { if (glyphMode) glifosGrid.classList.add('visible'); });
+    f.addEventListener('blur', () => { setTimeout(() => glifosGrid.classList.remove('visible'), 150); });
+    f.addEventListener('input', () => {
+      f.value = f.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+      if (f.value.length === 1) {
+        const idx = parseInt(f.dataset.idx);
+        if (idx < 11) glyphFields[idx + 1].focus();
+      }
+      updateCoordsFromGlyphs();
     });
-    return Array.from(map.values());
+  });
+
+  function updateCoordsFromGlyphs() {
+    const code = Array.from(glyphFields).map(f => f.value).join('');
+    if (code.length === 12) {
+      const decoder = new GlyphDecoder();
+      const coords = decoder.decode(code);
+      if (coords) {
+        document.getElementById('coordLat').value = coords.latitude.toFixed(2);
+        document.getElementById('coordLon').value = coords.longitude.toFixed(2);
+      }
+    }
   }
 
-  function renderRegistry(entries){
+  submitBtn.addEventListener('click', async () => {
+    if (!currentUser) { showMsg('Debes iniciar sesión', 'error'); return; }
+    const name = document.getElementById('playerName').value.trim();
+    const colonyId = selectedColonyId;
+    const planetIdx = selectedPlanetIdx;
+    const lat = parseFloat(document.getElementById('coordLat').value);
+    const lon = parseFloat(document.getElementById('coordLon').value);
+
+    if (!name) { showMsg('Ingresa tu nombre de jugador', 'error'); return; }
+    if (!colonyId) { showMsg('Selecciona una colonia', 'error'); return; }
+    if (planetIdx === null) { showMsg('Selecciona un planeta', 'error'); return; }
+    if (isNaN(lat) || isNaN(lon)) { showMsg('Ingresa coordenadas válidas', 'error'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'ENVIANDO...';
+
+    try {
+      const colony = allColonies.find(c => c.id === colonyId);
+      const planet = colony.planets[planetIdx];
+
+      const citizenData = {
+        name,
+        colonyId,
+        colonyName: colony.name,
+        planetIndex: planetIdx,
+        planetName: planet.name,
+        lat,
+        lon,
+        profession: document.getElementById('profession').value || '',
+        platform: document.getElementById('platform').value || '',
+        friendCode: document.getElementById('friendCode').value.trim() || '',
+        status: 'pending',
+        ownerUid: currentUser.uid,
+        ownerEmail: currentUser.email,
+        createdAt: new Date().toISOString()
+      };
+
+      if (uploadedFile) {
+        const storageRef = ref(storage, `bases/${currentUser.uid}_${Date.now()}.jpg`);
+        await uploadBytes(storageRef, uploadedFile);
+        citizenData.photoUrl = await getDownloadURL(storageRef);
+      }
+
+      await addDoc(citizensRef, citizenData);
+      showMsg('¡Solicitud enviada! Pendiente de aprobación por el Arcade.', 'success');
+      submitBtn.textContent = 'SOLICITUD ENVIADA';
+    } catch (err) {
+      console.error(err);
+      showMsg('Error al enviar: ' + err.message, 'error');
+      submitBtn.textContent = 'ENVIAR SOLICITUD';
+      submitBtn.disabled = false;
+    }
+  });
+
+  function renderRegistry(entries) {
     const list = document.getElementById('registryList');
-    if(!entries.length){
-      list.innerHTML = '<div class="empty-state">Todavía no hay prospectos registrados.</div>';
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty-state">Aún no hay ciudadanos registrados</div>';
       return;
     }
-    const groups = groupByPlayer(entries);
-    list.innerHTML = groups.map(g=>{
-      const basesHtml = g.bases.map(e=>{
-        const planet = PLANETS.find(p=>p.i===e.planetIndex);
-        const pillClass = e.status==='citizen' ? 'citizen' : e.status==='rejected' ? 'rejected' : '';
-        const pillText = e.status==='citizen' ? 'Ciudadano' : e.status==='rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+
+    const grouped = {};
+    entries.forEach(e => {
+      const key = e.colonyName || 'Sin colonia';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(e);
+    });
+
+    list.innerHTML = Object.entries(grouped).map(([colony, items]) => {
+      const rows = items.map(e => {
+        const sClass = e.status === 'citizen' ? 'status-citizen' : e.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        const sLabel = e.status === 'citizen' ? 'Ciudadano' : e.status === 'rejected' ? 'Rechazada' : 'Pendiente';
+        const sBadge = e.status === 'citizen' ? 'ciudadano' : e.status === 'rejected' ? 'rechazada' : 'pendiente';
         return `
-          <div class="registry-row">
-            <div class="registry-top">
-              <span class="registry-id">${e.id}</span>
-              <span class="status-pill ${pillClass}">${pillText}</span>
+          <div class="registry-entry ${sClass}">
+            <div class="entry-top">
+              <span class="entry-id">${e.id}</span>
+              <span class="entry-status ${sBadge}">${sLabel}</span>
             </div>
-            <span class="registry-meta">${planet ? planet.name : '—'} · ${e.lat}, ${e.lon}</span>
+            <div class="entry-details">
+              <span>${e.name}</span>
+              <span>${e.planetName || 'Planeta ' + e.planetIndex}</span>
+              <span>${e.lat}, ${e.lon}</span>
+            </div>
           </div>`;
       }).join('');
-      const countBadge = g.bases.length > 1 ? `<span class="base-count">${g.bases.length} bases</span>` : '';
+
       return `
         <div class="registry-group">
-          <div class="registry-group-name">${escapeHtml(g.name)}${countBadge}</div>
-          ${basesHtml}
+          <div class="registry-group-title">
+            ${colony}
+            <span class="base-count">${items.length} base${items.length > 1 ? 's' : ''}</span>
+          </div>
+          ${rows}
         </div>`;
     }).join('');
   }
 
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s ?? '';
-    return d.innerHTML;
-  }
-
-  function parseCoord(v){
-    const n = parseFloat(String(v).replace(',', '.').trim());
-    return isNaN(n) ? null : n;
-  }
-
-  submitBtn.addEventListener('click', async ()=>{
-    clearAlert();
-    if(!currentUser){ showAlert('Inicia sesión con Google antes de enviar.', 'error'); return; }
-
-    const name = document.getElementById('playerName').value.trim();
-    const planetIndex = parseInt(planetSelect.value, 10);
-    const lat = parseCoord(document.getElementById('lat').value);
-    const lon = parseCoord(document.getElementById('lon').value);
-
-    if(!name){ showAlert('Falta tu nombre de jugador.', 'error'); return; }
-    if(!planetIndex){ showAlert('Selecciona un planeta.', 'error'); return; }
-    if(lat===null || lon===null){ showAlert('Coordenadas inválidas. Usa el formato +14.32, -21.96.', 'error'); return; }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Verificando…';
-
-    try{
-      const sameplanet = await fetchSamePlanet(planetIndex);
-      for(const e of sameplanet){
-        const d = distanciaPasos(lat, lon, e.lat, e.lon);
-        if(d <= MIN_DISTANCE_PASOS){
-          showAlert(`Ese punto está ocupado por ${e.name} (${e.id}) — a ~${Math.round(d)} pasos de distancia. Debes moverte al menos ${MIN_DISTANCE_PASOS} pasos para poder construir.`, 'error');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Ser Ciudadano';
-          return;
-        }
-      }
-
-      const newEntry = {
-        id: '#M01-' + Math.floor(1000 + Math.random()*9000),
-        name, planetIndex, lat, lon,
-        profession: document.getElementById('professionSelect').value || '',
-        platform: document.getElementById('platformSelect').value || '',
-        friendCode: document.getElementById('friendCode').value.trim() || '',
-        status: 'pending',
-        ts: Date.now(),
-        ownerUid: currentUser.uid,
-        ownerEmail: currentUser.email || ''
-      };
-      const docRef = await addDoc(citizensCol, newEntry);
-
-      if(selectedPhotoFile){
-        try{
-          const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
-          const storageRef = ref(storage, `bases/${docRef.id}.${ext}`);
-          await uploadBytes(storageRef, selectedPhotoFile);
-          const url = await getDownloadURL(storageRef);
-          await updateDoc(doc(db, 'citizens', docRef.id), { photoUrl: url, photoStatus: 'pending' });
-          addStorageUsage(selectedPhotoFile.size);
-          showAlert(`Solicitud enviada como ${newEntry.id}, con foto pendiente de aprobación. Esperando decisión del Arcade.`, 'ok');
-        }catch(photoErr){
-          showAlert(`Solicitud enviada como ${newEntry.id}, pero la foto no se pudo subir. Puedes intentarlo de nuevo desde tu Tarjeta de Ciudadano.`, 'error');
-        }
-      }else{
-        showAlert(`Solicitud enviada como ${newEntry.id}. Esperando decisión del Arcade.`, 'ok');
-      }
-    }catch(e){
-      showAlert('No se pudo enviar el registro. Revisa las reglas de Firestore o tu conexión.', 'error');
-    }
-    submitBtn.disabled = checkboxes.some(c=>!c.checked) || !currentUser;
-    submitBtn.textContent = 'Ser Ciudadano';
+  onSnapshot(query(citizensRef, orderBy('createdAt', 'desc')), snap => {
+    renderRegistry(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 
-  subscribeRegistry();
+  await loadColonies();
 </script>
+
 </body>
 </html>

@@ -33,7 +33,6 @@
   .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
   .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
 
-  /* auth */
   .auth-box{
     background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
     padding:18px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
@@ -61,7 +60,6 @@
   .alert-error{background:rgba(232,84,107,.1); border:1px solid rgba(232,84,107,.4); color:#ff8fa0;}
   .alert-ok{background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.4); color:var(--accent-cyan);}
 
-  /* ---------- CREDENCIAL (misma vista que mori01-id-card.html, aquí de solo lectura + cambio de foto) ---------- */
   .cred-stage{display:flex; flex-direction:column; align-items:center; gap:16px;}
   .cred-inner{width:100%; max-width:480px;}
   .cred-card{
@@ -198,7 +196,6 @@
   .cred-community span{font-family:var(--font-mono); font-size:1.4cqw; letter-spacing:.06em; color:var(--text-dim); white-space:nowrap;}
   .cred-motto{font-family:var(--font-mono); font-size:1.25cqw; letter-spacing:.08em; color:var(--accent-blue,var(--accent-cyan)); text-transform:uppercase; text-align:right; white-space:nowrap;}
 
-  /* control de foto */
   .photo-control{display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:6px;}
   .file-btn{
     font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
@@ -213,7 +210,6 @@
   .photo-note.rejected{color:var(--accent-red);}
   .photo-note.approved{color:var(--accent-green);}
 
-  /* perfil */
   .profile-name{font-family:var(--font-display); font-size:26px; letter-spacing:.02em; margin-bottom:16px;}
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
   .field label{display:block; font-size:11.5px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; font-family:var(--font-mono);}
@@ -229,7 +225,6 @@
   .btn-ghost{border-color:var(--border-bright); color:var(--text-primary); background:transparent;}
   .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
-  /* planetas explorados */
   .planet-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px;}
   .planet-tile{background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px; padding:12px; text-align:center;}
   .planet-tile-img{width:100%; aspect-ratio:1; border-radius:5px; overflow:hidden; background:var(--bg-panel); margin-bottom:8px; display:flex; align-items:center; justify-content:center;}
@@ -237,7 +232,6 @@
   .planet-tile-img .placeholder{color:var(--text-dim); font-size:11px; font-family:var(--font-mono);}
   .planet-tile-name{font-size:13px; font-weight:600;}
 
-  /* bases */
   .base-row{padding:14px 0; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
   .base-row:last-child{border-bottom:none;}
   .base-info b{display:block; font-size:14.5px; margin-bottom:2px;}
@@ -249,7 +243,6 @@
   .status-pill.citizen{background:rgba(6,182,212,.12); border-color:rgba(6,182,212,.4); color:var(--accent-cyan);}
   .status-pill.rejected{background:rgba(232,84,107,.12); border-color:rgba(232,84,107,.4); color:var(--accent-red);}
 
-  /* selector de planetas para agregar base */
   .planet-picker{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;}
   @media(min-width:480px){ .planet-picker{grid-template-columns:repeat(3,1fr);} }
   .planet-choice{
@@ -305,7 +298,6 @@
   const PLATFORMS = ['PC','PlayStation','Xbox','Switch'];
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-  // Distancia en "pasos" — misma fórmula que "Hazte Ciudadano".
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
   const MAX_DELTA_DEG = 2;
@@ -322,7 +314,6 @@
     return d.innerHTML;
   }
 
-  // ---------- CONTADOR DE USO DE STORAGE ----------
   async function addStorageUsage(bytes){
     const usageRef = doc(db, 'meta', 'storageUsage');
     try{
@@ -336,7 +327,6 @@
     }
   }
 
-  // ---------- AUTH ----------
   const authBox = document.getElementById('authBox');
   let currentUser = null;
   let unsubscribeMine = null;
@@ -378,7 +368,6 @@
     }
   });
 
-  // ---------- MIS BASES ----------
   let myBases = [];
 
   function subscribeMine(uid){
@@ -404,13 +393,11 @@
       return;
     }
 
-    const profileSrc = myBases[0]; // la más reciente — de ahí sale el perfil general y la credencial
+    const profileSrc = myBases[0];
 
-    // Planetas donde tiene base, sin repetir.
     const myPlanetIndexes = [...new Set(myBases.map(b => b.planetIndex))];
     const planetImages = await loadPlanetImages(myPlanetIndexes);
 
-    // Insignias, calculadas contra todos los ciudadanos aprobados (igual que en la tarjeta).
     let myBadges = [];
     if(profileSrc.status === 'citizen'){
       try{
@@ -424,8 +411,6 @@
     const planet = PLANETS.find(p => p.i === profileSrc.planetIndex);
     const statusText = profileSrc.status === 'citizen' ? 'Ciudadano'
       : profileSrc.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
-    // Foto DEL CARNET (idPhotoUrl/idPhotoStatus) — nunca la foto de la
-    // base (photoUrl/photoStatus), que es la que sale en la galería.
     const hasApprovedPhoto = profileSrc.idPhotoStatus === 'approved' && profileSrc.idPhotoUrl;
 
     box.innerHTML = `
@@ -560,7 +545,6 @@
       <div id="addBaseForm" style="display:none; margin-top:20px;"></div>
     `;
 
-    // ---- credencial: tira superior y estado de la foto ----
     document.getElementById('credTopStrip').innerHTML =
       Array(4).fill(`<span>Mori-01</span><span>${SYSTEM_INFO.tag.replace(/[\[\]]/g,'')}</span>`).join('');
 
@@ -584,7 +568,6 @@
       photoStatusMsg.classList.add('approved');
     }
 
-    // ---- subir/cambiar foto del carnet (idPhotoUrl/idPhotoStatus — nunca photoUrl/photoStatus) ----
     document.getElementById('changePhotoInput').addEventListener('change', async (e)=>{
       const file = e.target.files[0];
       if(!file) return;
@@ -602,8 +585,6 @@
       photoStatusMsg.className = 'photo-note';
       try{
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        // Sufijo "-avatar" para no chocar nunca con el nombre de archivo
-        // que usa la foto de la base (bases/{docId}.ext).
         const storageRef = ref(storage, `bases/${profileSrc.docId}-avatar.${ext}`);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
@@ -617,7 +598,6 @@
       }
     });
 
-    // ---- planetas ----
     const planetGrid = document.getElementById('planetGrid');
     planetGrid.innerHTML = myPlanetIndexes.map(idx=>{
       const p = PLANETS.find(pl=>pl.i===idx);
@@ -630,7 +610,6 @@
         </div>`;
     }).join('');
 
-    // ---- lista de bases ----
     const basesList = document.getElementById('basesList');
     basesList.innerHTML = myBases.map(b=>{
       const p = PLANETS.find(pl=>pl.i===b.planetIndex);
@@ -646,7 +625,6 @@
         </div>`;
     }).join('');
 
-    // ---- guardar perfil ----
     document.getElementById('saveProfileBtn').addEventListener('click', async ()=>{
       const profession = document.getElementById('fProfession').value;
       const platform = document.getElementById('fPlatform').value;
@@ -662,7 +640,6 @@
       }
     });
 
-    // ---- agregar otra base ----
     document.getElementById('showAddBaseBtn').addEventListener('click', ()=>{
       renderAddBaseForm(profileSrc);
       document.getElementById('addBaseForm').style.display = 'block';
