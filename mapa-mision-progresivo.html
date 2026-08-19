@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Navegación · No Man's Sky</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#060714; --bg-panel:#0d1024; --bg-panel-2:#131a3a;
+    --border:#262c4a; --border-bright:#3c4570;
+    --text-primary:#eef0fb; --text-muted:#8991ba; --text-dim:#4d5480;
+
+    --cyan:#4dd8ea;    /* Historia principal (Artemisa) */
+    --teal:#3fb8b0;    /* Paralela (Anomalía) */
+    --gold:#f3b754;    /* Atlas */
+    --violet:#a58bff;  /* Autófagos */
+    --mint:#52e8ab;    /* Repetibles / Expediciones */
+    --amber:#f2925a;   /* Flota */
+    --slate:#9aa3c9;   /* Base */
+    --dim:#6b7398;     /* Independientes / encuentros */
+
+    --font-display:"Space Grotesk",system-ui,sans-serif;
+    --font-body:"Manrope",system-ui,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+
+  body{
+    background:
+      radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 82% 10%, rgba(255,255,255,.4) 0, transparent 60%),
+      radial-gradient(1px 1px at 35% 72%, rgba(255,255,255,.32) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 90% 78%, rgba(255,255,255,.38) 0, transparent 60%),
+      radial-gradient(1px 1px at 58% 44%, rgba(255,255,255,.28) 0, transparent 60%),
+      radial-gradient(1px 1px at 6% 55%, rgba(255,255,255,.28) 0, transparent 60%),
+      var(--bg-void);
+    color:var(--text-primary); font-family:var(--font-body); line-height:1.5; min-height:100vh;
+  }
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--cyan); outline-offset:3px; border-radius:4px;}
+
+  .wrap{max-width:1080px; margin:0 auto; padding:44px 22px 90px;}
+  .back-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); text-decoration:none; margin-bottom:26px;}
+  .back-link:hover{color:var(--cyan);}
+  .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.22em; color:var(--gold); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:10px;}
+  .eyebrow::before{content:""; width:22px; height:1px; background:var(--gold); opacity:.7;}
+  h1{font-family:var(--font-display); font-weight:700; font-size:clamp(28px,5vw,44px); letter-spacing:-.01em; margin-bottom:12px;}
+  .lede{color:var(--text-muted); font-size:15px; max-width:620px; margin-bottom:30px;}
+
+  /* leyenda */
+  .leyenda{display:flex; flex-wrap:wrap; gap:6px 16px; padding:11px 16px; margin-bottom:22px; border:1px solid var(--border); border-radius:20px; background:var(--bg-panel); font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; color:var(--text-muted); justify-content:center;}
+  .leyenda span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap;}
+  .sw{display:inline-block; width:8px; height:8px; border-radius:2px; transform:rotate(45deg); flex:none; box-shadow:0 0 6px currentColor;}
+
+  /* controles */
+  .controls{display:flex; align-items:center; gap:14px; margin-bottom:6px; flex-wrap:wrap;}
+  .btn-reset{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--text-muted); background:var(--bg-panel); border:1px solid var(--border); border-radius:20px;
+    padding:8px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:border-color .2s,color .2s; flex:none;
+  }
+  .btn-reset:hover{color:var(--cyan); border-color:var(--cyan);}
+
+  /* breadcrumb: senda recorrida */
+  .senda{display:flex; align-items:center; gap:6px; overflow-x:auto; flex:1; padding:4px 2px; scrollbar-width:thin;}
+  .senda::-webkit-scrollbar{height:4px;}
+  .senda::-webkit-scrollbar-thumb{background:var(--border-bright); border-radius:4px;}
+  .senda-vacia{font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); letter-spacing:.04em;}
+  .senda-item{
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px; letter-spacing:.03em;
+    padding:6px 11px; border-radius:20px; border:1px solid var(--border); background:var(--bg-panel); color:var(--text-muted);
+    cursor:pointer; white-space:nowrap; flex:none; transition:border-color .2s, color .2s;
+  }
+  .senda-item:hover{color:var(--text-primary); border-color:var(--border-bright);}
+  .senda-item.actual{color:var(--text-primary); border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset;}
+  .senda-item .dot{width:6px; height:6px; border-radius:50%; box-shadow:0 0 5px currentColor;}
+  .senda-chev{color:var(--text-dim); font-size:12px; flex:none;}
+
+  /* escenario */
+  .stage{position:relative; min-height:420px; padding:44px 10px 20px; margin-top:22px;}
+  .stage svg.conectores{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible;}
+  .stage svg.conectores path{fill:none; stroke-width:1.6; stroke-linecap:round; opacity:0; transition:opacity .5s ease;}
+  .stage svg.conectores path.trazada{opacity:.6;}
+
+  .stage-titulo{text-align:center; font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dim); margin-bottom:22px;}
+
+  /* nodo actual (tarjeta grande) */
+  .nodo-actual{position:relative; max-width:520px; margin:0 auto 40px; z-index:2;}
+  .nodo-actual-halo{
+    position:absolute; inset:-14px; border-radius:24px; border:1px dashed var(--border-bright);
+    animation:girar 22s linear infinite; pointer-events:none;
+  }
+  @keyframes girar{ to{ transform:rotate(360deg); } }
+  .tarjeta-actual{
+    position:relative; background:var(--bg-panel); border:1px solid var(--border-bright); border-radius:18px;
+    padding:24px 26px; text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,.02), 0 20px 50px -20px rgba(0,0,0,.6);
+    animation:aparecer .5s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes aparecer{ from{ opacity:0; transform:translateY(10px) scale(.97);} to{ opacity:1; transform:translateY(0) scale(1);} }
+  .meta-fila{display:flex; justify-content:center; align-items:center; gap:8px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px;}
+  .id-tag{color:var(--gold);}
+  .badge{padding:3px 10px; border:1px solid; border-radius:20px;}
+  .badge.p{color:var(--cyan); border-color:var(--cyan);}
+  .badge.s{color:var(--text-primary); border-color:var(--border-bright);}
+  .badge.r{color:var(--gold); border-color:var(--gold);}
+  .tarjeta-actual h2{font-family:var(--font-display); font-weight:600; font-size:24px; margin-bottom:10px;}
+  .tarjeta-actual p.syn{color:var(--text-muted); font-size:14.5px; margin-bottom:14px;}
+  .req-info{font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); letter-spacing:.04em; border-top:1px dashed var(--border); padding-top:12px; margin-top:4px;}
+  .req-info b{color:var(--text-muted); font-weight:500;}
+
+  /* hijos / ramas */
+  .rama-etiqueta{text-align:center; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-dim); margin-bottom:18px;}
+  .ramas{display:flex; flex-wrap:wrap; justify-content:center; gap:20px; position:relative; z-index:2;}
+  .rama{
+    width:230px; background:var(--bg-panel); border:1px solid var(--border); border-radius:14px; padding:16px 17px;
+    cursor:pointer; text-align:left; transition:border-color .22s, transform .22s, box-shadow .22s;
+    animation:subir .45s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .ramas .rama:nth-child(1){animation-delay:.05s;}
+  .ramas .rama:nth-child(2){animation-delay:.14s;}
+  .ramas .rama:nth-child(3){animation-delay:.23s;}
+  .ramas .rama:nth-child(4){animation-delay:.32s;}
+  .ramas .rama:nth-child(5){animation-delay:.41s;}
+  @keyframes subir{ from{ opacity:0; transform:translateY(16px);} to{ opacity:1; transform:translateY(0);} }
+  .rama:hover, .rama:focus-visible{ transform:translateY(-3px); box-shadow:0 14px 30px -18px rgba(0,0,0,.7); }
+  .rama .meta-fila{justify-content:flex-start; margin-bottom:8px;}
+  .rama h3{font-family:var(--font-display); font-weight:600; font-size:15.5px; margin-bottom:6px; line-height:1.3;}
+  .rama p{color:var(--text-muted); font-size:12.5px; line-height:1.45;}
+  .rama .ir{margin-top:10px; font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; display:flex; align-items:center; gap:5px;}
+  .rama .ir::after{content:"→"; transition:transform .2s;}
+  .rama:hover .ir::after{transform:translateX(3px);}
+
+  /* estado final */
+  .fin{max-width:420px; margin:0 auto; text-align:center; background:var(--bg-panel); border:1px dashed var(--border-bright); border-radius:16px; padding:26px 22px; animation:subir .45s cubic-bezier(.2,.8,.2,1) both;}
+  .fin .icono{font-size:22px; margin-bottom:10px;}
+  .fin p{color:var(--text-muted); font-size:13.5px; margin-bottom:16px;}
+  .fin-acciones{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .fin-acciones button{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    padding:9px 15px; border-radius:20px; cursor:pointer; background:var(--bg-panel-2); color:var(--text-primary); border:1px solid var(--border-bright);
+    transition:border-color .2s, color .2s;
+  }
+  .fin-acciones button:hover{border-color:var(--cyan); color:var(--cyan);}
+
+  /* núcleo decorativo (pantalla inicial) */
+  .nucleo-dec{width:14px; height:14px; margin:0 auto 34px; position:relative;}
+  .nucleo-dec i{position:absolute; inset:0; background:var(--gold); border-radius:50%; box-shadow:0 0 18px 4px rgba(243,183,84,.5);}
+  .nucleo-dec s{position:absolute; inset:-16px; border:1px dashed var(--border-bright); border-radius:50%; text-decoration:none; animation:girar 18s linear infinite;}
+
+  .grupo-tit{text-align:center; font-family:var(--font-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dim); margin:26px 0 14px;}
+  .grupo-tit:first-of-type{margin-top:0;}
+
+  @media (max-width:640px){
+    .wrap{padding:30px 16px 70px;}
+    .rama{width:100%; max-width:320px;}
+  }
+
+  /* toggle de vista */
+  .btn-vista{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--bg-void); background:var(--cyan); border:1px solid var(--cyan); border-radius:20px;
+    padding:8px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:600;
+    transition:opacity .2s; flex:none;
+  }
+  .btn-vista:hover{opacity:.85;}
+  .btn-vista.alterno{background:transparent; color:var(--text-muted); border-color:var(--border);}
+  .btn-vista.alterno:hover{color:var(--cyan); border-color:var(--cyan); opacity:1;}
+
+  /* vista de mapa completo */
+  #vistaCompleta{ display:none; }
+  #vistaCompleta.activa{ display:block; }
+  #vistaGuiada.oculta{ display:none; }
+
+  .cm-mapa{
+    border:1px solid var(--border); border-radius:16px; background:var(--bg-panel);
+    position:relative; padding:10px; height:min(75vh, 720px); display:flex; flex-direction:column; overflow:hidden; margin-top:18px;
+  }
+  .cm-scroll{overflow:hidden; flex:1; min-height:0; position:relative; cursor:grab; touch-action:pan-y; user-select:none; -webkit-user-select:none;}
+  .cm-scroll.arrastrando{cursor:grabbing;}
+  .cm-scroll svg{display:block; width:100%; height:100%;}
+
+  .cm-zoomctl{position:absolute; right:10px; bottom:10px; display:flex; align-items:center; gap:5px; z-index:6;}
+  .cm-zoomctl button{
+    width:30px; height:30px; font:700 15px var(--font-mono); line-height:1;
+    background:var(--bg-panel-2); color:var(--text-primary); border:1px solid var(--border); cursor:pointer; padding:0;
+    border-radius:50%; transition:border-color .2s, color .2s;
+  }
+  .cm-zoomctl button:hover{border-color:var(--cyan); color:var(--cyan);}
+  .cm-zoomnivel{ font:9px var(--font-mono); letter-spacing:.1em; color:var(--text-dim); background:var(--bg-panel-2); padding:.4em .7em; white-space:nowrap; border-radius:20px; }
+
+  .cm-svg .via{fill:none; stroke-linecap:round; stroke-linejoin:round;}
+  .cm-svg .anillo{fill:none; stroke:var(--border); stroke-dasharray:1 6; stroke-width:1; pointer-events:none;}
+  .cm-svg .nucleo{fill:var(--gold); opacity:.9;}
+  .cm-svg .nucleo-halo{fill:none; stroke:var(--gold); opacity:.35;}
+  .cm-est{cursor:pointer; outline:none;}
+  .cm-est circle.core{fill:var(--bg-void); transition:fill .2s;}
+  .cm-est:hover circle.core, .cm-est:focus circle.core{fill:var(--bg-panel-2);}
+  .cm-est:hover .tn, .cm-est:focus .tn{fill:#fff;}
+  .cm-est.activa circle.core{fill:rgba(77,216,234,.22); filter:drop-shadow(0 0 7px rgba(77,216,234,.85));}
+  .cm-est.activa .tn{fill:#fff;}
+  .cm-svg .tn{fill:#c9cbdc; font:600 12px var(--font-body);}
+  .cm-svg .ti{fill:var(--text-dim); font:10px var(--font-mono); letter-spacing:.06em;}
+
+  .cm-ayuda{font-family:var(--font-mono); font-size:11px; color:var(--text-dim); text-align:center; margin-top:12px; letter-spacing:.03em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-link" href="./index.html">← Volver</a>
+  <p class="eyebrow">Bitácora de navegación</p>
+  <h1>Mapa de Misiones</h1>
+  <p class="lede">Elige un punto de partida y avanza misión por misión. En cada parada verás a dónde puede llevarte — no es una guía paso a paso; para eso, pregunta en el Discord.</p>
+
+  <div class="leyenda" id="leyenda"></div>
+
+  <div class="controls">
+    <button class="btn-reset" id="btnReset" type="button">⟲ Reiniciar</button>
+    <div class="senda" id="senda"></div>
+    <button class="btn-vista" id="btnVerCompleto" type="button">🜛 Ver mapa completo</button>
+  </div>
+
+  <div id="vistaGuiada">
+    <div class="stage" id="stage">
+      <svg class="conectores" id="conectores"></svg>
+      <div id="stageInterior"></div>
+    </div>
+  </div>
+
+  <div id="vistaCompleta">
+    <div class="cm-mapa">
+      <div class="cm-scroll">
+        <svg class="cm-svg" viewBox="0 0 1300 1300" role="img" aria-label="Mapa orbital completo de dependencias de misiones">
+          <g id="cmCapaAnillos"></g>
+          <g id="cmCapaVias"></g>
+          <g id="cmCapaNodos"></g>
+        </svg>
+      </div>
+      <div class="cm-zoomctl">
+        <span class="cm-zoomnivel" id="cmZoomLabel">1,0×</span>
+        <button type="button" data-z="in" aria-label="Acercar">+</button>
+        <button type="button" data-z="out" aria-label="Alejar">−</button>
+        <button type="button" data-z="reset" aria-label="Ver todo">⟲</button>
+      </div>
+    </div>
+    <p class="cm-ayuda">Toca cualquier misión para volver al modo guiado, ya ubicado en ese punto de la senda.</p>
+    <div class="controls" style="margin-top:14px;">
+      <button class="btn-vista alterno" id="btnVerGuiado" type="button">← Volver al modo guiado</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---------- DATOS (sin cambios respecto al mapa completo) ----------
+const MISIONES = {
+  awakenings:{ id:'M-01', tipo:'p', nombre:'Despertares', syn:'Punto de partida de toda partida nueva.', activa:[] },
+  alone:{ id:'M-02', tipo:'p', nombre:'Solo entre las estrellas', syn:'Primer contacto con Artemisa.', activa:[['awakenings','Despertares']] },
+  anomaly:{ id:'M-03', tipo:'p', nombre:'La anomalía espacial', syn:'Corre en paralelo durante toda la ruta principal.', activa:[['alone','Solo entre las estrellas']] },
+  ghosts:{ id:'M-04', tipo:'p', nombre:'Fantasmas en la máquina', syn:'Desbloquea base avanzada y cargueros.', activa:[['alone','Solo entre las estrellas']] },
+  leap:{ id:'M-05', tipo:'p', nombre:'Un salto en la oscuridad', syn:'Primer portal, primer contacto con el Atlas.', activa:[['ghosts','Fantasmas en la máquina']] },
+  traveller:{ id:'M-06', tipo:'p', nombre:'El primer Viajero', syn:'Decisión: subir el alma de Artemisa o dejarla morir.', activa:[['leap','Un salto en la oscuridad']] },
+  patterns:{ id:'M-07', tipo:'p', nombre:'Patrones en el tiempo', syn:'Interrogatorio a las tres razas cartógrafas.', activa:[['traveller','El primer Viajero']] },
+  dieciseis:{ id:'M-08', tipo:'p', nombre:'16 / 16', syn:'El Atlas revela que todo es una simulación.', activa:[['patterns','Patrones en el tiempo']] },
+  purge:{ id:'M-09', tipo:'p', nombre:'La purga', syn:'Carrera de warps: consigues los 16 glifos y decides.', activa:[['dieciseis','16 / 16']] },
+  beginnings:{ id:'M-10', tipo:'p', nombre:'Nuevos comienzos', syn:'Epílogo de la ruta principal.', activa:[['purge','La purga']] },
+  atlaspath:{ id:'M-11', tipo:'p', nombre:'El camino del Atlas', syn:'Ruta paralela de 11 estaciones Atlas.', activa:[['awakenings','Despertares']] },
+  'atlas-eterno':{ id:'M-11A', tipo:'p', nombre:'Atlas Eterno', syn:'Camino sin final si aceptas al Atlas.', activa:[['atlaspath','El camino del Atlas (si aceptas)']] },
+  'marca-oponente':{ id:'M-11B', tipo:'s', nombre:'La marca del oponente', syn:'Objetivo alternativo si rechazas al Atlas.', activa:[['atlaspath','El camino del Atlas (si rechazas)']] },
+  expanding:{ id:'M-12', tipo:'s', nombre:'Expande la base', syn:'Columna vertebral del árbol de base.', activa:[['ghosts','Fantasmas en la máquina']] },
+  scientific:{ id:'M-13', tipo:'s', nombre:'Investigación científica', syn:'Especialista de base — ciencia.', activa:[['expanding','Expande la base']] },
+  weapons:{ id:'M-14', tipo:'s', nombre:'Investigación de armas', syn:'Especialista de base — armamento.', activa:[['expanding','Expande la base']] },
+  agricultural:{ id:'M-15', tipo:'s', nombre:'Investigación agrícola', syn:'Especialista de base — cultivos.', activa:[['expanding','Expande la base']] },
+  exocraft:{ id:'M-16', tipo:'s', nombre:'Técnico de exonaves', syn:'Especialista de base — vehículos.', activa:[['expanding','Expande la base']] },
+  archives:{ id:'M-17', tipo:'s', nombre:'Archivos del ordenador de base', syn:'Ciclos de espera real, planos exclusivos.', activa:[['alone','Solo entre las estrellas']] },
+  'overseer-tour':{ id:'R-01', tipo:'r', nombre:'La panorámica del Supervisor', syn:'Repetible cada 24h reales.', activa:[['expanding','Expande la base']] },
+  floral:{ id:'R-02', tipo:'r', nombre:'Muestras florales adicionales', syn:'Repetible cada 24h reales.', activa:[['agricultural','Investigación agrícola']] },
+  rescue:{ id:'M-18', tipo:'s', nombre:'Rescate espacial', syn:'Primer carguero gratis.', activa:[['ghosts','Fantasmas en la máquina']] },
+  freighter:{ id:'M-19', tipo:'s', nombre:'Mando del carguero', syn:'Tutorial de flotas y fragatas.', activa:[['rescue','Rescate espacial']] },
+  dreadnought:{ id:'M-20', tipo:'s', nombre:'Acorazado pirata', syn:'Evento aleatorio al warpear (con carguero propio).', activa:[['rescue','Rescate espacial']] },
+  deep:{ id:'M-23', tipo:'s', nombre:'Sueños de lo profundo', syn:'Desbloquea exploración submarina.', activa:[['dieciseis','16 / 16']] },
+  returned:{ id:'M-26', tipo:'s', nombre:'Los que regresaron', syn:'Primer contacto con los autófagos.', activa:[['purge','La purga']] },
+  multitudes:{ id:'M-27', tipo:'s', nombre:'En multitudes estelares', syn:'Fin del arco de los autófagos y el Atlas.', activa:[['returned','Los que regresaron'],['atlaspath','El camino del Atlas']] },
+  settlers:{ id:'M-21', tipo:'s', nombre:'Los colonos', syn:'Encuentro aleatorio: asentamiento propio.', activa:[] },
+  trace:{ id:'M-22', tipo:'s', nombre:'Una huella de metal', syn:'Requiere un asentamiento activo.', activa:[['settlers','Los colonos']] },
+  rebel:{ id:'M-24', tipo:'s', nombre:'Bajo una estrella rebelde', syn:'Encuentro aleatorio con forajidos.', activa:[] },
+  starbirth:{ id:'M-25', tipo:'s', nombre:'Nacimiento de estrella', syn:'Requiere comprar un Huevo del vacío.', activa:[] },
+  fossils:{ id:'M-28', tipo:'s', nombre:'Recogiendo fósiles', syn:'Se activa al excavar Huesos antiguos.', activa:[['awakenings','Despertares']] },
+  expediciones:{ id:'E-01', tipo:'r', nombre:'Expediciones', syn:'Solo disponible mientras hay una temporada activa.', activa:[['anomaly','La anomalía espacial']] }
+};
+const BADGE = { p:['Principal','p'], s:['Secundaria','s'], r:['Repetible','r'] };
+const GRUPO = {
+  awakenings:'principal', alone:'principal', ghosts:'principal', leap:'principal', traveller:'principal',
+  patterns:'principal', dieciseis:'principal', purge:'principal', beginnings:'principal',
+  anomaly:'paralela',
+  atlaspath:'atlas', 'atlas-eterno':'atlas', 'marca-oponente':'atlas',
+  expanding:'base', scientific:'base', weapons:'base', agricultural:'base', exocraft:'base', archives:'base',
+  'overseer-tour':'repetibles', floral:'repetibles', expediciones:'repetibles',
+  rescue:'flota', freighter:'flota', dreadnought:'flota',
+  returned:'autofagos', multitudes:'autofagos',
+  deep:'independientes', settlers:'independientes', trace:'independientes', rebel:'independientes', starbirth:'independientes', fossils:'independientes'
+};
+const COLOR = {
+  principal:'var(--cyan)', paralela:'var(--teal)', atlas:'var(--gold)', base:'var(--slate)',
+  repetibles:'var(--mint)', flota:'var(--amber)', autofagos:'var(--violet)', independientes:'var(--dim)'
+};
+const NOMBRE_GRUPO = {
+  principal:'Historia principal', paralela:'Paralela', atlas:'Atlas', base:'Base',
+  repetibles:'Repetibles / Expediciones', flota:'Flota', autofagos:'Autófagos', independientes:'Encuentros aleatorios'
+};
+
+// Árbol real: cada misión declara su(s) padre(s) en "activa"; el primero define su rama principal.
+const ids = Object.keys(MISIONES);
+const hijos = {}; ids.forEach(id=>hijos[id]=[]);
+const raices = [];
+ids.forEach(id=>{
+  const m = MISIONES[id];
+  if(m.activa.length) hijos[m.activa[0][0]].push(id);
+  else raices.push(id);
+});
+
+// ---------- LEYENDA ----------
+(function renderLeyenda(){
+  const cont = document.getElementById('leyenda');
+  Object.keys(NOMBRE_GRUPO).forEach(g=>{
+    const span = document.createElement('span');
+    span.innerHTML = `<i class="sw" style="background:${COLOR[g]};color:${COLOR[g]}"></i> ${NOMBRE_GRUPO[g]}`;
+    cont.appendChild(span);
+  });
+})();
+
+// ---------- ESTADO ----------
+let senda = []; // ids visitados; vacío = pantalla de inicio
+
+function irA(id){ senda.push(id); render(); }
+function volverA(idx){ senda = senda.slice(0, idx+1); render(); }
+function reiniciar(){ senda = []; render(); }
+function retroceder(){ senda.pop(); render(); }
+
+document.getElementById('btnReset').addEventListener('click', reiniciar);
+
+// ---------- RENDER: SENDA ----------
+function renderSenda(){
+  const cont = document.getElementById('senda');
+  cont.innerHTML = '';
+  if(!senda.length){
+    cont.innerHTML = '<span class="senda-vacia">Aún no has elegido un punto de partida →</span>';
+    return;
+  }
+  senda.forEach((id, i)=>{
+    if(i>0){
+      const chev = document.createElement('span');
+      chev.className = 'senda-chev'; chev.textContent = '›';
+      cont.appendChild(chev);
+    }
+    const m = MISIONES[id];
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'senda-item' + (i===senda.length-1 ? ' actual' : '');
+    item.innerHTML = `<span class="dot" style="background:${COLOR[GRUPO[id]]};color:${COLOR[GRUPO[id]]}"></span>${m.nombre}`;
+    item.addEventListener('click', ()=>volverA(i));
+    cont.appendChild(item);
+  });
+}
+
+// ---------- RENDER: ESCENARIO ----------
+function tarjetaRama(id){
+  const m = MISIONES[id];
+  const [badgeLabel, badgeClass] = BADGE[m.tipo];
+  const div = document.createElement('div');
+  div.className = 'rama';
+  div.tabIndex = 0;
+  div.style.setProperty('--glow', COLOR[GRUPO[id]]);
+  div.innerHTML = `
+    <div class="meta-fila">
+      <span class="id-tag" style="color:${COLOR[GRUPO[id]]}">${m.id}</span>
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+    </div>
+    <h3>${m.nombre}</h3>
+    <p>${m.syn}</p>
+    <div class="ir" style="color:${COLOR[GRUPO[id]]}">Ir a esta misión</div>
+  `;
+  div.addEventListener('click', ()=>irA(id));
+  div.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); irA(id); } });
+  return div;
+}
+
+function renderStage(){
+  const interior = document.getElementById('stageInterior');
+  interior.innerHTML = '';
+  const conectores = document.getElementById('conectores');
+  conectores.innerHTML = '';
+
+  if(!senda.length){
+    // Pantalla de inicio: núcleo decorativo + raíces agrupadas
+    const nucleo = document.createElement('div');
+    nucleo.className = 'nucleo-dec';
+    nucleo.innerHTML = '<i></i><s></s>';
+    nucleo.id = 'nodoOrigen';
+    interior.appendChild(nucleo);
+
+    const tit = document.createElement('p');
+    tit.className = 'stage-titulo';
+    tit.textContent = 'Elige tu punto de partida';
+    interior.insertBefore(tit, nucleo);
+
+    const principales = raices.filter(id=>GRUPO[id]==='principal');
+    const independientes = raices.filter(id=>GRUPO[id]!=='principal');
+
+    if(principales.length){
+      const g = document.createElement('p'); g.className='grupo-tit'; g.textContent='Historia principal';
+      interior.appendChild(g);
+      const fila = document.createElement('div'); fila.className='ramas'; fila.id='filaHijos';
+      principales.forEach(id=>fila.appendChild(tarjetaRama(id)));
+      interior.appendChild(fila);
+    }
+    if(independientes.length){
+      const g = document.createElement('p'); g.className='grupo-tit'; g.textContent='Encuentros aleatorios';
+      interior.appendChild(g);
+      const fila2 = document.createElement('div'); fila2.className='ramas'; fila2.id='filaHijos2';
+      independientes.forEach(id=>fila2.appendChild(tarjetaRama(id)));
+      interior.appendChild(fila2);
+    }
+
+    requestAnimationFrame(()=>{
+      const parentEl = document.getElementById('nodoOrigen');
+      const filas = [document.getElementById('filaHijos'), document.getElementById('filaHijos2')].filter(Boolean);
+      let hijosEls = [];
+      filas.forEach(f=>hijosEls = hijosEls.concat(Array.from(f.children)));
+      dibujarConectores(parentEl, hijosEls, hijosEls.map(el=>getComputedColor(el)));
+    });
+    return;
+  }
+
+  const actualId = senda[senda.length-1];
+  const m = MISIONES[actualId];
+  const color = COLOR[GRUPO[actualId]];
+  const [badgeLabel, badgeClass] = BADGE[m.tipo];
+
+  const nodoActual = document.createElement('div');
+  nodoActual.className = 'nodo-actual';
+  nodoActual.id = 'nodoActual';
+
+  let reqHtml = '';
+  if(senda.length > 1){
+    reqHtml = `<div class="req-info"><b>Se activa después de:</b> ${MISIONES[senda[senda.length-2]].nombre}</div>`;
+  } else {
+    reqHtml = `<div class="req-info"><b>Punto de partida</b> — no requiere misiones previas</div>`;
+  }
+  if(m.activa.length > 1){
+    const otras = m.activa.filter(([pid])=>pid!==(senda[senda.length-2]||'')).map(([,label])=>label).join(', ');
+    if(otras) reqHtml += `<div class="req-info" style="border-top:none;padding-top:4px;"><b>También requiere:</b> ${otras}</div>`;
+  }
+
+  nodoActual.innerHTML = `
+    <div class="nodo-actual-halo" style="border-color:${color}"></div>
+    <div class="tarjeta-actual" style="box-shadow:0 0 0 1px ${color}22, 0 20px 50px -20px rgba(0,0,0,.6)">
+      <div class="meta-fila">
+        <span class="id-tag" style="color:${color}">${m.id}</span>
+        <span class="badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <h2>${m.nombre}</h2>
+      <p class="syn">${m.syn}</p>
+      ${reqHtml}
+    </div>
+  `;
+  interior.appendChild(nodoActual);
+
+  const kids = hijos[actualId] || [];
+
+  if(!kids.length){
+    const fin = document.createElement('div');
+    fin.className = 'fin';
+    fin.innerHTML = `
+      <div class="icono">🛰️</div>
+      <p>Este camino termina aquí — no hay más misiones encadenadas desde <b>${m.nombre}</b>.</p>
+      <div class="fin-acciones">
+        <button type="button" id="btnVolver">‹ Volver</button>
+        <button type="button" id="btnReiniciar2">⟲ Elegir otro comienzo</button>
+      </div>
+    `;
+    interior.appendChild(fin);
+    fin.querySelector('#btnVolver').addEventListener('click', retroceder);
+    fin.querySelector('#btnReiniciar2').addEventListener('click', reiniciar);
+    return;
+  }
+
+  const etiqueta = document.createElement('p');
+  etiqueta.className = 'rama-etiqueta';
+  etiqueta.textContent = kids.length > 1 ? `${kids.length} caminos posibles desde aquí` : 'Continúa hacia';
+  interior.appendChild(etiqueta);
+
+  const fila = document.createElement('div');
+  fila.className = 'ramas';
+  fila.id = 'filaHijos';
+  kids.forEach(id=>fila.appendChild(tarjetaRama(id)));
+  interior.appendChild(fila);
+
+  requestAnimationFrame(()=>{
+    const hijosEls = Array.from(fila.children);
+    dibujarConectores(nodoActual, hijosEls, hijosEls.map(el=>getComputedColor(el)));
+  });
+}
+
+function getComputedColor(el){
+  const idTag = el.querySelector('.id-tag');
+  return idTag ? idTag.style.color : 'rgba(255,255,255,.4)';
+}
+
+// ---------- CONECTORES SVG (curvas entre nodo padre y sus ramas) ----------
+function dibujarConectores(parentEl, hijosEls, colores){
+  const svg = document.getElementById('conectores');
+  const stage = document.getElementById('stage');
+  if(!parentEl || !hijosEls.length) return;
+  const stageRect = stage.getBoundingClientRect();
+  const pRect = parentEl.getBoundingClientRect();
+  const px = pRect.left + pRect.width/2 - stageRect.left;
+  const py = pRect.bottom - stageRect.top;
+
+  hijosEls.forEach((el, i)=>{
+    const r = el.getBoundingClientRect();
+    const qx = r.left + r.width/2 - stageRect.left;
+    const qy = r.top - stageRect.top;
+    const cx = (px+qx)/2;
+    const cy = py + (qy-py)*0.55;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${px} ${py} Q ${cx} ${cy} ${qx} ${qy}`);
+    path.setAttribute('stroke', colores[i] || 'rgba(255,255,255,.4)');
+    svg.appendChild(path);
+    requestAnimationFrame(()=>setTimeout(()=>path.classList.add('trazada'), 60 + i*90));
+  });
+}
+
+function render(){
+  renderSenda();
+  renderStage();
+}
+
+window.addEventListener('resize', ()=>{ if(!vistaCompletaActiva) renderStage(); });
+
+render();
+
+// ================= VISTA: MAPA COMPLETO (orbital, toda la constelación) =================
+let vistaCompletaActiva = false;
+let mapaCompletoConstruido = false;
+
+document.getElementById('btnVerCompleto').addEventListener('click', ()=>{
+  vistaCompletaActiva = true;
+  document.getElementById('vistaGuiada').classList.add('oculta');
+  document.getElementById('vistaCompleta').classList.add('activa');
+  if(!mapaCompletoConstruido){ construirMapaCompleto(); mapaCompletoConstruido = true; }
+  marcarNodoActivoEnMapaCompleto();
+});
+document.getElementById('btnVerGuiado').addEventListener('click', ()=>{
+  vistaCompletaActiva = false;
+  document.getElementById('vistaCompleta').classList.remove('activa');
+  document.getElementById('vistaGuiada').classList.remove('oculta');
+  renderStage();
+});
+
+function construirMapaCompleto(){
+  const NS = 'http://www.w3.org/2000/svg';
+  const CENTER = { x:650, y:650 };
+  const RING = 58, BASE_R = 55;
+  const NODE_R = { p:9, s:6.5, r:6 };
+
+  const leafMemo = {};
+  function leafCount(id){
+    if(leafMemo[id]!==undefined) return leafMemo[id];
+    const kids = hijos[id];
+    const v = kids.length ? kids.reduce((s,k)=>s+leafCount(k),0) : 1;
+    leafMemo[id] = v; return v;
+  }
+  const depth = {};
+  (function(){ function dfs(id,d){ depth[id]=d; hijos[id].forEach(k=>dfs(k,d+1)); } raices.forEach(r=>dfs(r,0)); })();
+
+  const angle = {};
+  (function(){
+    const total = raices.reduce((s,r)=>s+leafCount(r),0);
+    let cursor = -90;
+    raices.forEach(r=>{ const span = 360*leafCount(r)/total; asignar(r, cursor, cursor+span); cursor += span; });
+    function asignar(id, start, end){
+      angle[id] = (start+end)/2;
+      const kids = hijos[id];
+      if(!kids.length) return;
+      const totalKids = kids.reduce((s,k)=>s+leafCount(k),0);
+      let c = start;
+      kids.forEach(k=>{ const span = (end-start)*leafCount(k)/totalKids; asignar(k, c, c+span); c += span; });
+    }
+  })();
+
+  const pos = {}; let maxDepth = 0;
+  ids.forEach(id=>{
+    const r = BASE_R + depth[id]*RING;
+    const a = angle[id]*Math.PI/180;
+    pos[id] = { x: CENTER.x + r*Math.cos(a), y: CENTER.y + r*Math.sin(a), a: angle[id] };
+    if(depth[id]>maxDepth) maxDepth = depth[id];
+  });
+
+  function wrapLabel(text){
+    if(text.length<=16) return [text];
+    let mid = Math.floor(text.length/2);
+    let idx = text.lastIndexOf(' ', mid);
+    if(idx<0) idx = text.indexOf(' ', mid);
+    if(idx<0) return [text];
+    return [text.slice(0,idx), text.slice(idx+1)];
+  }
+
+  const capaAnillos = document.getElementById('cmCapaAnillos');
+  for(let d=1; d<=maxDepth; d++){
+    const c = document.createElementNS(NS,'circle');
+    c.setAttribute('class','anillo');
+    c.setAttribute('cx', CENTER.x); c.setAttribute('cy', CENTER.y);
+    c.setAttribute('r', BASE_R + d*RING);
+    capaAnillos.appendChild(c);
+  }
+  const halo = document.createElementNS(NS,'circle');
+  halo.setAttribute('class','nucleo-halo');
+  halo.setAttribute('cx', CENTER.x); halo.setAttribute('cy', CENTER.y); halo.setAttribute('r', 22);
+  capaAnillos.appendChild(halo);
+  const nuc = document.createElementNS(NS,'circle');
+  nuc.setAttribute('class','nucleo');
+  nuc.setAttribute('cx', CENTER.x); nuc.setAttribute('cy', CENTER.y); nuc.setAttribute('r', 5);
+  capaAnillos.appendChild(nuc);
+
+  const capaVias = document.getElementById('cmCapaVias');
+  ids.forEach(id=>{
+    const m = MISIONES[id];
+    const color = COLOR[GRUPO[id]];
+    m.activa.forEach(([padreId])=>{
+      if(!pos[padreId]) return;
+      const a = pos[padreId], b = pos[id];
+      const cx = CENTER.x + (a.x-CENTER.x + b.x-CENTER.x)/2*0.82;
+      const cy = CENTER.y + (a.y-CENTER.y + b.y-CENTER.y)/2*0.82;
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('class','via');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', m.tipo==='p' ? 2.4 : 1.6);
+      path.setAttribute('stroke-opacity', '0.55');
+      path.setAttribute('d', `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`);
+      capaVias.appendChild(path);
+    });
+  });
+
+  const capaNodos = document.getElementById('cmCapaNodos');
+  ids.forEach(id=>{
+    const m = MISIONES[id];
+    const p = pos[id];
+    const color = COLOR[GRUPO[id]];
+    const r = NODE_R[m.tipo];
+    const rad = p.a*Math.PI/180;
+
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('class','cm-est');
+    g.setAttribute('data-dest', id);
+    g.setAttribute('tabindex','0');
+
+    if(m.tipo==='p'){
+      const halo2 = document.createElementNS(NS,'circle');
+      halo2.setAttribute('cx',p.x); halo2.setAttribute('cy',p.y); halo2.setAttribute('r', r+5);
+      halo2.setAttribute('fill','none'); halo2.setAttribute('stroke',color); halo2.setAttribute('stroke-opacity','0.3');
+      g.appendChild(halo2);
+    }
+    const core = document.createElementNS(NS,'circle');
+    core.setAttribute('class','core');
+    core.setAttribute('cx',p.x); core.setAttribute('cy',p.y); core.setAttribute('r', r);
+    core.setAttribute('stroke', color); core.setAttribute('stroke-width', m.tipo==='p'?3:2.2);
+    g.appendChild(core);
+
+    const cosA = Math.cos(rad);
+    const anchor = cosA > 0.12 ? 'start' : cosA < -0.12 ? 'end' : 'middle';
+    const lx = p.x + Math.cos(rad)*(r+13);
+    const ly = p.y + Math.sin(rad)*(r+13);
+    const lineas = wrapLabel(m.nombre);
+    const y0 = ly - (lineas.length-1)*6;
+
+    const nameEl = document.createElementNS(NS,'text');
+    nameEl.setAttribute('class','tn');
+    nameEl.setAttribute('text-anchor', anchor);
+    lineas.forEach((ln,i)=>{
+      const tsp = document.createElementNS(NS,'tspan');
+      tsp.setAttribute('x', lx); tsp.setAttribute('y', y0 + i*13);
+      tsp.textContent = ln;
+      nameEl.appendChild(tsp);
+    });
+    g.appendChild(nameEl);
+
+    const idEl = document.createElementNS(NS,'text');
+    idEl.setAttribute('class','ti');
+    idEl.setAttribute('x', lx); idEl.setAttribute('y', y0 + lineas.length*13 + 3);
+    idEl.setAttribute('text-anchor', anchor); idEl.setAttribute('fill', color);
+    idEl.textContent = m.id;
+    g.appendChild(idEl);
+
+    g.addEventListener('click', ()=>seleccionarDesdeMapaCompleto(id));
+    g.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); seleccionarDesdeMapaCompleto(id); } });
+
+    capaNodos.appendChild(g);
+  });
+
+  activarZoomArrastre();
+}
+
+function seleccionarDesdeMapaCompleto(id){
+  // reconstruye la senda desde la raíz hasta este nodo usando su primer "activa"
+  const camino = [id];
+  let cursor = id;
+  while(MISIONES[cursor].activa.length){
+    cursor = MISIONES[cursor].activa[0][0];
+    camino.unshift(cursor);
+  }
+  senda = camino;
+  vistaCompletaActiva = false;
+  document.getElementById('vistaCompleta').classList.remove('activa');
+  document.getElementById('vistaGuiada').classList.remove('oculta');
+  render();
+}
+
+function marcarNodoActivoEnMapaCompleto(){
+  const actual = senda.length ? senda[senda.length-1] : null;
+  document.querySelectorAll('.cm-est').forEach(g=>{
+    g.classList.toggle('activa', g.getAttribute('data-dest')===actual);
+  });
+}
+
+function activarZoomArrastre(){
+  const svg = document.querySelector('.cm-svg');
+  const cont = svg && svg.closest('.cm-scroll');
+  if(!svg || !cont) return;
+
+  const vb0 = svg.getAttribute('viewBox').split(/[\s,]+/).map(Number);
+  let vb = vb0.slice();
+  const MAXZOOM = 6;
+  const label = document.getElementById('cmZoomLabel');
+
+  function pintar(){
+    svg.setAttribute('viewBox', vb.join(' '));
+    label.textContent = (vb0[2] / vb[2]).toFixed(1).replace('.', ',') + '×';
+    cont.style.touchAction = vb[2] >= vb0[2] ? 'pan-y' : 'none';
+  }
+  function limitar(){
+    if (vb[2] >= vb0[2]) { vb[0]=vb0[0]; vb[1]=vb0[1]; return; }
+    const mx = vb[2]*.2, my = vb[3]*.2;
+    vb[0] = Math.max(vb0[0]-mx, Math.min(vb0[0]+vb0[2]-vb[2]+mx, vb[0]));
+    vb[1] = Math.max(vb0[1]-my, Math.min(vb0[1]+vb0[3]-vb[3]+my, vb[1]));
+  }
+  function zoom(f, cx, cy){
+    let w = vb[2]/f;
+    if (w > vb0[2]) { vb = vb0.slice(); pintar(); return; }
+    if (vb0[2]/w > MAXZOOM) { w = vb0[2]/MAXZOOM; f = vb[2]/w; }
+    const h = vb[3]/f;
+    vb[0] = cx - (cx-vb[0])/f;
+    vb[1] = cy - (cy-vb[1])/f;
+    vb[2] = w; vb[3] = h;
+    limitar(); pintar();
+  }
+  function puntoSvg(ev){
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  cont.addEventListener('wheel', function(e){
+    e.preventDefault();
+    const p = puntoSvg(e);
+    zoom(e.deltaY < 0 ? 1.25 : 0.8, p.x, p.y);
+  }, { passive:false });
+
+  document.querySelector('.cm-zoomctl').addEventListener('click', function(e){
+    const b = e.target.closest('button'); if(!b) return;
+    const c = { x: vb[0]+vb[2]/2, y: vb[1]+vb[3]/2 };
+    if (b.dataset.z==='in')  zoom(1.35, c.x, c.y);
+    if (b.dataset.z==='out') zoom(0.74, c.x, c.y);
+    if (b.dataset.z==='reset'){ vb = vb0.slice(); pintar(); }
+  });
+
+  cont.addEventListener('dblclick', function(e){
+    e.preventDefault();
+    const p = puntoSvg(e);
+    zoom(1.8, p.x, p.y);
+  });
+
+  let drag = null, pinch = null;
+  cont.addEventListener('pointerdown', function(e){
+    if (pinch) return;
+    if (e.target.closest('.cm-zoomctl')) return;
+    drag = { m: svg.getScreenCTM().inverse(), x:e.clientX, y:e.clientY, vb: vb.slice(), movio:false, pid:e.pointerId };
+  });
+  cont.addEventListener('pointermove', function(e){
+    if (pinch || !drag) return;
+    if (!drag.movio){
+      if (Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) <= 4) return;
+      drag.movio = true;
+      try{ cont.setPointerCapture(drag.pid); }catch(err){}
+      cont.classList.add('arrastrando');
+    }
+    const pt = svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+    const p1 = pt.matrixTransform(drag.m);
+    pt.x=drag.x; pt.y=drag.y;
+    const p0 = pt.matrixTransform(drag.m);
+    vb[0] = drag.vb[0] - (p1.x-p0.x);
+    vb[1] = drag.vb[1] - (p1.y-p0.y);
+    limitar(); pintar();
+  });
+  function soltar(){
+    if (!drag) return;
+    const movio = drag.movio;
+    drag = null;
+    cont.classList.remove('arrastrando');
+    if (movio){
+      const unaVez = function(ev){ ev.stopPropagation(); ev.preventDefault(); quitar(); };
+      const quitar = function(){ svg.removeEventListener('click', unaVez, true); };
+      svg.addEventListener('click', unaVez, true);
+      setTimeout(quitar, 350);
+    }
+  }
+  cont.addEventListener('pointerup', soltar);
+  cont.addEventListener('pointercancel', soltar);
+
+  function distancia(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+  function medioSvg(t, m){
+    const pt = svg.createSVGPoint();
+    pt.x = (t[0].clientX+t[1].clientX)/2; pt.y = (t[0].clientY+t[1].clientY)/2;
+    return pt.matrixTransform(m);
+  }
+  cont.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 2) return;
+    if (e.target.closest('.cm-zoomctl')) return;
+    e.preventDefault();
+    drag = null; cont.classList.remove('arrastrando');
+    const m = svg.getScreenCTM().inverse();
+    pinch = { m:m, d0:distancia(e.touches), c0:medioSvg(e.touches,m), vb: vb.slice() };
+  }, { passive:false });
+  cont.addEventListener('touchmove', function(e){
+    if (!pinch || e.touches.length !== 2) return;
+    e.preventDefault();
+    let w = pinch.vb[2] / (distancia(e.touches)/pinch.d0);
+    if (w > vb0[2]) w = vb0[2];
+    if (vb0[2]/w > MAXZOOM) w = vb0[2]/MAXZOOM;
+    const s = w / pinch.vb[2];
+    const p1 = medioSvg(e.touches, pinch.m);
+    vb = [ pinch.c0.x-(p1.x-pinch.vb[0])*s, pinch.c0.y-(p1.y-pinch.vb[1])*s, w, pinch.vb[3]*s ];
+    limitar(); pintar();
+  }, { passive:false });
+  function finPinch(e){
+    if (!pinch) return;
+    if (e.touches && e.touches.length >= 2) return;
+    pinch = null;
+    const unaVez = function(ev){ ev.stopPropagation(); ev.preventDefault(); quitar(); };
+    const quitar = function(){ svg.removeEventListener('click', unaVez, true); };
+    svg.addEventListener('click', unaVez, true);
+    setTimeout(quitar, 350);
+  }
+  cont.addEventListener('touchend', finPinch);
+  cont.addEventListener('touchcancel', finPinch);
+
+  pintar();
+}
+</script>
+</body>
+</html>
