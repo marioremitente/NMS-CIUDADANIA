@@ -140,6 +140,18 @@
 
   .status-dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent-green);}
   .no-bases{text-align:center; padding:40px 0; color:var(--text-dim); font-family:var(--font-mono); font-size:13px;}
+
+  .btn{
+    font-family:var(--font-body); font-size:14px; font-weight:600; letter-spacing:.03em;
+    padding:13px 26px; border-radius:3px; transition:all .2s; cursor:pointer; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+  }
+  .btn-primary{background:var(--accent-cyan); color:var(--bg-deep);}
+  .btn-primary:hover{background:#31cbe6; transform:translateY(-1px);}
+  .btn-ghost{border-color:var(--border-bright); color:var(--text-primary);}
+  .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
+
+  .atlas-actions{display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;}
 </style>
 </head>
 <body>
@@ -186,6 +198,11 @@
   <div class="panel">
     <div class="panel-label">Bases de la Comunidad</div>
     <div class="bases-list" id="basesList"></div>
+  </div>
+
+  <div class="atlas-actions">
+    <a class="btn btn-primary" href="./mori01-local-map2.html">Mapa Local del Sistema →</a>
+    <a class="btn btn-ghost" href="./index.html">← Volver al Inicio</a>
   </div>
 
 </div>
@@ -314,22 +331,14 @@
     }).join('');
   }
 
-  // ============================================
-  // GALAXY MAP — Enhanced with effects
-  // ============================================
-
   let staticCanvas = null;
   let staticCtx = null;
   let staticW = 0, staticH = 0;
 
-  // Nebulas
   const NEBULAS = [];
-  // Shooting stars
   const shootingStars = [];
   let lastShootingStar = 0;
-  // Marker pulse
   let markerPhase = 0;
-  // Animation
   let animFrame = null;
   let lastTime = 0;
 
@@ -370,11 +379,9 @@
 
     const ctx = staticCtx;
 
-    // Background
     ctx.fillStyle = '#07080d';
     ctx.fillRect(0, 0, w, h);
 
-    // Stars
     for(let i = 0; i < 400; i++){
       const x = Math.random()*w, y = Math.random()*h;
       const r = Math.random()*1.2;
@@ -390,7 +397,6 @@
 
     const cx = w/2, cy = h/2;
 
-    // Spiral arms — diffuse layer
     for(let arm = 0; arm < 4; arm++){
       const armOffset = (arm * Math.PI) / 2;
       ctx.beginPath();
@@ -409,7 +415,6 @@
       ctx.stroke();
     }
 
-    // Spiral arms — bright core layer
     for(let arm = 0; arm < 4; arm++){
       const armOffset = (arm * Math.PI) / 2;
       ctx.beginPath();
@@ -424,7 +429,6 @@
       ctx.stroke();
     }
 
-    // Star clusters along arms
     for(let arm = 0; arm < 4; arm++){
       const armOffset = (arm * Math.PI) / 2;
       for(let i = 0; i < 12; i++){
@@ -440,7 +444,6 @@
       }
     }
 
-    // Core glow
     const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h)*0.18);
     coreGrad.addColorStop(0, 'rgba(255, 255, 240, 0.2)');
     coreGrad.addColorStop(0.2, 'rgba(6, 182, 212, 0.15)');
@@ -449,14 +452,12 @@
     ctx.fillStyle = coreGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // Core bright center
     const coreDot = ctx.createRadialGradient(cx, cy, 0, cx, cy, 8);
     coreDot.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
     coreDot.addColorStop(1, 'transparent');
     ctx.fillStyle = coreDot;
     ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
 
-    // Grid lines
     ctx.strokeStyle = 'rgba(6, 182, 212, 0.025)';
     ctx.lineWidth = 0.5;
     for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
@@ -498,7 +499,6 @@
       const progress = s.life / s.maxLife;
       const alpha = progress < 0.2 ? progress * 5 : (1 - progress) * 1.25;
 
-      // Trail
       for(let t = 0; t < s.trail.length; t++){
         const tp = t / s.trail.length;
         const ta = tp * alpha * 0.5;
@@ -516,7 +516,6 @@
         ctx.stroke();
       }
 
-      // Head
       ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.beginPath(); ctx.arc(s.x, s.y, 1.5, 0, Math.PI*2); ctx.fill();
     }
@@ -549,28 +548,23 @@
     const pulseRadius = 10 + pulse * 12;
     const pulseAlpha = 0.15 + pulse * 0.2;
 
-    // Pulse ring
     ctx.strokeStyle = `rgba(6, 182, 212, ${pulseAlpha})`;
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(markerX, markerY, pulseRadius, 0, Math.PI*2); ctx.stroke();
 
-    // Outer glow
     const glowGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 25 + pulse*10);
     glowGrad.addColorStop(0, `rgba(6, 182, 212, ${0.15 + pulse*0.1})`);
     glowGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = glowGrad;
     ctx.beginPath(); ctx.arc(markerX, markerY, 25 + pulse*10, 0, Math.PI*2); ctx.fill();
 
-    // Dot
     ctx.fillStyle = '#06b6d4';
     ctx.beginPath(); ctx.arc(markerX, markerY, 4, 0, Math.PI*2); ctx.fill();
 
-    // Inner ring
     ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(markerX, markerY, 8, 0, Math.PI*2); ctx.stroke();
 
-    // Label
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = '#06b6d4';
     ctx.fillText(SYSTEM_INFO.shortName, markerX + 14, markerY + 4);
@@ -591,10 +585,8 @@
 
     drawStaticLayer(w, h);
 
-    // Draw static layer
     ctx.drawImage(staticCanvas, 0, 0, staticCanvas.width, staticCanvas.height, 0, 0, w, h);
 
-    // Animated layers
     drawNebulas(ctx, w, h);
     drawShootingStars(ctx);
     drawMarker(ctx, w, h, time);

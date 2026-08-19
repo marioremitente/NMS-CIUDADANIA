@@ -238,6 +238,31 @@
     background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:3px; color:var(--text-muted);
   }
 
+  /* ATLAS TEASER */
+  .atlas-teaser{
+    display:grid; grid-template-columns:1.2fr 1fr; gap:32px; align-items:center;
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;
+    padding:36px; overflow:hidden; position:relative;
+  }
+  @media(max-width:820px){ .atlas-teaser{grid-template-columns:1fr;} }
+  .atlas-teaser-map{
+    position:relative; width:100%; aspect-ratio:16/10; border-radius:6px; overflow:hidden;
+    border:1px solid var(--border-soft); background:var(--bg-deep);
+  }
+  .atlas-teaser-map canvas{width:100%; height:100%; display:block;}
+  .atlas-teaser-map .marker-label{
+    position:absolute; font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan);
+    background:rgba(7,8,13,.75); padding:4px 9px; border-radius:20px; border:1px solid rgba(6,182,212,.35);
+    pointer-events:none; white-space:nowrap;
+  }
+  .atlas-teaser-text .section-eyebrow{margin-bottom:10px;}
+  .atlas-teaser-text h2{margin-bottom:14px;}
+  .atlas-teaser-text p{color:var(--text-muted); font-size:14.5px; margin-bottom:22px; max-width:420px;}
+  .atlas-teaser-stats{display:flex; gap:22px; margin-bottom:26px; flex-wrap:wrap;}
+  .atlas-teaser-stat{font-family:var(--font-mono);}
+  .atlas-teaser-stat .n{font-size:20px; color:var(--accent-gold); display:block;}
+  .atlas-teaser-stat .l{font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em;}
+
   /* COMUNIDAD / DISCORD */
   .cta-panel{
     background:linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
@@ -320,6 +345,8 @@
       <a href="#sociedad">Sociedad</a>
       <a href="#roles">Roles</a>
       <a href="#mundos">Mundos</a>
+      <a href="./mori01-galactic-atlas.html">Atlas</a>
+      <a href="./mori01-local-map2.html">Mapa Local</a>
       <a href="./mori01-hazte-ciudadano.html">Hazte Ciudadano</a>
       <a href="./mori01-id-card.html">Mi Tarjeta</a>
       <a href="./mori01-galeria.html">Ciudadanos</a>
@@ -413,6 +440,27 @@
     <div class="planet-grid" id="planetGrid"></div>
   </section>
 
+  <!-- ATLAS TEASER -->
+  <section id="atlas">
+    <div class="atlas-teaser">
+      <div class="atlas-teaser-map">
+        <canvas id="teaserCanvas"></canvas>
+        <div class="marker-label" id="teaserMarkerLabel"></div>
+      </div>
+      <div class="atlas-teaser-text">
+        <p class="section-eyebrow">Cartografía del sistema</p>
+        <h2 class="section-title">Explora el Atlas Galáctico</h2>
+        <p>Un mapa en vivo del sistema, con cada mundo, su firma de portal y las bases de la comunidad actualizándose en tiempo real, directo desde el registro de ciudadanos.</p>
+        <div class="atlas-teaser-stats">
+          <div class="atlas-teaser-stat"><span class="n" id="teaserWorlds">6</span><span class="l">Mundos</span></div>
+          <div class="atlas-teaser-stat"><span class="n" id="teaserGlyphs">—</span><span class="l">Glifos de portal</span></div>
+          <div class="atlas-teaser-stat"><span class="n" id="teaserBases">—</span><span class="l">Bases activas</span></div>
+        </div>
+        <a class="btn btn-primary" href="./mori01-galactic-atlas.html">Abrir el Atlas completo →</a>
+      </div>
+    </div>
+  </section>
+
   <!-- PROCESO -->
   <section id="proceso">
     <div class="section-head">
@@ -456,7 +504,6 @@
   const txOverlay = document.getElementById('txOverlay');
 
   if(sessionStorage.getItem('txShown')){
-    // Ya se mostró en esta sesión del navegador — se quita sin animación.
     txOverlay.remove();
   } else {
     sessionStorage.setItem('txShown', '1');
@@ -488,8 +535,6 @@
         txEl.textContent += txMsg[txi++];
         setTimeout(typeTx, 50);
       } else {
-        // Mensajes cortos se quedan poco, los largos se quedan más —
-        // proporcional a la cantidad de caracteres, con un piso y un techo.
         const holdTime = Math.min(4500, Math.max(1250, txMsg.length * 12));
         setTimeout(()=>{
           txOverlay.classList.add('tx-hide');
@@ -529,8 +574,6 @@
   document.getElementById('footerLine').textContent =
     `MORI-01 · SISTEMA ${SYSTEM_INFO.name.toUpperCase()} · ${SYSTEM_INFO.galaxy.toUpperCase()}`;
 
-  // El conteo sale del tamaño real del array, no de un número escrito a
-  // mano — así no se desincroniza si cambia la firma.
   document.getElementById('signatureCount').textContent = `${SYSTEM_SIGNATURE.length} glifos`;
 
   const glyphRow = document.getElementById('glyphRow');
@@ -562,9 +605,7 @@
     grid.appendChild(card);
   });
 
-  // ---------- ROLES Y CUPOS ----------
-  const ROLE_CAP = 2; // cupo máximo por ministerio; CIUDADANO no tiene tope
-  // Roles que no son ministerios de gobierno — se muestran en su propio grupo.
+  const ROLE_CAP = 2;
   const NON_GOV_ROLES = ['Consejo del Arcade', 'Guardia de Sentinelas', 'Cronista de Mori-01', 'CIUDADANO'];
   const govRoles = ROLES.filter(r => !NON_GOV_ROLES.includes(r));
   const otherRoles = ROLES.filter(r => NON_GOV_ROLES.includes(r));
@@ -598,16 +639,97 @@
   const citizensRoleQuery = query(collection(db, 'citizens'), where('status', '==', 'citizen'));
   onSnapshot(citizensRoleQuery, snap=>{
     const counts = {};
+    let total = 0;
     snap.forEach(d=>{
+      total++;
       const role = d.data().role;
       if(role) counts[role] = (counts[role] || 0) + 1;
     });
     renderRoles(counts);
+    document.getElementById('teaserBases').textContent = total;
   }, err=>{
     const errMsg = '<div class="roles-empty">No se pudo cargar la ocupación de roles. Revisa las reglas de Firestore.</div>';
     rolesGridGov.innerHTML = errMsg;
     rolesGridOther.innerHTML = errMsg;
   });
+
+  // ---------- ATLAS TEASER (mini mapa animado) ----------
+  document.getElementById('teaserGlyphs').textContent = SYSTEM_SIGNATURE.length;
+  document.getElementById('teaserMarkerLabel').textContent = SYSTEM_INFO.shortName;
+
+  const teaserCanvas = document.getElementById('teaserCanvas');
+  const tctx = teaserCanvas.getContext('2d');
+  let teaserStars = null;
+  let markerPulse = 0;
+
+  function positionTeaserLabel(){
+    const rect = teaserCanvas.parentElement.getBoundingClientRect();
+    const cx = rect.width/2, cy = rect.height/2;
+    const markerX = cx + rect.width*0.15, markerY = cy - rect.height*0.1;
+    const label = document.getElementById('teaserMarkerLabel');
+    label.style.left = (markerX + 12) + 'px';
+    label.style.top = (markerY - 10) + 'px';
+  }
+
+  function drawTeaserMap(){
+    const rect = teaserCanvas.parentElement.getBoundingClientRect();
+    teaserCanvas.width = rect.width * 2;
+    teaserCanvas.height = rect.height * 2;
+    tctx.setTransform(1,0,0,1,0,0);
+    tctx.scale(2, 2);
+
+    const w = rect.width, h = rect.height;
+    tctx.fillStyle = '#07080d';
+    tctx.fillRect(0, 0, w, h);
+
+    if(!teaserStars || teaserStars.w !== w || teaserStars.h !== h){
+      teaserStars = { w, h, dots: [] };
+      for(let i=0; i<140; i++){
+        teaserStars.dots.push({ x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.1, a:Math.random()*0.55+0.1 });
+      }
+    }
+    teaserStars.dots.forEach(s=>{
+      tctx.fillStyle = `rgba(139, 147, 179, ${s.a})`;
+      tctx.beginPath(); tctx.arc(s.x, s.y, s.r, 0, Math.PI*2); tctx.fill();
+    });
+
+    const cx = w/2, cy = h/2;
+    for(let arm=0; arm<3; arm++){
+      const armOffset = (arm * Math.PI*2) / 3;
+      tctx.beginPath();
+      for(let t=0; t<Math.PI*5; t+=0.03){
+        const r = t * Math.min(w,h) * 0.03;
+        const x = cx + Math.cos(t+armOffset)*r;
+        const y = cy + Math.sin(t+armOffset)*r*0.4;
+        t === 0 ? tctx.moveTo(x,y) : tctx.lineTo(x,y);
+      }
+      tctx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
+      tctx.lineWidth = 14;
+      tctx.stroke();
+    }
+
+    const markerX = cx + w*0.15, markerY = cy - h*0.1;
+    markerPulse += 0.035;
+    const pulseR = 8 + Math.sin(markerPulse)*4;
+
+    const pulseGrad = tctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 26);
+    pulseGrad.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+    pulseGrad.addColorStop(1, 'transparent');
+    tctx.fillStyle = pulseGrad;
+    tctx.beginPath(); tctx.arc(markerX, markerY, 26, 0, Math.PI*2); tctx.fill();
+
+    tctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+    tctx.lineWidth = 1;
+    tctx.beginPath(); tctx.arc(markerX, markerY, pulseR, 0, Math.PI*2); tctx.stroke();
+
+    tctx.fillStyle = '#06b6d4';
+    tctx.beginPath(); tctx.arc(markerX, markerY, 3.5, 0, Math.PI*2); tctx.fill();
+
+    positionTeaserLabel();
+    requestAnimationFrame(drawTeaserMap);
+  }
+  drawTeaserMap();
+  window.addEventListener('resize', ()=>{ teaserStars = null; });
 </script>
 
 </body>

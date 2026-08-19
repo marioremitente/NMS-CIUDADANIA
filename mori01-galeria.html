@@ -40,7 +40,6 @@
   .gallery-card .gplanet{font-size:11.5px; color:var(--accent-cyan); font-family:var(--font-mono);}
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:60px 0; font-family:var(--font-mono);}
 
-  /* visor (lightbox) */
   .lightbox{
     display:none; position:fixed; inset:0; z-index:100;
     background:rgba(4,5,9,.92); backdrop-filter:blur(4px);
@@ -101,12 +100,6 @@
     return d.innerHTML;
   }
 
-  // ---------- VISOR (LIGHTBOX) ----------
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightboxImg');
-  const lightboxName = document.getElementById('lightboxName');
-  const lightboxPlanet = document.getElementById('lightboxPlanet');
-
   function openLightbox(photoUrl, name, planetName){
     lightboxImg.src = photoUrl;
     lightboxImg.alt = `Base de ${name}`;
@@ -118,6 +111,12 @@
     lightbox.classList.remove('show');
     lightboxImg.src = '';
   }
+
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxName = document.getElementById('lightboxName');
+  const lightboxPlanet = document.getElementById('lightboxPlanet');
+
   document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', e=>{ if(e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeLightbox(); });

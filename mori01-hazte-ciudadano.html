@@ -35,7 +35,6 @@
   .panel h2{font-family:var(--font-display); font-weight:400; font-size:18px; letter-spacing:.03em; margin-bottom:6px;}
   .panel .sub{font-size:13px; color:var(--text-muted); margin-bottom:20px;}
 
-  /* auth panel */
   .auth-box{
     background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
     padding:18px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
@@ -56,7 +55,6 @@
   }
   .signout-btn:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
-  /* checklist */
   .mission{display:flex; align-items:flex-start; gap:14px; padding:14px 0; border-bottom:1px solid var(--border-soft);}
   .mission:last-child{border-bottom:none;}
   .mission input[type=checkbox]{
@@ -70,7 +68,6 @@
   .mission span{font-size:12.5px; color:var(--text-muted);}
   .mission a.inline-link{color:var(--accent-cyan); text-decoration:underline;}
 
-  /* form fields */
   .field{margin-bottom:18px;}
   .field label{display:block; font-size:12px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);}
   .field input, .field select{
@@ -81,7 +78,6 @@
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
 
-  /* selector visual de planetas */
   .planet-picker{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:8px;}
   @media(min-width:480px){ .planet-picker{grid-template-columns:repeat(3,1fr);} }
   .planet-choice{
@@ -98,7 +94,6 @@
   .planet-choice .pname{font-size:12.5px; font-weight:600;}
   .planet-choice .pglyph{font-family:var(--font-mono); font-size:10px; color:var(--text-dim);}
 
-  /* foto de la base (opcional, al registrar) */
   .file-btn{
     font-family:var(--font-mono); font-size:12px; padding:9px 14px; border-radius:4px; cursor:pointer;
     border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-primary);
@@ -130,7 +125,6 @@
   .progress-track{height:4px; background:var(--border-soft); border-radius:2px; overflow:hidden; margin-bottom:24px;}
   .progress-fill{height:100%; background:var(--accent-cyan); width:0%; transition:width .3s;}
 
-  /* registry — agrupado por correo de Google (mismo correo = mismo ciudadano) */
   .registry-group{padding:16px 0; border-bottom:1px solid var(--border-soft);}
   .registry-group:last-child{border-bottom:none;}
   .registry-group-name{
@@ -330,28 +324,22 @@
   document.getElementById('registryTitle').textContent = `Ciudadanía en ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
-  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-  // Distancia en "pasos": raíz cuadrada de la diferencia de coordenadas al
-  // cuadrado, multiplicada por el factor de escala del sistema.
   const PASOS_FACTOR = 16.02747435;
   const MIN_DISTANCE_PASOS = 500;
-  // La fórmula de pasos solo tiene sentido para puntos cercanos. Si la
-  // diferencia en grados ya es grande, los puntos están lejos de sobra —
-  // se descarta el choque sin necesidad de calcular pasos.
   const MAX_DELTA_DEG = 2;
 
   function distanciaPasos(lat1, lon1, lat2, lon2){
     const diffLat = lat2 - lat1;
     const diffLon = lon2 - lon1;
     if(Math.abs(diffLat) > MAX_DELTA_DEG || Math.abs(diffLon) > MAX_DELTA_DEG){
-      return Infinity; // demasiado lejos, ni se calcula
+      return Infinity;
     }
     const distCoord = Math.sqrt(diffLat*diffLat + diffLon*diffLon);
     return distCoord * PASOS_FACTOR;
   }
 
-  // ---------- AUTH ----------
   const authBox = document.getElementById('authBox');
   let currentUser = null;
 
@@ -387,10 +375,6 @@
     if(user) redirectIfAlreadyCitizen(user.uid);
   });
 
-  // Si esta cuenta de Google ya tiene alguna base registrada, este
-  // formulario ya no es el lugar — lo mandamos a "Mi Ciudadanía", donde
-  // puede agregar otra base sin repetir el checklist. Si nunca ha
-  // registrado nada, se queda aquí para hacerlo por primera vez.
   async function redirectIfAlreadyCitizen(uid){
     try{
       const q = query(citizensCol, where('ownerUid', '==', uid));
@@ -398,13 +382,9 @@
       if(!snap.empty){
         window.location.href = './mori01-mi-ciudadania.html';
       }
-    }catch(e){
-      // Si falla la consulta, no bloqueamos nada — se queda en el
-      // formulario normal como si fuera su primer registro.
-    }
+    }catch(e){}
   }
 
-  // ---------- CONTADOR DE USO DE STORAGE ----------
   async function addStorageUsage(bytes){
     const usageRef = doc(db, 'meta', 'storageUsage');
     try{
@@ -418,7 +398,6 @@
     }
   }
 
-  // ---------- SELECTOR DE PLANETAS ----------
   const planetSelect = document.getElementById('planetSelect');
   const planetPicker = document.getElementById('planetPicker');
 
@@ -439,7 +418,6 @@
     planetPicker.appendChild(card);
   });
 
-  // ---------- FOTO OPCIONAL ----------
   const basePhotoInput = document.getElementById('basePhotoInput');
   const photoPreview = document.getElementById('photoPreview');
   const photoPreviewImg = document.getElementById('photoPreviewImg');
@@ -504,8 +482,6 @@
     return snap.docs.map(d=>d.data()).filter(e=>e.status!=='rejected');
   }
 
-  // Agrupa las solicitudes por correo de Google (ownerEmail). Mismo correo
-  // = mismo jugador, así que sus bases se muestran juntas.
   function groupByPlayer(entries){
     const map = new Map();
     entries.forEach(e=>{
@@ -598,9 +574,6 @@
       };
       const docRef = await addDoc(citizensCol, newEntry);
 
-      // Si eligió foto, se sube después de crear el registro (necesitamos
-      // el ID del documento para nombrar el archivo). Si esto falla, la
-      // base ya quedó registrada de todas formas — solo avisamos.
       if(selectedPhotoFile){
         try{
           const ext = (selectedPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();

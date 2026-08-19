@@ -34,7 +34,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .card-stage{display:flex; flex-direction:column; align-items:center; gap:18px; position:sticky; top:24px;}
 .card-stage-inner{ width:100%; max-width:520px; }
 
-/* ========== TARJETA ATLAS IDENTITY CARD ========== */
 .card{
   container-type: inline-size;
   width:100%;
@@ -47,7 +46,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   box-shadow:0 30px 70px -20px rgba(0,0,0,.85), inset 0 0 60px rgba(0,15,40,.3), 0 0 40px rgba(0,229,255,.08);
 }
 
-/* fondo de puntos */
 .card::before{
   content:""; position:absolute; inset:0; z-index:0;
   background-image:radial-gradient(circle, rgba(0,229,255,.05) 1px, transparent 1px);
@@ -55,14 +53,12 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   pointer-events:none;
 }
 
-/* gradiente radial central */
 .card::after{
   content:""; position:absolute; inset:0; z-index:0;
   background:radial-gradient(ellipse at 50% 50%, rgba(0,229,255,.06) 0%, transparent 60%);
   pointer-events:none;
 }
 
-/* foto de fondo comunidad */
 .card-bg-photo{
   position:absolute; inset:0; z-index:0;
   background-image:url('./mori01-community-bg.png');
@@ -76,7 +72,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   pointer-events:none;
 }
 
-/* --- HEADER --- */
 .card-header{
   flex-shrink:0; position:relative; z-index:1;
   display:flex; align-items:center; justify-content:space-between;
@@ -102,14 +97,12 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   color:var(--accent-cyan); text-transform:uppercase;
 }
 
-/* --- BODY --- */
 .card-body{
   flex:1; min-height:0; position:relative; z-index:1;
   display:grid; grid-template-columns:22cqw 1fr 18cqw;
   gap:2cqw; padding:2.4cqw 3cqw;
 }
 
-/* --- IZQUIEDA: emblema + pills --- */
 .id-left{
   display:flex; flex-direction:column; align-items:center;
   justify-content:center; gap:1.2cqw; height:100%;
@@ -152,7 +145,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 }
 .id-icon-circle svg{width:2.2cqw; height:2.2cqw; color:rgba(0,229,255,.6);}
 
-/* --- CENTRO: campos de datos --- */
 .id-fields{
   display:flex; flex-direction:column; justify-content:center;
   gap:1.4cqw; min-width:0; height:100%;
@@ -187,7 +179,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   letter-spacing:.2em; margin-top:0.2cqw; overflow:hidden; white-space:nowrap;
 }
 
-/* --- DERECHA: diamante + ID + estado --- */
 .id-right{
   display:flex; flex-direction:column; align-items:center;
   justify-content:center; gap:1.4cqw; height:100%;
@@ -219,7 +210,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .id-status-block .val.citizen{color:var(--accent-green);}
 .id-status-block .val.rejected{color:var(--accent-red);}
 
-/* corner markers */
 .card-corner{
   position:absolute; z-index:2;
   width:2.4cqw; height:2.4cqw;
@@ -229,7 +219,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
 .card-corner.br{ bottom:1.2cqw; right:1.2cqw; border-bottom-width:0.25cqw; border-right-width:0.25cqw; }
 .card-corner.bl{ bottom:1.2cqw; left:1.2cqw; border-bottom-width:0.25cqw; border-left-width:0.25cqw; }
 
-/* --- BOTTOM --- */
 .card-bottom{
   flex-shrink:0; position:relative; z-index:1;
   display:flex; align-items:center; justify-content:space-between;
@@ -253,8 +242,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
   font-family:var(--font-mono); font-size:1.2cqw; letter-spacing:.08em;
   color:var(--accent-cyan); text-transform:uppercase; text-align:right; white-space:nowrap;
 }
-
-/* ========== FIN TARJETA ========== */
 
 .face-swatch{
   width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer; background-repeat:no-repeat;
@@ -342,11 +329,9 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
       <div class="card-stage-inner">
         <div class="card" id="idCard">
 
-          <!-- FOTO DE FONDO COMUNIDAD -->
           <div class="card-bg-photo"></div>
           <div class="card-bg-scrim"></div>
 
-          <!-- HEADER -->
           <div class="card-header">
             <div class="header-left">
               <span class="header-brand">MORI-01</span>
@@ -357,13 +342,11 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
             </div>
           </div>
 
-          <!-- BODY -->
           <div class="card-body">
             <div class="card-corner tr"></div>
             <div class="card-corner br"></div>
             <div class="card-corner bl"></div>
 
-            <!-- IZQUIERDA -->
             <div class="id-left">
               <div class="emblem">
                 <span class="portrait-triangle"></span>
@@ -382,7 +365,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
               </div>
             </div>
 
-            <!-- CENTRO -->
             <div class="id-fields">
               <div class="id-field name">
                 <div class="f-label-row">
@@ -418,7 +400,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
               </div>
             </div>
 
-            <!-- DERECHA -->
             <div class="id-right">
               <div class="diamond-shape"></div>
               <div class="id-status-block">
@@ -433,7 +414,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
             </div>
           </div>
 
-          <!-- BOTTOM -->
           <div class="card-bottom">
             <div class="community-slot">
               <div class="icon">
@@ -781,7 +761,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     }
   });
 
-  // ---- Tabs ----
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -791,7 +770,6 @@ h1{font-family:var(--font-display); font-weight:400; font-size:clamp(28px,4.5vw,
     });
   });
 
-  // ---- Export PNG ----
   async function toDataURL(url){
     const resp = await fetch(url);
     if(!resp.ok) throw new Error('fetch failed');

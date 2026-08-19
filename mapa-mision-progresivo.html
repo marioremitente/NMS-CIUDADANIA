@@ -13,14 +13,14 @@
     --border:#262c4a; --border-bright:#3c4570;
     --text-primary:#eef0fb; --text-muted:#8991ba; --text-dim:#4d5480;
 
-    --cyan:#4dd8ea;    /* Historia principal (Artemisa) */
-    --teal:#3fb8b0;    /* Paralela (Anomalía) */
-    --gold:#f3b754;    /* Atlas */
-    --violet:#a58bff;  /* Autófagos */
-    --mint:#52e8ab;    /* Repetibles / Expediciones */
-    --amber:#f2925a;   /* Flota */
-    --slate:#9aa3c9;   /* Base */
-    --dim:#6b7398;     /* Independientes / encuentros */
+    --cyan:#4dd8ea;
+    --teal:#3fb8b0;
+    --gold:#f3b754;
+    --violet:#a58bff;
+    --mint:#52e8ab;
+    --amber:#f2925a;
+    --slate:#9aa3c9;
+    --dim:#6b7398;
 
     --font-display:"Space Grotesk",system-ui,sans-serif;
     --font-body:"Manrope",system-ui,sans-serif;
@@ -51,12 +51,10 @@
   h1{font-family:var(--font-display); font-weight:700; font-size:clamp(28px,5vw,44px); letter-spacing:-.01em; margin-bottom:12px;}
   .lede{color:var(--text-muted); font-size:15px; max-width:620px; margin-bottom:30px;}
 
-  /* leyenda */
   .leyenda{display:flex; flex-wrap:wrap; gap:6px 16px; padding:11px 16px; margin-bottom:22px; border:1px solid var(--border); border-radius:20px; background:var(--bg-panel); font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; color:var(--text-muted); justify-content:center;}
   .leyenda span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap;}
   .sw{display:inline-block; width:8px; height:8px; border-radius:2px; transform:rotate(45deg); flex:none; box-shadow:0 0 6px currentColor;}
 
-  /* controles */
   .controls{display:flex; align-items:center; gap:14px; margin-bottom:6px; flex-wrap:wrap;}
   .btn-reset{
     font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
@@ -65,7 +63,6 @@
   }
   .btn-reset:hover{color:var(--cyan); border-color:var(--cyan);}
 
-  /* breadcrumb: senda recorrida */
   .senda{display:flex; align-items:center; gap:6px; overflow-x:auto; flex:1; padding:4px 2px; scrollbar-width:thin;}
   .senda::-webkit-scrollbar{height:4px;}
   .senda::-webkit-scrollbar-thumb{background:var(--border-bright); border-radius:4px;}
@@ -80,7 +77,6 @@
   .senda-item .dot{width:6px; height:6px; border-radius:50%; box-shadow:0 0 5px currentColor;}
   .senda-chev{color:var(--text-dim); font-size:12px; flex:none;}
 
-  /* escenario */
   .stage{position:relative; min-height:420px; padding:44px 10px 20px; margin-top:22px;}
   .stage svg.conectores{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible;}
   .stage svg.conectores path{fill:none; stroke-width:1.6; stroke-linecap:round; opacity:0; transition:opacity .5s ease;}
@@ -88,7 +84,6 @@
 
   .stage-titulo{text-align:center; font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dim); margin-bottom:22px;}
 
-  /* nodo actual (tarjeta grande) */
   .nodo-actual{position:relative; max-width:520px; margin:0 auto 40px; z-index:2;}
   .nodo-actual-halo{
     position:absolute; inset:-14px; border-radius:24px; border:1px dashed var(--border-bright);
@@ -112,7 +107,6 @@
   .req-info{font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); letter-spacing:.04em; border-top:1px dashed var(--border); padding-top:12px; margin-top:4px;}
   .req-info b{color:var(--text-muted); font-weight:500;}
 
-  /* hijos / ramas */
   .rama-etiqueta{text-align:center; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-dim); margin-bottom:18px;}
   .ramas{display:flex; flex-wrap:wrap; justify-content:center; gap:20px; position:relative; z-index:2;}
   .rama{
@@ -134,7 +128,6 @@
   .rama .ir::after{content:"→"; transition:transform .2s;}
   .rama:hover .ir::after{transform:translateX(3px);}
 
-  /* estado final */
   .fin{max-width:420px; margin:0 auto; text-align:center; background:var(--bg-panel); border:1px dashed var(--border-bright); border-radius:16px; padding:26px 22px; animation:subir .45s cubic-bezier(.2,.8,.2,1) both;}
   .fin .icono{font-size:22px; margin-bottom:10px;}
   .fin p{color:var(--text-muted); font-size:13.5px; margin-bottom:16px;}
@@ -146,7 +139,6 @@
   }
   .fin-acciones button:hover{border-color:var(--cyan); color:var(--cyan);}
 
-  /* núcleo decorativo (pantalla inicial) */
   .nucleo-dec{width:14px; height:14px; margin:0 auto 34px; position:relative;}
   .nucleo-dec i{position:absolute; inset:0; background:var(--gold); border-radius:50%; box-shadow:0 0 18px 4px rgba(243,183,84,.5);}
   .nucleo-dec s{position:absolute; inset:-16px; border:1px dashed var(--border-bright); border-radius:50%; text-decoration:none; animation:girar 18s linear infinite;}
@@ -159,7 +151,6 @@
     .rama{width:100%; max-width:320px;}
   }
 
-  /* toggle de vista */
   .btn-vista{
     font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
     color:var(--bg-void); background:var(--cyan); border:1px solid var(--cyan); border-radius:20px;
@@ -170,7 +161,6 @@
   .btn-vista.alterno{background:transparent; color:var(--text-muted); border-color:var(--border);}
   .btn-vista.alterno:hover{color:var(--cyan); border-color:var(--cyan); opacity:1;}
 
-  /* vista de mapa completo */
   #vistaCompleta{ display:none; }
   #vistaCompleta.activa{ display:block; }
   #vistaGuiada.oculta{ display:none; }
@@ -256,7 +246,6 @@
 </div>
 
 <script>
-// ---------- DATOS (sin cambios respecto al mapa completo) ----------
 const MISIONES = {
   awakenings:{ id:'M-01', tipo:'p', nombre:'Despertares', syn:'Punto de partida de toda partida nueva.', activa:[] },
   alone:{ id:'M-02', tipo:'p', nombre:'Solo entre las estrellas', syn:'Primer contacto con Artemisa.', activa:[['awakenings','Despertares']] },
@@ -313,7 +302,6 @@ const NOMBRE_GRUPO = {
   repetibles:'Repetibles / Expediciones', flota:'Flota', autofagos:'Autófagos', independientes:'Encuentros aleatorios'
 };
 
-// Árbol real: cada misión declara su(s) padre(s) en "activa"; el primero define su rama principal.
 const ids = Object.keys(MISIONES);
 const hijos = {}; ids.forEach(id=>hijos[id]=[]);
 const raices = [];
@@ -323,7 +311,6 @@ ids.forEach(id=>{
   else raices.push(id);
 });
 
-// ---------- LEYENDA ----------
 (function renderLeyenda(){
   const cont = document.getElementById('leyenda');
   Object.keys(NOMBRE_GRUPO).forEach(g=>{
@@ -333,8 +320,7 @@ ids.forEach(id=>{
   });
 })();
 
-// ---------- ESTADO ----------
-let senda = []; // ids visitados; vacío = pantalla de inicio
+let senda = [];
 
 function irA(id){ senda.push(id); render(); }
 function volverA(idx){ senda = senda.slice(0, idx+1); render(); }
@@ -343,7 +329,6 @@ function retroceder(){ senda.pop(); render(); }
 
 document.getElementById('btnReset').addEventListener('click', reiniciar);
 
-// ---------- RENDER: SENDA ----------
 function renderSenda(){
   const cont = document.getElementById('senda');
   cont.innerHTML = '';
@@ -367,7 +352,6 @@ function renderSenda(){
   });
 }
 
-// ---------- RENDER: ESCENARIO ----------
 function tarjetaRama(id){
   const m = MISIONES[id];
   const [badgeLabel, badgeClass] = BADGE[m.tipo];
@@ -396,7 +380,6 @@ function renderStage(){
   conectores.innerHTML = '';
 
   if(!senda.length){
-    // Pantalla de inicio: núcleo decorativo + raíces agrupadas
     const nucleo = document.createElement('div');
     nucleo.className = 'nucleo-dec';
     nucleo.innerHTML = '<i></i><s></s>';
@@ -511,7 +494,6 @@ function getComputedColor(el){
   return idTag ? idTag.style.color : 'rgba(255,255,255,.4)';
 }
 
-// ---------- CONECTORES SVG (curvas entre nodo padre y sus ramas) ----------
 function dibujarConectores(parentEl, hijosEls, colores){
   const svg = document.getElementById('conectores');
   const stage = document.getElementById('stage');
@@ -544,7 +526,6 @@ window.addEventListener('resize', ()=>{ if(!vistaCompletaActiva) renderStage(); 
 
 render();
 
-// ================= VISTA: MAPA COMPLETO (orbital, toda la constelación) =================
 let vistaCompletaActiva = false;
 let mapaCompletoConstruido = false;
 
@@ -706,7 +687,6 @@ function construirMapaCompleto(){
 }
 
 function seleccionarDesdeMapaCompleto(id){
-  // reconstruye la senda desde la raíz hasta este nodo usando su primer "activa"
   const camino = [id];
   let cursor = id;
   while(MISIONES[cursor].activa.length){
