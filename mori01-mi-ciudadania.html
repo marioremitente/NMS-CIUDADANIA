@@ -258,6 +258,15 @@
 
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
   .add-base-toggle{margin-top:8px;}
+  .btn-gold{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--accent-gold); color:#0c0f1c;
+    font-weight:700; font-size:15px; letter-spacing:.04em;
+    padding:14px 28px; border-radius:5px; border:none; cursor:pointer;
+    transition:all .2s; text-decoration:none; font-family:var(--font-display);
+  }
+  .btn-gold:hover{background:#ffc84d; transform:translateY(-1px); box-shadow:0 6px 24px rgba(245,184,73,.35);}
+  .btn-gold svg{width:18px; height:18px;}
 </style>
 </head>
 <body>
@@ -543,6 +552,14 @@
         <button class="btn btn-ghost" id="showAddBaseBtn">+ Agregar otra base</button>
       </div>
       <div id="addBaseForm" style="display:none; margin-top:20px;"></div>
+
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border-soft);">
+        <a href="./mori01-base-otro-asentamiento.html" class="btn-gold" style="width:100%; justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l9-9M12 12l9-9"/><circle cx="12" cy="12" r="2"/></svg>
+          BASE EN OTRO ASENTAMIENTO
+        </a>
+        <p class="hint" style="text-align:center; margin-top:8px;">Registra una base en otra colonia del proyecto.</p>
+      </div>
     `;
 
     document.getElementById('credTopStrip').innerHTML =
