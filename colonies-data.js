@@ -9,6 +9,7 @@ import {
 
 export { glyphSVG };
 export const planetImg = _planetImg;
+export { _glyphsToCartesianLocal as glyphsToCartesianLocal };
 
 // ── Conversión de glifos a posición en el mapa ────────────────────────
 // Convierte la firma de 12 glifos (1-16) en coordenadas {x, y} (0-1)

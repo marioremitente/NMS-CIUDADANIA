@@ -1,15 +1,9 @@
-// Insignias de ciudadanos — se calculan en el cliente a partir de datos que
-// ya existen en Firestore (ts, planetIndex, status, profession, platform,
-// friendCode). No requiere ningún campo nuevo en la base de datos.
 import { PLANETS } from './mori01-data.js';
 
 export const PIONEER_COUNT = 10;
 export const VETERAN_MONTHS = 3;
 const VETERAN_MS = VETERAN_MONTHS * 30 * 24 * 60 * 60 * 1000;
 
-// citizens: arreglo de documentos de ciudadanos (solo hace falta que tengan
-// status, ts, planetIndex, profession, platform, friendCode, id).
-// Devuelve un Map: citizen.id -> [ {label, icon, title} ]
 export function computeBadges(citizens){
   const approved = citizens
     .filter(c => c.status === 'citizen')
