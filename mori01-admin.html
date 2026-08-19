@@ -334,7 +334,7 @@
 <script type="module">
   import { db, auth, storage } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
-  import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus } from './colonies-data.js';
+  import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus, glyphsToCartesianLocal, glyphToPosition } from './colonies-data.js';
   import {
     collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -754,6 +754,17 @@
 
     wrap.style.display = 'block';
 
+    document.getElementById('cfSignature').addEventListener('input', function(){
+      const sigRaw = this.value.trim();
+      const sig = sigRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 16);
+      if(sig.length === 12){
+        const pos = glyphToPosition(sig);
+        if(pos){
+          document.getElementById('cfPosX').value = pos.x.toFixed(4);
+          document.getElementById('cfPosY').value = pos.y.toFixed(4);
+        }
+      }
+    });
 
     let currentPlanets = JSON.parse(planetsJson);
     let capitalPhotoFile = null;
