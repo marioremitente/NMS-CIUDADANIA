@@ -44,20 +44,29 @@
     position:relative; width:100%; aspect-ratio:16/7; background:var(--bg-deep);
     border-radius:6px; overflow:hidden; border:1px solid var(--border-soft);
   }
-  .galaxy-map canvas{width:100%; height:100%; display:block;}
+  .galaxy-map canvas{width:100%!important; height:100%!important; display:block;}
   .map-coords-display{
     position:absolute; bottom:12px; left:12px; font-family:var(--font-mono); font-size:11px;
     color:var(--accent-cyan); background:rgba(7,8,13,.8); padding:6px 12px;
-    border:1px solid var(--border-soft); border-radius:4px;
+    border:1px solid var(--border-soft); border-radius:4px; z-index:2;
   }
   .map-legend{
     position:absolute; top:12px; right:12px; font-family:var(--font-mono); font-size:10.5px;
     color:var(--text-muted); background:rgba(7,8,13,.8); padding:8px 12px;
-    border:1px solid var(--border-soft); border-radius:4px;
+    border:1px solid var(--border-soft); border-radius:4px; z-index:2;
   }
   .map-legend-item{display:flex; align-items:center; gap:6px; margin-bottom:4px;}
   .map-legend-item:last-child{margin-bottom:0;}
   .legend-dot{width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+
+  .colony-selector{display:flex;gap:8px;flex-wrap:wrap;}
+  .colony-sel-btn{
+    font-family:var(--font-mono); font-size:11px; padding:6px 14px; border-radius:20px;
+    border:1px solid var(--border-bright); background:var(--bg-panel-2); color:var(--text-muted);
+    cursor:pointer; transition:all .2s; white-space:nowrap;
+  }
+  .colony-sel-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .colony-sel-btn.active{border-color:var(--accent-cyan); color:var(--accent-cyan); background:rgba(6,182,212,.08);}
 
   .data-row{display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border-soft);}
   .data-row:last-child{border-bottom:none;}
@@ -69,7 +78,7 @@
 
   .signature-label{
     font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; color:var(--text-dim);
-    text-transform:uppercase; margin-bottom:16px; display:flex; justify-content:space-between;
+    text-transform:uppercase; margin-bottom:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
   }
   .signature-label span:last-child{color:var(--accent-cyan);}
   .glyph-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
@@ -152,6 +161,12 @@
   .btn-ghost:hover{border-color:var(--accent-gold); color:var(--accent-gold);}
 
   .atlas-actions{display:flex; gap:14px; flex-wrap:wrap; margin-top:18px;}
+
+  .coord-display{
+    position:absolute; bottom:12px; right:12px; font-family:var(--font-mono); font-size:10px;
+    color:var(--text-dim); background:rgba(7,8,13,.8); padding:5px 10px;
+    border:1px solid var(--border-soft); border-radius:4px; z-index:2;
+  }
 </style>
 </head>
 <body>
@@ -160,17 +175,21 @@
   <a class="back-link" href="./index.html" id="backLink">← Volver</a>
   <p class="top-eyebrow">Guía de comunidad</p>
   <h1>Atlas Galáctico</h1>
-  <p class="lede" id="lede">Vista general del sistema, sus mundos y las bases activas de la comunidad.</p>
+  <p class="lede" id="lede">Mapa 3D interactivo de los sistemas estelares de la comunidad.</p>
 
   <div class="panel">
-    <div class="panel-label">Mapa Galáctico</div>
-    <div class="galaxy-map">
-      <canvas id="galaxyCanvas"></canvas>
-      <div class="map-coords-display" id="mapCoords"></div>
+    <div class="panel-label">Sistemas Registrados</div>
+    <div class="colony-selector" id="colonySelector"></div>
+  </div>
+
+  <div class="panel" style="padding:0; overflow:hidden;">
+    <div class="galaxy-map" id="galaxyMap">
+      <div class="map-coords-display" id="mapCoords">Cargando mapa…</div>
       <div class="map-legend">
-        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendSystem"></span></div>
-        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span id="legendRegion"></span></div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span>Centro Galáctico</span></div>
+        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendColonyCount">0 sistemas</span></div>
       </div>
+      <div class="coord-display" id="coordDisplay">X: — Y: — Z: —</div>
     </div>
   </div>
 
@@ -184,6 +203,10 @@
       <div class="panel-label">Datos del Sistema</div>
       <div id="systemDataRows"></div>
       <div class="data-row">
+        <span class="data-key">Coordenadas Galácticas</span>
+        <span class="data-value cyan" id="colonyCartesian">—</span>
+      </div>
+      <div class="data-row">
         <span class="data-key">Bases registradas</span>
         <span class="data-value gold" id="totalBases">0</span>
       </div>
@@ -191,7 +214,7 @@
   </div>
 
   <div class="panel">
-    <div class="signature-label"><span>Firma del sistema · Dirección de portal compartida</span><span id="signatureCount">—</span></div>
+    <div class="signature-label"><span>Firma del sistema · Dirección de portal</span><span id="signatureCount">—</span></div>
     <div class="glyph-row" id="portalCode"></div>
   </div>
 
@@ -201,16 +224,17 @@
   </div>
 
   <div class="atlas-actions">
-    <a class="btn btn-primary" href="./mori01-local-map2.html">Mapa Local del Sistema →</a>
     <a class="btn btn-ghost" href="./index.html">← Volver al Inicio</a>
   </div>
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script type="module">
   import { db } from './firebase-config.js';
   import { SYSTEM_INFO, SYSTEM_SIGNATURE, glyphSVG, planetImg as planetImgFn } from './mori01-data.js';
-  import { loadAllColonies, MORI01_COLONY, glyphToPosition } from './colonies-data.js';
+  import { loadAllColonies, MORI01_COLONY } from './colonies-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   function escapeHtml(s){
@@ -221,35 +245,361 @@
 
   function glyphHex(val){ return (val - 1).toString(16).toUpperCase(); }
 
+  function signatureToHexArr(sig){
+    return sig.map(v => (v - 1).toString(16).toUpperCase().padStart(1, '0'));
+  }
+
+  function signatureToHexString(sig){
+    return sig.map(v => (v - 1).toString(16).toUpperCase().padStart(1, '0')).join('');
+  }
+
+  function hexStringToSignature(hex){
+    if(hex.length !== 12) return null;
+    const result = [];
+    for(let i = 0; i < 12; i++){
+      const v = parseInt(hex[i], 16);
+      if(isNaN(v)) return null;
+      result.push(v + 1);
+    }
+    return result;
+  }
+
+  function decodeGlyphsToCartesian(signature){
+    if(!signature || signature.length < 12) return null;
+    const h = signature.map(g => g - 1);
+    for(let i = 0; i < 12; i++){
+      if(typeof h[i] !== 'number' || isNaN(h[i]) || h[i] < 0 || h[i] > 15) return null;
+    }
+    const P   = h[0];
+    const SSS = (h[1] << 8) | (h[2] << 4) | h[3];
+    const GG  = (h[4] << 4) | h[5];
+    const YYY = (h[6] << 8) | (h[7] << 4) | h[8];
+    const XXX = (h[9] << 8) | (h[10] << 4) | h[11];
+    const baseX = XXX - 0x7FF;
+    const baseY = GG - 0x7F;
+    const baseZ = YYY - 0x7FF;
+    const planetIndex = P === 0 ? 1 : P;
+    return {
+      x: baseX, y: baseY, z: baseZ,
+      planetIndex, systemIndex: SSS,
+      hexAddress: signature.map(g => (g - 1).toString(16).toUpperCase().padStart(1, '0')).join('')
+    };
+  }
+
+  function posToFractional(x, z){
+    return { x: (x + 2047) / 4096, y: (z + 2047) / 4096 };
+  }
+
   let ALL_COLONIES = [];
   let activeColony = null;
   let ALL_BASES = [];
-  let selectedPlanetIdx = null;
 
-  const selectorWrap = document.createElement('div');
-  selectorWrap.className = 'panel';
-  selectorWrap.id = 'colonySelectorWrap';
-  selectorWrap.innerHTML = `
-    <div class="panel-label">Seleccionar Sistema Estelar</div>
-    <div id="colonySelector" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-  `;
-  const firstPanel = document.querySelector('.panel');
-  firstPanel.parentNode.insertBefore(selectorWrap, firstPanel);
+  let scene, camera, renderer, controls;
+  let colonyMarkers = [];
+  let depthLines = [];
+  let galaxyCenterMarker;
+  let raycaster, mouse;
+  let hoveredMarker = null;
+  let selectedMarker = null;
+  let markerLabel = null;
 
-  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
-  document.title = `Atlas Galáctico · ${SYSTEM_INFO.shortName}`;
-  document.getElementById('lede').textContent = `Vista general de los sistemas estelares de la comunidad y sus bases activas.`;
+  function initThreeJS(){
+    const container = document.getElementById('galaxyMap');
+    const rect = container.getBoundingClientRect();
 
-  async function init(){
-    ALL_COLONIES = await loadAllColonies();
-    renderColonySelector();
-    selectColony(ALL_COLONIES[0]);
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07080d, 0.0004);
+
+    camera = new THREE.PerspectiveCamera(55, rect.width / rect.height, 0.1, 10000);
+    camera.position.set(800, 600, 1200);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(rect.width, rect.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x07080d);
+    container.insertBefore(renderer.domElement, container.firstChild);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 50;
+    controls.maxDistance = 5000;
+    controls.maxPolarAngle = Math.PI * 0.85;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    dirLight.position.set(500, 800, 300);
+    scene.add(dirLight);
+
+    raycaster = new THREE.Raycaster();
+    raycaster.params.Points = { threshold: 20 };
+    mouse = new THREE.Vector2();
+
+    createStarfield();
+    createGalaxyCenter();
+    createEclipticGrid();
+
+    const canvasEl = renderer.domElement;
+    canvasEl.addEventListener('mousemove', onMouseMove, false);
+    canvasEl.addEventListener('click', onMouseClick, false);
+    window.addEventListener('resize', onResize, false);
+
+    markerLabel = document.createElement('div');
+    markerLabel.style.cssText = 'position:absolute;pointer-events:none;font-family:"JetBrains Mono",monospace;font-size:11px;color:#06b6d4;background:rgba(7,8,13,.85);padding:4px 10px;border:1px solid #232842;border-radius:4px;white-space:nowrap;z-index:10;display:none;';
+    container.appendChild(markerLabel);
+  }
+
+  function createStarfield(){
+    const count = 2000;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    for(let i = 0; i < count; i++){
+      positions[i*3]   = (Math.random() - 0.5) * 6000;
+      positions[i*3+1] = (Math.random() - 0.5) * 2000;
+      positions[i*3+2] = (Math.random() - 0.5) * 6000;
+      const brightness = 0.3 + Math.random() * 0.7;
+      const tint = Math.random();
+      if(tint > 0.9){
+        colors[i*3] = 0.4 * brightness; colors[i*3+1] = 0.6 * brightness; colors[i*3+2] = 1.0 * brightness;
+      } else if(tint > 0.8){
+        colors[i*3] = 1.0 * brightness; colors[i*3+1] = 0.85 * brightness; colors[i*3+2] = 0.5 * brightness;
+      } else {
+        colors[i*3] = brightness; colors[i*3+1] = brightness; colors[i*3+2] = brightness;
+      }
+      sizes[i] = 0.5 + Math.random() * 2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    const mat = new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.8, sizeAttenuation: true });
+    scene.add(new THREE.Points(geo, mat));
+  }
+
+  function createGalaxyCenter(){
+    const coreGeo = new THREE.SphereGeometry(12, 32, 32);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xf5b849, transparent: true, opacity: 0.6 });
+    galaxyCenterMarker = new THREE.Mesh(coreGeo, coreMat);
+    galaxyCenterMarker.position.set(0, 0, 0);
+    scene.add(galaxyCenterMarker);
+
+    const glowGeo = new THREE.SphereGeometry(25, 16, 16);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xf5b849, transparent: true, opacity: 0.1 });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    galaxyCenterMarker.add(glow);
+
+    const ringGeo = new THREE.RingGeometry(30, 32, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf5b849, transparent: true, opacity: 0.15, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    galaxyCenterMarker.add(ring);
+
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 256; labelCanvas.height = 64;
+    const lctx = labelCanvas.getContext('2d');
+    lctx.fillStyle = '#f5b849';
+    lctx.font = 'bold 24px monospace';
+    lctx.textAlign = 'center';
+    lctx.fillText('CENTRO GALÁCTICO', 128, 40);
+    const labelTexture = new THREE.CanvasTexture(labelCanvas);
+    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.5 });
+    const labelSprite = new THREE.Sprite(labelMat);
+    labelSprite.scale.set(80, 20, 1);
+    labelSprite.position.set(0, -30, 0);
+    galaxyCenterMarker.add(labelSprite);
+  }
+
+  function createEclipticGrid(){
+    const gridSize = 2500;
+    const divisions = 20;
+    const step = gridSize / divisions;
+    const halfGrid = gridSize / 2;
+    const positions = [];
+    for(let i = 0; i <= divisions; i++){
+      const pos = -halfGrid + i * step;
+      positions.push(-halfGrid, 0, pos, halfGrid, 0, pos);
+      positions.push(pos, 0, -halfGrid, pos, 0, halfGrid);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const mat = new THREE.LineBasicMaterial({ color: 0x232842, transparent: true, opacity: 0.3 });
+    scene.add(new THREE.LineSegments(geo, mat));
+  }
+
+  function colonyColor(idx){
+    const colors = [0x06b6d4, 0x7c6cff, 0x3ddc97, 0xf5b849, 0xe8546b, 0xff9900, 0x9900ff];
+    return colors[idx % colors.length];
+  }
+
+  function createColonyMarker(colony, colorIdx){
+    const sig = colony.signature;
+    if(!sig || sig.length < 12) return null;
+    const cart = decodeGlyphsToCartesian(sig);
+    if(!cart) return null;
+
+    const group = new THREE.Group();
+    group.userData = { colonyId: colony.id, colony };
+
+    const sphereGeo = new THREE.SphereGeometry(8, 16, 16);
+    const sphereMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx) });
+    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    sphere.position.set(cart.x, cart.y, cart.z);
+    group.add(sphere);
+
+    const glowGeo = new THREE.SphereGeometry(14, 12, 12);
+    const glowMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.15 });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.position.copy(sphere.position);
+    group.add(glow);
+
+    const points = [];
+    points.push(new THREE.Vector3(cart.x, 0, cart.z));
+    points.push(new THREE.Vector3(cart.x, cart.y, cart.z));
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.35 });
+    group.add(new THREE.Line(lineGeo, lineMat));
+
+    const discGeo = new THREE.RingGeometry(3, 5, 16);
+    const discMat = new THREE.MeshBasicMaterial({ color: colonyColor(colorIdx), transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+    const disc = new THREE.Mesh(discGeo, discMat);
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.set(cart.x, 0, cart.z);
+    group.add(disc);
+
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 512; labelCanvas.height = 64;
+    const lctx = labelCanvas.getContext('2d');
+    lctx.clearRect(0, 0, 512, 64);
+    lctx.fillStyle = '#' + colonyColor(colorIdx).toString(16).padStart(6, '0');
+    lctx.font = 'bold 28px monospace';
+    lctx.textAlign = 'center';
+    lctx.fillText(colony.shortName || colony.name, 256, 42);
+    const labelTexture = new THREE.CanvasTexture(labelCanvas);
+    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.85 });
+    const labelSprite = new THREE.Sprite(labelMat);
+    labelSprite.scale.set(60, 8, 1);
+    labelSprite.position.set(cart.x, cart.y + 20, cart.z);
+    group.add(labelSprite);
+
+    group.userData.sphere = sphere;
+    group.userData.glow = glow;
+    group.userData.cart = cart;
+
+    return group;
+  }
+
+  function rebuild3DMap(){
+    colonyMarkers.forEach(m => scene.remove(m));
+    colonyMarkers = [];
+    depthLines.forEach(l => scene.remove(l));
+    depthLines = [];
+
+    ALL_COLONIES.forEach((c, i) => {
+      const marker = createColonyMarker(c, i);
+      if(marker){
+        scene.add(marker);
+        colonyMarkers.push(marker);
+      }
+    });
+
+    document.getElementById('legendColonyCount').textContent = `${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''}`;
+
+    if(colonyMarkers.length > 0 && activeColony){
+      focusOnColony(activeColony);
+    }
+  }
+
+  function focusOnColony(colony){
+    if(!colony || !colony.signature) return;
+    const cart = decodeGlyphsToCartesian(colony.signature);
+    if(!cart) return;
+    const target = new THREE.Vector3(cart.x, cart.y, cart.z);
+    const dist = camera.position.distanceTo(target);
+    if(dist > 1500 || dist < 50){
+      camera.position.set(target.x + 300, target.y + 200, target.z + 400);
+    }
+    controls.target.copy(target);
+    controls.update();
+  }
+
+  function onMouseMove(event){
+    const container = document.getElementById('galaxyMap');
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const spheres = colonyMarkers.map(m => m.userData.sphere).filter(Boolean);
+    const intersects = raycaster.intersectObjects(spheres);
+
+    if(intersects.length > 0){
+      const hit = intersects[0].object;
+      const parentGroup = hit.parent;
+      if(parentGroup && parentGroup.userData && parentGroup.userData.colonyId){
+        hoveredMarker = parentGroup;
+        renderer.domElement.style.cursor = 'pointer';
+        const c = parentGroup.userData.colony;
+        markerLabel.textContent = `${c.shortName || c.name} [${c.tag || ''}]`;
+        markerLabel.style.display = 'block';
+        markerLabel.style.left = (event.clientX - rect.left + 14) + 'px';
+        markerLabel.style.top = (event.clientY - rect.top - 10) + 'px';
+
+        const cart = parentGroup.userData.cart;
+        document.getElementById('coordDisplay').textContent = `X: ${cart.x} | Y: ${cart.y} | Z: ${cart.z}`;
+      }
+    } else {
+      hoveredMarker = null;
+      renderer.domElement.style.cursor = 'default';
+      markerLabel.style.display = 'none';
+      document.getElementById('coordDisplay').textContent = 'X: — Y: — Z: —';
+    }
+  }
+
+  function onMouseClick(event){
+    if(hoveredMarker && hoveredMarker.userData.colonyId){
+      const colony = hoveredMarker.userData.colony;
+      selectColony(colony);
+
+      document.querySelectorAll('.colony-sel-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.id === colony.id);
+      });
+    }
+  }
+
+  function onResize(){
+    const container = document.getElementById('galaxyMap');
+    const rect = container.getBoundingClientRect();
+    camera.aspect = rect.width / rect.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(rect.width, rect.height);
+  }
+
+  function animate(time){
+    requestAnimationFrame(animate);
+    controls.update();
+
+    colonyMarkers.forEach((m, i) => {
+      const t = (time || 0) * 0.001;
+      if(m.userData.sphere){
+        const pulse = Math.sin(t * 2 + i * 0.7) * 0.1 + 0.15;
+        m.userData.glow.material.opacity = pulse;
+        m.userData.glow.scale.setScalar(1 + Math.sin(t * 1.5 + i) * 0.1);
+      }
+    });
+
+    if(galaxyCenterMarker){
+      galaxyCenterMarker.rotation.y += 0.002;
+    }
+
+    renderer.render(scene, camera);
   }
 
   function renderColonySelector(){
     const sel = document.getElementById('colonySelector');
-    sel.innerHTML = ALL_COLONIES.map((c, i) => `
-      <button class="btn btn-ghost colony-sel-btn" data-idx="${i}" style="font-size:12px;padding:8px 14px;${i === 0 ? 'border-color:var(--accent-cyan);color:var(--accent-cyan);' : ''}">
+    sel.innerHTML = ALL_COLONIES.map(c => `
+      <button class="colony-sel-btn ${c.id === (activeColony && activeColony.id) ? 'active' : ''}" data-id="${escapeHtml(c.id)}">
         ${escapeHtml(c.shortName || c.name)}
         ${c.tag ? '<span style="color:var(--text-dim);margin-left:4px;">' + escapeHtml(c.tag) + '</span>' : ''}
       </button>
@@ -257,28 +607,33 @@
 
     sel.querySelectorAll('.colony-sel-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        sel.querySelectorAll('.colony-sel-btn').forEach(b => { b.style.borderColor = ''; b.style.color = ''; });
-        btn.style.borderColor = 'var(--accent-cyan)';
-        btn.style.color = 'var(--accent-cyan)';
-        selectColony(ALL_COLONIES[idx]);
+        const colony = ALL_COLONIES.find(c => c.id === btn.dataset.id);
+        if(colony){
+          sel.querySelectorAll('.colony-sel-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectColony(colony);
+        }
       });
     });
   }
 
   function selectColony(colony){
     activeColony = colony;
-    document.getElementById('legendSystem').textContent = colony.shortName || colony.name;
-    document.getElementById('legendRegion').textContent = colony.region || '—';
+
+    document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
+    document.title = `Atlas Galáctico · ${colony.shortName || colony.name}`;
 
     const sig = colony.signature || SYSTEM_SIGNATURE;
-    const sigHex = sig.map(v => glyphHex(v));
+    const sigHex = signatureToHexArr(sig);
     document.getElementById('mapCoords').textContent = sigHex.join(' · ');
     document.getElementById('signatureCount').textContent = `${sig.length} glifos`;
 
     document.getElementById('portalCode').innerHTML = sig.map((n, i) => `
       <div class="glyph" data-index="${i + 1}" title="Glifo ${glyphHex(n)} (${n})">${glyphSVG(n)}</div>
     `).join('');
+
+    const cart = decodeGlyphsToCartesian(sig);
+    const posFrac = cart ? posToFractional(cart.x, cart.z) : { x: 0, y: 0 };
 
     document.getElementById('systemDataRows').innerHTML = [
       ['Galaxia', colony.galaxy || '—', 'cyan'],
@@ -293,6 +648,12 @@
         <span class="data-value ${cls}">${escapeHtml(val)}</span>
       </div>
     `).join('');
+
+    if(cart){
+      document.getElementById('colonyCartesian').textContent = `${cart.x}, ${cart.y}, ${cart.z}`;
+    } else {
+      document.getElementById('colonyCartesian').textContent = '—';
+    }
 
     const planets = colony.planets || [];
     renderPlanets(planets);
@@ -327,7 +688,6 @@
   function selectPlanet(planets, idx){
     const p = planets[idx];
     if(!p) return;
-    selectedPlanetIdx = idx;
     document.querySelectorAll('.planet-card').forEach((card, i) => card.classList.toggle('active', i === idx));
 
     const colonyBases = ALL_BASES.filter(b => b.colonyId === activeColony.id || (!b.colonyId && activeColony.id === 'mori-01'));
@@ -371,11 +731,9 @@
         base.profession ? `<span class="base-tag">${escapeHtml(base.profession)}</span>` : '',
         base.platform ? `<span class="base-tag">${escapeHtml(base.platform)}</span>` : '',
       ].join('');
-
       const avatarContent = base.photoUrl
         ? `<img src="${escapeHtml(base.photoUrl)}" alt="${escapeHtml(base.name || '')}">`
         : initials;
-
       return `
         <div class="base-card">
           <div class="base-avatar">${avatarContent}</div>
@@ -388,274 +746,6 @@
         </div>
       `;
     }).join('');
-  }
-
-  let staticCanvas = null;
-  let staticCtx = null;
-  let staticW = 0, staticH = 0;
-
-  const NEBULAS = [];
-  const shootingStars = [];
-  let lastShootingStar = 0;
-  let markerPhase = 0;
-  let animFrame = null;
-
-  function initNebulas(w, h){
-    NEBULAS.length = 0;
-    const colors = [
-      [6, 182, 212],
-      [124, 108, 255],
-      [245, 184, 73],
-      [6, 182, 212],
-      [100, 120, 200],
-    ];
-    for(let i = 0; i < 5; i++){
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 0.1 + Math.random() * 0.25;
-      NEBULAS.push({
-        x: w/2 + Math.cos(angle) * w * dist,
-        y: h/2 + Math.sin(angle) * h * dist,
-        radius: 40 + Math.random() * 60,
-        color: colors[i % colors.length],
-        alpha: 0.03 + Math.random() * 0.03,
-        vx: (Math.random() - 0.5) * 0.08,
-        vy: (Math.random() - 0.5) * 0.05,
-      });
-    }
-  }
-
-  function drawStaticLayer(w, h){
-    if(staticCanvas && staticW === w && staticH === h) return;
-
-    staticCanvas = document.createElement('canvas');
-    staticCanvas.width = w * 2;
-    staticCanvas.height = h * 2;
-    staticCtx = staticCanvas.getContext('2d');
-    staticCtx.scale(2, 2);
-    staticW = w;
-    staticH = h;
-
-    const ctx = staticCtx;
-
-    ctx.fillStyle = '#07080d';
-    ctx.fillRect(0, 0, w, h);
-
-    for(let i = 0; i < 400; i++){
-      const x = Math.random()*w, y = Math.random()*h;
-      const r = Math.random()*1.2;
-      const a = Math.random()*0.6+0.1;
-      const hue = Math.random() > 0.8 ? (Math.random() > 0.5 ? 195 : 45) : 0;
-      if(hue){
-        ctx.fillStyle = `hsla(${hue}, 30%, 80%, ${a})`;
-      } else {
-        ctx.fillStyle = `rgba(170, 180, 200, ${a})`;
-      }
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
-    }
-
-    const cx = w/2, cy = h/2;
-
-    for(let arm = 0; arm < 4; arm++){
-      const armOffset = (arm * Math.PI) / 2;
-      ctx.beginPath();
-      for(let t = 0; t < Math.PI*6; t += 0.02){
-        const r = t * Math.min(w,h) * 0.025;
-        const x = cx + Math.cos(t+armOffset)*r;
-        const y = cy + Math.sin(t+armOffset)*r*0.4;
-        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-      }
-      const grad = ctx.createLinearGradient(cx - w*0.3, cy, cx + w*0.3, cy);
-      grad.addColorStop(0, 'rgba(6, 182, 212, 0.06)');
-      grad.addColorStop(0.5, 'rgba(80, 100, 180, 0.04)');
-      grad.addColorStop(1, 'rgba(6, 182, 212, 0.02)');
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = 35;
-      ctx.stroke();
-    }
-
-    for(let arm = 0; arm < 4; arm++){
-      const armOffset = (arm * Math.PI) / 2;
-      ctx.beginPath();
-      for(let t = 0; t < Math.PI*6; t += 0.02){
-        const r = t * Math.min(w,h) * 0.025;
-        const x = cx + Math.cos(t+armOffset)*r;
-        const y = cy + Math.sin(t+armOffset)*r*0.4;
-        t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-      }
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
-
-    for(let arm = 0; arm < 4; arm++){
-      const armOffset = (arm * Math.PI) / 2;
-      for(let i = 0; i < 12; i++){
-        const t = (i / 12) * Math.PI * 5 + Math.random() * 0.3;
-        const r = t * Math.min(w,h) * 0.025;
-        const spread = 8 + Math.random() * 12;
-        const bx = cx + Math.cos(t+armOffset)*r + (Math.random()-0.5)*spread;
-        const by = cy + Math.sin(t+armOffset)*r*0.4 + (Math.random()-0.5)*spread;
-        const bs = 0.5 + Math.random() * 1.5;
-        const ba = 0.15 + Math.random() * 0.3;
-        ctx.fillStyle = `rgba(180, 200, 255, ${ba})`;
-        ctx.beginPath(); ctx.arc(bx, by, bs, 0, Math.PI*2); ctx.fill();
-      }
-    }
-
-    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h)*0.18);
-    coreGrad.addColorStop(0, 'rgba(255, 255, 240, 0.2)');
-    coreGrad.addColorStop(0.2, 'rgba(6, 182, 212, 0.15)');
-    coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.05)');
-    coreGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = coreGrad;
-    ctx.fillRect(0, 0, w, h);
-
-    const coreDot = ctx.createRadialGradient(cx, cy, 0, cx, cy, 8);
-    coreDot.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-    coreDot.addColorStop(1, 'transparent');
-    ctx.fillStyle = coreDot;
-    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
-
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.025)';
-    ctx.lineWidth = 0.5;
-    for(let x = 0; x < w; x += 50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
-    for(let y = 0; y < h; y += 50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-  }
-
-  function spawnShootingStar(w, h){
-    const side = Math.floor(Math.random() * 4);
-    let x, y, vx, vy;
-    const speed = 6 + Math.random() * 8;
-    const angle = Math.random() * 0.4 + 0.2;
-    if(side === 0){ x = Math.random()*w; y = 0; vx = speed*Math.cos(angle); vy = speed*Math.sin(angle); }
-    else if(side === 1){ x = w; y = Math.random()*h; vx = -speed*Math.cos(angle); vy = speed*Math.sin(angle)*(Math.random()>0.5?1:-1); }
-    else if(side === 2){ x = Math.random()*w; y = h; vx = speed*Math.cos(angle)*(Math.random()>0.5?1:-1); vy = -speed*Math.sin(angle); }
-    else { x = 0; y = Math.random()*h; vx = speed*Math.cos(angle); vy = speed*Math.sin(angle)*(Math.random()>0.5?1:-1); }
-    shootingStars.push({ x, y, vx, vy, life: 0, maxLife: 25 + Math.floor(Math.random()*20), trail: [] });
-  }
-
-  function drawShootingStars(ctx){
-    const now = performance.now();
-    if(now - lastShootingStar > 2500 + Math.random()*3000){
-      lastShootingStar = now;
-      if(shootingStars.length < 3) spawnShootingStar(staticW, staticH);
-    }
-
-    for(let i = shootingStars.length - 1; i >= 0; i--){
-      const s = shootingStars[i];
-      s.x += s.vx;
-      s.y += s.vy;
-      s.life++;
-      s.trail.push({ x: s.x, y: s.y });
-      if(s.trail.length > 15) s.trail.shift();
-
-      if(s.life > s.maxLife || s.x < -20 || s.x > staticW+20 || s.y < -20 || s.y > staticH+20){
-        shootingStars.splice(i, 1);
-        continue;
-      }
-
-      const progress = s.life / s.maxLife;
-      const alpha = progress < 0.2 ? progress * 5 : (1 - progress) * 1.25;
-
-      for(let t = 0; t < s.trail.length; t++){
-        const tp = t / s.trail.length;
-        const ta = tp * alpha * 0.5;
-        const tw = tp * 2;
-        ctx.strokeStyle = `rgba(200, 230, 255, ${ta})`;
-        ctx.lineWidth = tw;
-        ctx.beginPath();
-        if(t > 0){
-          ctx.moveTo(s.trail[t-1].x, s.trail[t-1].y);
-          ctx.lineTo(s.trail[t].x, s.trail[t].y);
-        } else {
-          ctx.moveTo(s.trail[t].x, s.trail[t].y);
-          ctx.lineTo(s.trail[t].x, s.trail[t].y);
-        }
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-      ctx.beginPath(); ctx.arc(s.x, s.y, 1.5, 0, Math.PI*2); ctx.fill();
-    }
-  }
-
-  function drawNebulas(ctx, w, h){
-    const cx = w/2, cy = h/2;
-    NEBULAS.forEach(n => {
-      n.x += n.vx;
-      n.y += n.vy;
-      if(n.x < -n.radius) n.x = w + n.radius;
-      if(n.x > w + n.radius) n.x = -n.radius;
-      if(n.y < -n.radius) n.y = h + n.radius;
-      if(n.y > h + n.radius) n.y = -n.radius;
-
-      const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
-      grad.addColorStop(0, `rgba(${n.color[0]}, ${n.color[1]}, ${n.color[2]}, ${n.alpha})`);
-      grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.radius, 0, Math.PI*2); ctx.fill();
-    });
-  }
-
-  function drawMarker(ctx, w, h, time){
-    const cx = w/2, cy = h/2;
-    const markerX = cx + w*0.15, markerY = cy - h*0.1;
-
-    markerPhase = (time % 2000) / 2000;
-    const pulse = Math.sin(markerPhase * Math.PI * 2) * 0.5 + 0.5;
-    const pulseRadius = 10 + pulse * 12;
-    const pulseAlpha = 0.15 + pulse * 0.2;
-
-    ctx.strokeStyle = `rgba(6, 182, 212, ${pulseAlpha})`;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(markerX, markerY, pulseRadius, 0, Math.PI*2); ctx.stroke();
-
-    const glowGrad = ctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 25 + pulse*10);
-    glowGrad.addColorStop(0, `rgba(6, 182, 212, ${0.15 + pulse*0.1})`);
-    glowGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = glowGrad;
-    ctx.beginPath(); ctx.arc(markerX, markerY, 25 + pulse*10, 0, Math.PI*2); ctx.fill();
-
-    ctx.fillStyle = '#06b6d4';
-    ctx.beginPath(); ctx.arc(markerX, markerY, 4, 0, Math.PI*2); ctx.fill();
-
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(markerX, markerY, 8, 0, Math.PI*2); ctx.stroke();
-
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#06b6d4';
-    const label = activeColony ? (activeColony.shortName || activeColony.name) : SYSTEM_INFO.shortName;
-    ctx.fillText(label, markerX + 14, markerY + 4);
-  }
-
-  function drawFrame(time){
-    const canvas = document.getElementById('galaxyCanvas');
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.parentElement.getBoundingClientRect();
-
-    canvas.width = rect.width * 2;
-    canvas.height = rect.height * 2;
-    ctx.scale(2, 2);
-
-    const w = rect.width, h = rect.height;
-
-    if(NEBULAS.length === 0) initNebulas(w, h);
-
-    drawStaticLayer(w, h);
-
-    ctx.drawImage(staticCanvas, 0, 0, staticCanvas.width, staticCanvas.height, 0, 0, w, h);
-
-    drawNebulas(ctx, w, h);
-    drawShootingStars(ctx);
-    drawMarker(ctx, w, h, time);
-  }
-
-  function animate(time){
-    if(document.visibilityState === 'visible'){
-      drawFrame(time);
-    }
-    animFrame = requestAnimationFrame(animate);
   }
 
   function subscribeBases(){
@@ -673,16 +763,23 @@
     });
   }
 
-  init();
-  subscribeBases();
-  animate(0);
+  async function init(){
+    initThreeJS();
 
-  window.addEventListener('resize', () => {
-    staticCanvas = null;
-    staticW = 0;
-    staticH = 0;
-    initNebulas(0, 0);
-  });
+    ALL_COLONIES = await loadAllColonies();
+    renderColonySelector();
+    rebuild3DMap();
+
+    activeColony = ALL_COLONIES[0];
+    if(activeColony){
+      selectColony(activeColony);
+    }
+
+    subscribeBases();
+    animate(0);
+  }
+
+  init();
 </script>
 </body>
 </html>
