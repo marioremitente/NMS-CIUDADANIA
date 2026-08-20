@@ -126,6 +126,7 @@
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
+  import { loadColony } from './colonies-data.js';
   import {
     doc, getDoc, getDocs, updateDoc, deleteDoc, runTransaction, collection, query, where, orderBy
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -219,8 +220,20 @@
           allBases = allSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
         }catch(e){ /* si falla, solo muestra la base actual */ }
 
+        let colony = null;
+        let colonyPlanets = PLANETS;
+        const colonyId = data.colonyId || 'mori-01';
+        if(colonyId !== 'mori-01'){
+          try{
+            colony = await loadColony(colonyId);
+            if(colony && colony.planets && colony.planets.length){
+              colonyPlanets = colony.planets;
+            }
+          }catch(e){ colonyPlanets = PLANETS; }
+        }
+
         renderBaseSwitcher(allBases, docId);
-        renderEditForm(data);
+        renderEditForm(data, colony, colonyPlanets);
       }catch(e){
         contentBox.innerHTML = `
           <div class="empty-state">
@@ -237,22 +250,24 @@
         <div class="base-switcher-label">Tus ${allBases.length} bases</div>
         <div class="base-switcher-list">
           ${allBases.map(b => {
-            const p = PLANETS.find(pl => pl.i === b.planetIndex);
             const isActive = b._docId === activeDocId;
+            const bColony = (b.colonyId && b.colonyId !== 'mori-01') ? b.colonyId : '';
             return `<a href="./mori01-edit-base.html?docId=${encodeURIComponent(b._docId)}" class="base-switcher-item ${isActive ? 'active' : ''}">
               <span class="bsi-id">${escapeHtml(b.id || '—')}</span>
-              <span class="bsi-detail">${p ? escapeHtml(p.name) : '—'} · ${escapeHtml(String(b.lat))}, ${escapeHtml(String(b.lon))}</span>
+              <span class="bsi-detail">${bColony ? escapeHtml(bColony) + ' · ' : ''}${escapeHtml(String(b.lat))}, ${escapeHtml(String(b.lon))}</span>
             </a>`;
           }).join('')}
         </div>`;
     }
 
-    function renderEditForm(base){
+    function renderEditForm(base, colony, colonyPlanets){
       const contentBox = document.getElementById('content');
       const hasPhoto = base.photoUrl && base.photoStatus === 'approved';
       const photoPending = base.photoStatus === 'pending' && base.photoUrl;
       const photoRejected = base.photoStatus === 'rejected';
       const pillText = base.status === 'citizen' ? 'Ciudadano' : base.status === 'rejected' ? 'Rechazada' : 'Pendiente';
+      const colonyName = colony ? (colony.shortName || colony.name) : SYSTEM_INFO.shortName;
+      const colonyTag = colony ? (colony.tag || '') : SYSTEM_INFO.tag;
 
       contentBox.innerHTML = `
         <div class="panel">
@@ -260,7 +275,8 @@
             <div>
               <h2 style="margin:0;">${base.id}</h2>
               <div style="margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <span style="font-size:13px;color:var(--text-muted);">Sistema: <b style="color:var(--accent-cyan);">${SYSTEM_INFO.shortName}</b></span>
+                <span style="font-size:13px;color:var(--text-muted);">Sistema: <b style="color:var(--accent-cyan);">${escapeHtml(colonyName)}</b></span>
+                ${colonyTag ? `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">${escapeHtml(colonyTag)}</span>` : ''}
                 <span style="font-family:var(--font-mono);font-size:10.5px;padding:4px 10px;border-radius:20px;background:rgba(245,184,73,.12);border:1px solid rgba(245,184,73,.4);color:var(--accent-gold);">${pillText}</span>
               </div>
             </div>
@@ -305,7 +321,7 @@
 
       const planetSelect = document.getElementById('planetSelect');
       const planetPicker = document.getElementById('planetPicker');
-      PLANETS.forEach(p => {
+      colonyPlanets.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.i;
         opt.textContent = `${p.name} (glifo ${p.i})`;
