@@ -89,6 +89,11 @@
 
   .loading-state{text-align:center; padding:60px 0; color:var(--text-dim); font-family:var(--font-mono); font-size:13px;}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
+  .base-here-badge{
+    display:inline-block; margin-top:6px; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; font-family:var(--font-mono);
+    background:rgba(232,84,107,.15); border:1px solid rgba(232,84,107,.5); color:var(--accent-red);
+  }
 </style>
 </head>
 <body>
@@ -268,8 +273,9 @@
         planetSelect.appendChild(opt);
 
         const card = document.createElement('div');
-        card.className = 'planet-choice' + (p.i === base.planetIndex ? ' selected' : '');
-        card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+        const isCurrentPlanet = p.i === base.planetIndex;
+        card.className = 'planet-choice' + (isCurrentPlanet ? ' selected' : '');
+        card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>${isCurrentPlanet ? '<div class="base-here-badge">📍 Tu base está aquí</div>' : ''}`;
         card.addEventListener('click', () => {
           planetSelect.value = p.i;
           planetPicker.querySelectorAll('.planet-choice').forEach(c => c.classList.remove('selected'));
