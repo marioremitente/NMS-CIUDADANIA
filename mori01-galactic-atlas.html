@@ -297,7 +297,7 @@
     const rect = container.getBoundingClientRect();
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x07080d, 0.0004);
+    scene.fog = new THREE.FogExp2(0x07080d, 0.0002);
 
     camera = new THREE.PerspectiveCamera(55, rect.width / rect.height, 0.1, 10000);
     camera.position.set(800, 600, 1200);
@@ -430,6 +430,29 @@
     return colors[idx % colors.length];
   }
 
+  function createFlareTexture(){
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const half = size / 2;
+    const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.15, 'rgba(255,255,255,0.6)');
+    grad.addColorStop(0.4, 'rgba(255,255,255,0.15)');
+    grad.addColorStop(0.7, 'rgba(255,255,255,0.03)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  let _flareTex = null;
+  function flareTexture(){
+    if(!_flareTex) _flareTex = createFlareTexture();
+    return _flareTex;
+  }
+
   function createColonyMarker(colony, colorIdx){
     const sig = colony.signature;
     if(!sig || sig.length < 12) return null;
@@ -441,37 +464,59 @@
 
     const col = colonyColor(colorIdx);
 
-    const sphereGeo = new THREE.SphereGeometry(10, 24, 24);
+    const sphereGeo = new THREE.SphereGeometry(12, 24, 24);
     const sphereMat = new THREE.MeshBasicMaterial({ color: col });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     sphere.position.set(cart.x, cart.y, cart.z);
     group.add(sphere);
 
-    const glowGeo = new THREE.SphereGeometry(20, 16, 16);
-    const glowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.2 });
+    const glowGeo = new THREE.SphereGeometry(32, 16, 16);
+    const glowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4 });
     const glow = new THREE.Mesh(glowGeo, glowMat);
     glow.position.copy(sphere.position);
     group.add(glow);
 
-    const outerGlowGeo = new THREE.SphereGeometry(35, 12, 12);
-    const outerGlowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.06 });
+    const outerGlowGeo = new THREE.SphereGeometry(55, 12, 12);
+    const outerGlowMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.15 });
     const outerGlow = new THREE.Mesh(outerGlowGeo, outerGlowMat);
     outerGlow.position.copy(sphere.position);
     group.add(outerGlow);
 
-    const ringGeo = new THREE.RingGeometry(18, 22, 48);
-    const ringMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const flareGeo = new THREE.PlaneGeometry(120, 120);
+    const flareMat = new THREE.MeshBasicMaterial({ map: flareTexture(), color: col, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
+    const flare = new THREE.Mesh(flareGeo, flareMat);
+    flare.position.copy(sphere.position);
+    flare.position.y += 0.5;
+    group.add(flare);
+
+    const ringGeo = new THREE.RingGeometry(22, 26, 48);
+    const ringMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.copy(sphere.position);
     group.add(ring);
 
-    const ring2Geo = new THREE.RingGeometry(28, 30, 48);
-    const ring2Mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+    const ring2Geo = new THREE.RingGeometry(35, 38, 48);
+    const ring2Mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
     const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
     ring2.rotation.x = -Math.PI / 2;
     ring2.position.copy(sphere.position);
     group.add(ring2);
+
+    const beaconH = 140;
+    const beaconGeo = new THREE.BufferGeometry();
+    const beaconPositions = new Float32Array([0,0,0, 0,beaconH,0]);
+    beaconGeo.setAttribute('position', new THREE.BufferAttribute(beaconPositions, 3));
+    const beaconMat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.35 });
+    const beacon = new THREE.Line(beaconGeo, beaconMat);
+    beacon.position.set(cart.x, cart.y, cart.z);
+    group.add(beacon);
+
+    const beaconTipGeo = new THREE.SphereGeometry(3, 8, 8);
+    const beaconTipMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5 });
+    const beaconTip = new THREE.Mesh(beaconTipGeo, beaconTipMat);
+    beaconTip.position.set(cart.x, cart.y + beaconH, cart.z);
+    group.add(beaconTip);
 
     const points = [];
     points.push(new THREE.Vector3(cart.x, 0, cart.z));
@@ -480,33 +525,39 @@
     const lineMat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.3 });
     group.add(new THREE.Line(lineGeo, lineMat));
 
-    const discGeo = new THREE.RingGeometry(4, 6, 16);
-    const discMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const discGeo = new THREE.RingGeometry(5, 8, 16);
+    const discMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
     const disc = new THREE.Mesh(discGeo, discMat);
     disc.rotation.x = -Math.PI / 2;
     disc.position.set(cart.x, 0, cart.z);
     group.add(disc);
 
     const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 512; labelCanvas.height = 64;
+    labelCanvas.width = 512; labelCanvas.height = 80;
     const lctx = labelCanvas.getContext('2d');
-    lctx.clearRect(0, 0, 512, 64);
+    lctx.clearRect(0, 0, 512, 80);
+    lctx.fillStyle = 'rgba(7,8,13,0.7)';
+    lctx.roundRect(30, 8, 452, 60, 8);
+    lctx.fill();
     lctx.fillStyle = '#' + col.toString(16).padStart(6, '0');
-    lctx.font = 'bold 28px monospace';
+    lctx.font = 'bold 30px monospace';
     lctx.textAlign = 'center';
-    lctx.fillText(colony.shortName || colony.name, 256, 42);
+    lctx.fillText(colony.shortName || colony.name, 256, 50);
     const labelTexture = new THREE.CanvasTexture(labelCanvas);
-    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.9 });
+    const labelMat = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, opacity: 0.95 });
     const labelSprite = new THREE.Sprite(labelMat);
-    labelSprite.scale.set(60, 8, 1);
-    labelSprite.position.set(cart.x, cart.y + 24, cart.z);
+    labelSprite.scale.set(80, 12, 1);
+    labelSprite.position.set(cart.x, cart.y + 30, cart.z);
     group.add(labelSprite);
 
     group.userData.sphere = sphere;
     group.userData.glow = glow;
     group.userData.outerGlow = outerGlow;
+    group.userData.flare = flare;
     group.userData.ring = ring;
     group.userData.ring2 = ring2;
+    group.userData.beacon = beacon;
+    group.userData.beaconTip = beaconTip;
 
     return group;
   }
@@ -533,9 +584,52 @@
 
     document.getElementById('legendColonyCount').textContent = `${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''}`;
 
-    if(colonyMarkers.length > 0 && activeColony){
-      focusOnColony(activeColony);
+    fitCameraToAllSystems();
+  }
+
+  function fitCameraToAllSystems(){
+    if(!colonyMarkers.length) return;
+
+    const box = new THREE.Box3();
+    colonyMarkers.forEach(m => {
+      const cart = m.userData.cart;
+      if(cart) box.expandByPoint(new THREE.Vector3(cart.x, cart.y, cart.z));
+    });
+
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    let dist = (maxDim / 2) / Math.tan(fov / 2);
+    dist = Math.max(dist * 1.6, 200);
+
+    const dir = new THREE.Vector3(0.5, 0.4, 0.75).normalize();
+    const targetPos = center.clone().add(dir.multiplyScalar(dist));
+    const targetLookAt = center.clone();
+
+    const startPos = camera.position.clone();
+    const startTarget = controls.target.clone();
+    const duration = 1200;
+    const startTime = performance.now();
+
+    function animateCamera(now){
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      camera.position.lerpVectors(startPos, targetPos, ease);
+      controls.target.lerpVectors(startTarget, targetLookAt, ease);
+      controls.update();
+
+      if(t < 1) requestAnimationFrame(animateCamera);
     }
+    requestAnimationFrame(animateCamera);
+
+    const padding = maxDim * 0.8;
+    controls.minDistance = Math.max(maxDim * 0.3, 80);
+    controls.maxDistance = dist * 3;
+    controls.target.copy(center);
+    controls.update();
   }
 
   function focusOnColony(colony){
@@ -606,33 +700,50 @@
     const t = (time || 0) * 0.001;
 
     colonyMarkers.forEach((m, i) => {
-      const offset = i * 1.3;
+      const offset = i * 1.7;
       const phase = t + offset;
 
       if(m.userData.glow){
-        const pulse = Math.sin(phase * 2.5) * 0.15 + 0.25;
+        const pulse = Math.sin(phase * 2.5) * 0.2 + 0.4;
         m.userData.glow.material.opacity = pulse;
-        m.userData.glow.scale.setScalar(1 + Math.sin(phase * 2) * 0.25);
+        m.userData.glow.scale.setScalar(1 + Math.sin(phase * 2) * 0.3);
       }
 
       if(m.userData.outerGlow){
-        const outerPulse = Math.sin(phase * 1.2) * 0.04 + 0.08;
+        const outerPulse = Math.sin(phase * 1.2) * 0.1 + 0.15;
         m.userData.outerGlow.material.opacity = outerPulse;
-        m.userData.outerGlow.scale.setScalar(1 + Math.sin(phase * 0.8) * 0.15);
+        m.userData.outerGlow.scale.setScalar(1 + Math.sin(phase * 0.8) * 0.2);
+      }
+
+      if(m.userData.flare){
+        const flarePulse = Math.sin(phase * 1.8) * 0.12 + 0.35;
+        m.userData.flare.material.opacity = flarePulse;
+        m.userData.flare.lookAt(camera.position);
       }
 
       if(m.userData.ring){
-        const ringPulse = Math.sin(phase * 3) * 0.12 + 0.2;
+        const ringPulse = Math.sin(phase * 3) * 0.15 + 0.35;
         m.userData.ring.material.opacity = ringPulse;
-        const ringScale = 1 + Math.sin(phase * 1.8) * 0.08;
+        const ringScale = 1 + Math.sin(phase * 1.8) * 0.1;
         m.userData.ring.scale.set(ringScale, ringScale, 1);
       }
 
       if(m.userData.ring2){
-        const ring2Pulse = Math.sin(phase * 1.5 + 1) * 0.06 + 0.12;
+        const ring2Pulse = Math.sin(phase * 1.5 + 1) * 0.08 + 0.18;
         m.userData.ring2.material.opacity = ring2Pulse;
-        const ring2Scale = 1 + Math.sin(phase * 1.2 + 0.5) * 0.06;
+        const ring2Scale = 1 + Math.sin(phase * 1.2 + 0.5) * 0.08;
         m.userData.ring2.scale.set(ring2Scale, ring2Scale, 1);
+      }
+
+      if(m.userData.beacon){
+        const beaconPulse = Math.sin(phase * 1.4) * 0.15 + 0.35;
+        m.userData.beacon.material.opacity = beaconPulse;
+      }
+
+      if(m.userData.beaconTip){
+        const tipPulse = Math.sin(phase * 2.2) * 0.2 + 0.5;
+        m.userData.beaconTip.material.opacity = tipPulse;
+        m.userData.beaconTip.scale.setScalar(1 + Math.sin(phase * 3) * 0.3);
       }
 
       if(m.userData.sphere && m === (hoveredMarker || selectedMarker)){
