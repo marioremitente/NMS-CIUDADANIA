@@ -156,6 +156,7 @@
   }
   .registry-row{padding:8px 0 8px 14px; border-left:2px solid var(--border-soft); font-size:13.5px; margin-bottom:6px;}
   .registry-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:5px;}
+  .registry-edit-btn{padding:3px 10px; font-size:11px; margin-left:auto; text-decoration:none;}
   .registry-id{font-family:var(--font-mono); color:var(--accent-gold); font-size:12px; flex-shrink:0;}
   .registry-meta{color:var(--text-muted); font-size:12px; font-family:var(--font-mono); display:block;}
   .status-pill{
@@ -700,11 +701,14 @@
         const planetName = getPlanetName(e.colonyId, e.planetIndex);
         const pillClass = e.status === 'citizen' ? 'citizen' : e.status === 'rejected' ? 'rejected' : '';
         const pillText = e.status === 'citizen' ? 'Ciudadano' : e.status === 'rejected' ? 'Rechazada' : 'Esperando decisi\u00f3n del Arcade';
+        const isOwner = currentUser && e.ownerUid === currentUser.uid;
+        const editLink = isOwner ? `<a href="./mori01-edit-base.html?docId=${encodeURIComponent(e.docId)}" class="btn btn-ghost registry-edit-btn">Editar</a>` : '';
         return `
           <div class="registry-row">
             <div class="registry-top">
               <span class="registry-id">${escapeHtml(e.id)}</span>
               <span class="status-pill ${pillClass}">${pillText}</span>
+              ${editLink}
             </div>
             <span class="registry-meta">${escapeHtml(planetName)} \u00b7 ${e.lat}, ${e.lon}</span>
           </div>`;
