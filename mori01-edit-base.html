@@ -89,6 +89,18 @@
 
   .loading-state{text-align:center; padding:60px 0; color:var(--text-dim); font-family:var(--font-mono); font-size:13px;}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-family:var(--font-mono);}
+  .base-switcher{margin-bottom:24px;}
+  .base-switcher-label{font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;}
+  .base-switcher-list{display:flex; gap:8px; flex-wrap:wrap;}
+  .base-switcher-item{
+    font-family:var(--font-mono); font-size:12px; padding:8px 14px; border-radius:6px;
+    border:1px solid var(--border-soft); background:var(--bg-panel-2); color:var(--text-muted);
+    text-decoration:none; transition:all .2s; white-space:nowrap; display:inline-flex; flex-direction:column; gap:2px;
+  }
+  .base-switcher-item:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .base-switcher-item.active{border-color:var(--accent-gold); color:var(--accent-gold); background:rgba(245,184,73,.08);}
+  .base-switcher-item .bsi-id{font-weight:600; font-size:12px;}
+  .base-switcher-item .bsi-detail{font-size:10px; color:var(--text-dim);}
   .base-here-badge{
     display:inline-block; margin-top:6px; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:700;
     letter-spacing:.08em; text-transform:uppercase; font-family:var(--font-mono);
@@ -104,6 +116,8 @@
   <p class="lede" id="pageLede">Modifica los datos de tu base. Al guardar, los cambios se enviarán al Arcade para revisión si es necesario.</p>
 
   <div id="authBox" class="panel" style="display:none;"></div>
+  <div id="baseSwitcher"></div>
+
   <div id="content">
     <div class="loading-state">Cargando datos de la base…</div>
   </div>
@@ -113,7 +127,7 @@
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
-    doc, getDoc, updateDoc, deleteDoc, runTransaction
+    doc, getDoc, getDocs, updateDoc, deleteDoc, runTransaction, collection, query, where, orderBy
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     ref, uploadBytes, getDownloadURL
@@ -140,6 +154,7 @@
   }
 
   function initApp(){
+    const citizensCol = collection(db, 'citizens');
     const authBox = document.getElementById('authBox');
     let currentUser = null;
 
@@ -197,6 +212,14 @@
           return;
         }
 
+        let allBases = [];
+        try{
+          const q = query(citizensCol, where('ownerUid', '==', currentUser.uid), orderBy('ts', 'desc'));
+          const allSnap = await getDocs(q);
+          allBases = allSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+        }catch(e){ /* si falla, solo muestra la base actual */ }
+
+        renderBaseSwitcher(allBases, docId);
         renderEditForm(data);
       }catch(e){
         contentBox.innerHTML = `
@@ -205,6 +228,23 @@
             <a href="./mori01-mi-ciudadania.html">Volver a Mi Ciudadanía</a>
           </div>`;
       }
+    }
+
+    function renderBaseSwitcher(allBases, activeDocId){
+      if(allBases.length <= 1) return;
+      const switcher = document.getElementById('baseSwitcher');
+      switcher.innerHTML = `
+        <div class="base-switcher-label">Tus ${allBases.length} bases</div>
+        <div class="base-switcher-list">
+          ${allBases.map(b => {
+            const p = PLANETS.find(pl => pl.i === b.planetIndex);
+            const isActive = b._docId === activeDocId;
+            return `<a href="./mori01-edit-base.html?docId=${encodeURIComponent(b._docId)}" class="base-switcher-item ${isActive ? 'active' : ''}">
+              <span class="bsi-id">${escapeHtml(b.id || '—')}</span>
+              <span class="bsi-detail">${p ? escapeHtml(p.name) : '—'} · ${escapeHtml(String(b.lat))}, ${escapeHtml(String(b.lon))}</span>
+            </a>`;
+          }).join('')}
+        </div>`;
     }
 
     function renderEditForm(base){
