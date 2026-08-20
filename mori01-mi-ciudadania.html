@@ -290,7 +290,7 @@
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
   import {
-    collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
+    collection, doc, addDoc, updateDoc, deleteDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     ref, uploadBytes, getDownloadURL
@@ -547,6 +547,7 @@
       <h2 style="margin-top:32px;">Mis bases</h2>
       <p class="sub">${myBases.length} base${myBases.length===1?'':'s'} registradas con esta cuenta.</p>
       <div id="basesList"></div>
+      <div id="editBaseForm" style="display:none; margin-top:20px;"></div>
 
       <div class="add-base-toggle">
         <button class="btn btn-ghost" id="showAddBaseBtn">+ Agregar otra base</button>
@@ -628,17 +629,23 @@
     }).join('');
 
     const basesList = document.getElementById('basesList');
-    basesList.innerHTML = myBases.map(b=>{
-      const p = PLANETS.find(pl=>pl.i===b.planetIndex);
+    basesList.innerHTML = myBases.map((b, idx) => {
+      const p = PLANETS.find(pl => pl.i === b.planetIndex);
       const pillClass = b.status === 'citizen' ? 'citizen' : b.status === 'rejected' ? 'rejected' : '';
       const pillText = b.status === 'citizen' ? 'Ciudadano' : b.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
+      const hasBasePhoto = b.photoUrl && b.photoStatus === 'approved';
+      const photoBadge = hasBasePhoto ? '<span style="color:var(--accent-green);margin-left:6px;font-size:11px;">📷 Foto</span>' : '';
       return `
         <div class="base-row">
           <div class="base-info">
             <b>${p ? escapeHtml(p.name) : '—'}</b>
             <span>${b.id} · ${b.lat}, ${b.lon}</span>
+            ${photoBadge}
           </div>
-          <span class="status-pill ${pillClass}">${pillText}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="status-pill ${pillClass}">${pillText}</span>
+            <button class="btn btn-ghost edit-base-btn" data-idx="${idx}" style="font-size:11px;padding:5px 10px;">Editar</button>
+          </div>
         </div>`;
     }).join('');
 
@@ -661,6 +668,14 @@
       renderAddBaseForm(profileSrc);
       document.getElementById('addBaseForm').style.display = 'block';
       document.getElementById('showAddBaseBtn').style.display = 'none';
+    });
+
+    document.querySelectorAll('.edit-base-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.idx, 10);
+        renderEditBaseForm(myBases[idx], profileSrc);
+        document.getElementById('editBaseForm').style.display = 'block';
+      });
     });
   }
 
@@ -790,6 +805,169 @@
         alertBox.className = 'alert show alert-error';
         submitBtn.disabled = false;
         submitBtn.textContent = 'Registrar base';
+      }
+    });
+  }
+
+  function renderEditBaseForm(base, profileSrc){
+    const box = document.getElementById('editBaseForm');
+    const currentPlanet = PLANETS.find(p => p.i === base.planetIndex);
+    const hasPhoto = base.photoUrl && base.photoStatus === 'approved';
+    const photoPending = base.photoStatus === 'pending' && base.photoUrl;
+    const photoRejected = base.photoStatus === 'rejected';
+
+    box.innerHTML = `
+      <div class="panel" style="border-color:var(--accent-gold);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <h2 style="margin:0;">Editar base — ${base.id}</h2>
+          <button class="btn btn-ghost" id="cancelEditBaseBtn" style="font-size:12px;padding:6px 12px;">✕ Cerrar</button>
+        </div>
+        <div id="editBaseAlert" class="alert"></div>
+        <div class="planet-picker" id="editPlanetPicker"></div>
+        <select id="editPlanetSelect" style="display:none"></select>
+        <div class="field-row">
+          <div class="field">
+            <label for="editBaseLat">Latitud</label>
+            <input type="text" id="editBaseLat" value="${escapeHtml(String(base.lat))}">
+          </div>
+          <div class="field">
+            <label for="editBaseLon">Longitud</label>
+            <input type="text" id="editBaseLon" value="${escapeHtml(String(base.lon))}">
+          </div>
+        </div>
+        <p class="hint">Formato del juego: signo, grados, dos decimales. Ej: +14.32, -21.96</p>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-soft);">
+          <label class="file-btn" for="editBasePhotoInput" style="align-self:flex-start;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+            ${hasPhoto ? 'Cambiar foto de base' : 'Subir foto de base'}
+          </label>
+          <input type="file" id="editBasePhotoInput" accept="image/*" style="display:none">
+          <p class="photo-hint">Foto del entorno de tu base en el juego. Máximo 5MB. Pendiente de aprobación del Arcade.</p>
+          <p class="photo-note" id="editBasePhotoStatus"></p>
+          ${hasPhoto ? `<div style="margin-top:10px;"><img src="${base.photoUrl}" style="max-width:200px;border-radius:6px;border:1px solid var(--border-bright);"></div>` : ''}
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="saveEditBaseBtn">Guardar cambios</button>
+          <button class="btn btn-ghost" id="deleteEditBaseBtn" style="color:var(--accent-red);border-color:rgba(232,84,107,.3);">Eliminar base</button>
+        </div>
+      </div>
+    `;
+
+    const editPlanetSelect = document.getElementById('editPlanetSelect');
+    const editPlanetPicker = document.getElementById('editPlanetPicker');
+    PLANETS.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.i;
+      opt.textContent = `${p.name} (glifo ${p.i})`;
+      if(p.i === base.planetIndex) opt.selected = true;
+      editPlanetSelect.appendChild(opt);
+
+      const card = document.createElement('div');
+      card.className = 'planet-choice' + (p.i === base.planetIndex ? ' selected' : '');
+      card.innerHTML = `<div class="pimg">${planetImg(p)}</div><div class="pname">${p.name}</div><div class="pglyph">Glifo ${p.i}</div>`;
+      card.addEventListener('click', () => {
+        editPlanetSelect.value = p.i;
+        editPlanetPicker.querySelectorAll('.planet-choice').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+      editPlanetPicker.appendChild(card);
+    });
+
+    const photoStatusEl = document.getElementById('editBasePhotoStatus');
+    if(photoPending){
+      photoStatusEl.textContent = 'Foto pendiente de aprobación del Arcade.';
+      photoStatusEl.className = 'photo-note show pending';
+    }else if(photoRejected){
+      photoStatusEl.textContent = 'Última foto rechazada. Sube otra.';
+      photoStatusEl.className = 'photo-note show rejected';
+    }else if(hasPhoto){
+      photoStatusEl.textContent = '✓ Foto aprobada.';
+      photoStatusEl.className = 'photo-note show approved';
+    }
+
+    document.getElementById('editBasePhotoInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!file.type.startsWith('image/')){
+        photoStatusEl.textContent = 'Solo se permiten imágenes.';
+        photoStatusEl.className = 'photo-note show rejected';
+        return;
+      }
+      if(file.size > MAX_FILE_BYTES){
+        photoStatusEl.textContent = 'La imagen pesa más de 5MB.';
+        photoStatusEl.className = 'photo-note show rejected';
+        return;
+      }
+      photoStatusEl.textContent = 'Subiendo…';
+      photoStatusEl.className = 'photo-note show';
+      try{
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const storageRef = ref(storage, `bases/${base.docId}-basephoto.${ext}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        await updateDoc(doc(db, 'citizens', base.docId), { photoUrl: url, photoStatus: 'pending' });
+        addStorageUsage(file.size);
+        base.photoUrl = url;
+        base.photoStatus = 'pending';
+        photoStatusEl.textContent = 'Foto subida — pendiente de aprobación del Arcade.';
+        photoStatusEl.className = 'photo-note show pending';
+      }catch(err){
+        photoStatusEl.textContent = 'No se pudo subir la foto.';
+        photoStatusEl.className = 'photo-note show rejected';
+      }
+    });
+
+    document.getElementById('cancelEditBaseBtn').addEventListener('click', () => {
+      box.style.display = 'none';
+      box.innerHTML = '';
+    });
+
+    document.getElementById('saveEditBaseBtn').addEventListener('click', async () => {
+      const alertBox = document.getElementById('editBaseAlert');
+      const planetIndex = parseInt(editPlanetSelect.value, 10);
+      const lat = parseFloat(String(document.getElementById('editBaseLat').value).replace(',', '.').trim());
+      const lon = parseFloat(String(document.getElementById('editBaseLon').value).replace(',', '.').trim());
+
+      if(!planetIndex){ alertBox.textContent = 'Selecciona un planeta.'; alertBox.className = 'alert show alert-error'; return; }
+      if(isNaN(lat) || isNaN(lon)){ alertBox.textContent = 'Coordenadas inválidas.'; alertBox.className = 'alert show alert-error'; return; }
+
+      const saveBtn = document.getElementById('saveEditBaseBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
+      try{
+        await updateDoc(doc(db, 'citizens', base.docId), { planetIndex, lat, lon });
+        alertBox.textContent = 'Base actualizada.';
+        alertBox.className = 'alert show alert-ok';
+        setTimeout(() => {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          init();
+        }, 1200);
+      }catch(e){
+        alertBox.textContent = 'No se pudo guardar. Intenta de nuevo.';
+        alertBox.className = 'alert show alert-error';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Guardar cambios';
+      }
+    });
+
+    document.getElementById('deleteEditBaseBtn').addEventListener('click', async () => {
+      if(!confirm('¿Eliminar esta base? Esta acción no se puede deshacer.')) return;
+      const alertBox = document.getElementById('editBaseAlert');
+      try{
+        await deleteDoc(doc(db, 'citizens', base.docId));
+        alertBox.textContent = 'Base eliminada.';
+        alertBox.className = 'alert show alert-ok';
+        setTimeout(() => {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          init();
+        }, 1200);
+      }catch(e){
+        alertBox.textContent = 'No se pudo eliminar. Solo puedes eliminar tus propias bases.';
+        alertBox.className = 'alert show alert-error';
       }
     });
   }
