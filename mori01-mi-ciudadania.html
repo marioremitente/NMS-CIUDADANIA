@@ -267,6 +267,41 @@
   }
   .btn-gold:hover{background:#ffc84d; transform:translateY(-1px); box-shadow:0 6px 24px rgba(245,184,73,.35);}
   .btn-gold svg{width:18px; height:18px;}
+
+  .colony-cards{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:12px; margin-bottom:16px;}
+  .colony-card{
+    background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:8px;
+    padding:16px; cursor:pointer; transition:border-color .2s, transform .15s;
+  }
+  .colony-card:hover{border-color:var(--accent-cyan); transform:translateY(-2px);}
+  .colony-card.selected{border-color:var(--accent-gold); box-shadow:0 0 16px rgba(245,184,73,.15);}
+  .colony-card-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .colony-card-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--accent-green);}
+  .colony-card-name{font-family:var(--font-display); font-size:15px; letter-spacing:.02em; flex:1;}
+  .colony-card-tag{font-family:var(--font-mono); font-size:11px; color:var(--text-dim);}
+  .colony-card-meta{font-size:12px; color:var(--text-muted); font-family:var(--font-mono); line-height:1.6;}
+  .colony-card-meta span{display:block;}
+
+  .colony-glyphs{display:flex; gap:6px; margin:12px 0; flex-wrap:wrap; align-items:center;}
+  .colony-glyph{
+    width:38px; height:38px; border:1px solid var(--border-bright); border-radius:4px;
+    display:flex; align-items:center; justify-content:center; background:var(--bg-panel);
+  }
+  .colony-glyph img{width:22px; height:22px; object-fit:contain;}
+  .colony-glyph-label{font-family:var(--font-mono); font-size:9px; color:var(--text-dim); text-align:center; margin-top:2px;}
+
+  .colony-planet-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:10px; margin:12px 0;}
+  .colony-planet-card{
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:6px;
+    padding:10px; text-align:center; cursor:pointer; transition:border-color .2s;
+  }
+  .colony-planet-card:hover{border-color:var(--accent-cyan);}
+  .colony-planet-card.selected{border-color:var(--accent-gold); box-shadow:0 0 10px rgba(245,184,73,.12);}
+  .colony-planet-card img{width:44px; height:44px; border-radius:50%; margin:0 auto 6px; display:block; object-fit:cover; background:var(--bg-panel-2);}
+  .colony-planet-card .cpname{font-family:var(--font-display); font-size:12px; margin-bottom:2px;}
+  .colony-planet-card .cpglyph{font-family:var(--font-mono); font-size:10px; color:var(--accent-gold);}
+
+  .colony-form-section{margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft);}
 </style>
 </head>
 <body>
@@ -284,11 +319,42 @@
     </div>
   </div>
 
+  <div class="panel" id="otherColonyPanel" style="display:none;">
+    <div class="colony-form-section" id="otherColonySection">
+      <h2>Base en otra colonia</h2>
+      <p class="sub">Selecciona una colonia, elige el planeta y registra tu base.</p>
+      <div id="colonyAlert2" class="alert"></div>
+      <div class="colony-cards" id="colonyCards"></div>
+      <div id="colonyDetail" style="display:none;">
+        <h3 id="colonyDetailName" style="font-family:var(--font-display); font-size:16px; margin-bottom:4px;"></h3>
+        <p class="sub" id="colonyDetailMeta"></p>
+        <div class="colony-glyphs" id="colonyGlyphs"></div>
+        <h3 style="font-family:var(--font-display); font-size:14px; margin-bottom:8px;">Elige el planeta</h3>
+        <div class="colony-planet-grid" id="colonyPlanetGrid"></div>
+        <div id="colonyBaseForm" style="display:none; margin-top:14px;">
+          <div class="field-row">
+            <div class="field">
+              <label for="colonyLat">Latitud</label>
+              <input type="text" id="colonyLat" placeholder="+14.32">
+            </div>
+            <div class="field">
+              <label for="colonyLon">Longitud</label>
+              <input type="text" id="colonyLon" placeholder="-21.96">
+            </div>
+          </div>
+          <p class="hint">Formato del juego: signo, grados, dos decimales. Ej: +14.32, -21.96</p>
+          <button class="btn btn-primary" id="colonySubmitBtn" style="margin-top:12px;" disabled>Registrar base en esta colonia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script type="module">
   import { db, auth, storage, signInWithGoogle, signOutPlayer, onAuthStateChanged } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO, planetImg } from './mori01-data.js';
+  import { loadAllColonies, glyphToPosition, glyphSVG } from './colonies-data.js';
   import {
     collection, doc, addDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -371,7 +437,10 @@
     if(unsubscribeMine){ unsubscribeMine(); unsubscribeMine = null; }
     if(user){
       subscribeMine(user.uid);
+      initColonySection();
     }else{
+      ALL_COLONIES = [];
+      document.getElementById('otherColonyPanel').style.display = 'none';
       document.getElementById('content').innerHTML =
         '<div class="empty-state">Inicia sesión con Google para ver tu ciudadanía.</div>';
     }
@@ -552,14 +621,6 @@
         <button class="btn btn-ghost" id="showAddBaseBtn">+ Agregar otra base</button>
       </div>
       <div id="addBaseForm" style="display:none; margin-top:20px;"></div>
-
-      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border-soft);">
-        <a href="./mori01-base-otro-asentamiento.html" class="btn-gold" style="width:100%; justify-content:center;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l9-9M12 12l9-9"/><circle cx="12" cy="12" r="2"/></svg>
-          BASE EN OTRO ASENTAMIENTO
-        </a>
-        <p class="hint" style="text-align:center; margin-top:8px;">Registra una base en otra colonia del proyecto.</p>
-      </div>
     `;
 
     document.getElementById('credTopStrip').innerHTML =
@@ -629,15 +690,20 @@
 
     const basesList = document.getElementById('basesList');
     basesList.innerHTML = myBases.map(b => {
-      const p = PLANETS.find(pl => pl.i === b.planetIndex);
+      const colonyId = b.colonyId || 'mori-01';
+      const colony = ALL_COLONIES.find(c => c.id === colonyId);
+      const colonyName = colony ? (colony.shortName || colony.name) : (colonyId === 'mori-01' ? SYSTEM_INFO.shortName : colonyId);
+      const planets = colony ? (colony.planets || PLANETS) : PLANETS;
+      const p = planets.find(pl => pl.i === b.planetIndex);
       const pillClass = b.status === 'citizen' ? 'citizen' : b.status === 'rejected' ? 'rejected' : '';
       const pillText = b.status === 'citizen' ? 'Ciudadano' : b.status === 'rejected' ? 'Rechazada' : 'Esperando decisión del Arcade';
       const hasBasePhoto = b.photoUrl && b.photoStatus === 'approved';
       const photoBadge = hasBasePhoto ? '<span style="color:var(--accent-green);margin-left:6px;font-size:11px;">📷 Foto</span>' : '';
+      const colonyBadge = colonyId !== 'mori-01' ? `<span style="color:var(--accent-gold);font-size:11px;font-family:var(--font-mono);margin-left:6px;">${escapeHtml(colonyName)}</span>` : '';
       return `
         <div class="base-row">
           <div class="base-info">
-            <b>${p ? escapeHtml(p.name) : '—'}</b>
+            <b>${p ? escapeHtml(p.name) : '—'}</b>${colonyBadge}
             <span>${b.id} · ${b.lat}, ${b.lon}</span>
             ${photoBadge}
           </div>
@@ -799,6 +865,187 @@
       }
     });
   }
+
+  // ========== COLONIAS ==========
+  let ALL_COLONIES = [];
+  let SELECTED_COLONY = null;
+  let SELECTED_COLONY_PLANET = null;
+
+  async function initColonySection(){
+    try{ ALL_COLONIES = await loadAllColonies(); }catch(e){ ALL_COLONIES = []; }
+    document.getElementById('otherColonyPanel').style.display = 'block';
+    renderColonyCards();
+  }
+
+  function getColonyColor(colony, idx){
+    const colors = [
+      'var(--accent-cyan)', 'var(--accent-gold)', 'var(--accent-violet)',
+      'var(--accent-green)', 'var(--accent-red)', '#ff8c32',
+      '#50c8dc', '#c878ff', '#ffc850'
+    ];
+    if(colony.id === 'mori-01') return colors[0];
+    return colors[(idx || 0) % colors.length];
+  }
+
+  function renderColonyCards(){
+    const container = document.getElementById('colonyCards');
+    if(!ALL_COLONIES.length){
+      container.innerHTML = '<div class="empty-state">No hay colonias disponibles.</div>';
+      return;
+    }
+    container.innerHTML = ALL_COLONIES.map((c, idx) => {
+      const planetCount = (c.planets || []).length;
+      const color = getColonyColor(c, idx);
+      return `
+        <div class="colony-card" data-colony-idx="${idx}">
+          <div class="colony-card-top">
+            <div class="colony-card-dot" style="background:${color}"></div>
+            <div class="colony-card-name">${escapeHtml(c.shortName || c.name)}</div>
+            ${c.tag ? `<div class="colony-card-tag">${escapeHtml(c.tag)}</div>` : ''}
+          </div>
+          <div class="colony-card-meta">
+            <span>${escapeHtml(c.region || '—')} · ${escapeHtml(c.galaxy || '—')}</span>
+            <span>${planetCount} planeta${planetCount !== 1 ? 's' : ''} · ${escapeHtml(c.race || '—')}</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.colony-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const idx = parseInt(card.dataset.colonyIdx, 10);
+        selectColonyForBase(ALL_COLONIES[idx], idx);
+      });
+    });
+  }
+
+  function selectColonyForBase(colony, idx){
+    SELECTED_COLONY = colony;
+    SELECTED_COLONY_PLANET = null;
+
+    document.querySelectorAll('.colony-card').forEach((c, i) => c.classList.toggle('selected', i === idx));
+
+    const detail = document.getElementById('colonyDetail');
+    detail.style.display = 'block';
+    document.getElementById('colonyDetailName').textContent = colony.shortName || colony.name;
+    document.getElementById('colonyDetailMeta').textContent = `${colony.region || '—'} · ${colony.galaxy || '—'} · ${colony.race || '—'}`;
+
+    const sig = colony.signature;
+    const glyphsContainer = document.getElementById('colonyGlyphs');
+    if(sig && sig.length === 12){
+      glyphsContainer.innerHTML = sig.map((n, i) => `
+        <div>
+          <div class="colony-glyph">${glyphSVG(n)}</div>
+          <div class="colony-glyph-label">${i + 1}</div>
+        </div>
+      `).join('');
+    } else {
+      glyphsContainer.innerHTML = '<span style="font-size:12px;color:var(--text-dim);">Sin glifos registrados</span>';
+    }
+
+    const planets = colony.planets || [];
+    const planetGrid = document.getElementById('colonyPlanetGrid');
+    if(!planets.length){
+      planetGrid.innerHTML = '<div class="empty-state">Esta colonia no tiene planetas registrados.</div>';
+    } else {
+      planetGrid.innerHTML = planets.map((p, pidx) => `
+        <div class="colony-planet-card" data-pidx="${pidx}">
+          ${planetImg(p)}
+          <div class="cpname">${escapeHtml(p.name)}</div>
+          <div class="cpglyph">Glifo ${p.i}</div>
+        </div>
+      `).join('');
+
+      planetGrid.querySelectorAll('.colony-planet-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const pidx = parseInt(card.dataset.pidx, 10);
+          SELECTED_COLONY_PLANET = planets[pidx];
+          document.querySelectorAll('.colony-planet-card').forEach((c, i) => c.classList.toggle('selected', i === pidx));
+          document.getElementById('colonyBaseForm').style.display = 'block';
+          updateColonySubmitState();
+        });
+      });
+    }
+
+    document.getElementById('colonyBaseForm').style.display = 'none';
+    document.getElementById('colonyLat').value = '';
+    document.getElementById('colonyLon').value = '';
+    document.getElementById('colonyAlert2').className = 'alert';
+  }
+
+  function updateColonySubmitState(){
+    const btn = document.getElementById('colonySubmitBtn');
+    const lat = document.getElementById('colonyLat').value.trim();
+    const lon = document.getElementById('colonyLon').value.trim();
+    btn.disabled = !(SELECTED_COLONY_PLANET && lat && lon);
+  }
+
+  (function initColonyListeners(){
+    document.getElementById('colonyLat').addEventListener('input', updateColonySubmitState);
+    document.getElementById('colonyLon').addEventListener('input', updateColonySubmitState);
+
+    document.getElementById('colonySubmitBtn').addEventListener('click', async ()=>{
+      const alertBox = document.getElementById('colonyAlert2');
+      alertBox.className = 'alert';
+      if(!currentUser){ alertBox.textContent = 'Inicia sesión.'; alertBox.className = 'alert show alert-error'; return; }
+      if(!SELECTED_COLONY){ alertBox.textContent = 'Selecciona una colonia.'; alertBox.className = 'alert show alert-error'; return; }
+      if(!SELECTED_COLONY_PLANET){ alertBox.textContent = 'Selecciona un planeta.'; alertBox.className = 'alert show alert-error'; return; }
+
+      const lat = parseFloat(document.getElementById('colonyLat').value.replace(',', '.').trim());
+      const lon = parseFloat(document.getElementById('colonyLon').value.replace(',', '.').trim());
+      if(isNaN(lat) || isNaN(lon)){ alertBox.textContent = 'Coordenadas inválidas.'; alertBox.className = 'alert show alert-error'; return; }
+
+      const submitBtn = document.getElementById('colonySubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verificando…';
+
+      try{
+        const planetIndex = SELECTED_COLONY_PLANET.i;
+        const q = query(citizensCol, where('planetIndex', '==', planetIndex));
+        const snap = await getDocs(q);
+        const sameplanet = snap.docs.map(d => d.data()).filter(e => e.status !== 'rejected' && e.colonyId === SELECTED_COLONY.id);
+        for(const e of sameplanet){
+          const d = distanciaPasos(lat, lon, e.lat, e.lon);
+          if(d <= MIN_DISTANCE_PASOS){
+            alertBox.textContent = `Ese punto está ocupado por ${e.name} (${e.id}) — a ~${Math.round(d)} pasos.`;
+            alertBox.className = 'alert show alert-error';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Registrar base en esta colonia';
+            return;
+          }
+        }
+
+        const profileBase = myBases[0] || {};
+        const newEntry = {
+          id: '#' + (SELECTED_COLONY.tag || 'M01').replace(/[\[\]]/g,'') + '-' + Math.floor(1000 + Math.random()*9000),
+          name: profileBase.name || currentUser.displayName || 'Jugador',
+          colonyId: SELECTED_COLONY.id,
+          planetIndex, lat, lon,
+          profession: profileBase.profession || '',
+          platform: profileBase.platform || '',
+          friendCode: profileBase.friendCode || '',
+          status: 'pending',
+          ts: Date.now(),
+          ownerUid: currentUser.uid,
+          ownerEmail: currentUser.email || ''
+        };
+        await addDoc(citizensCol, newEntry);
+        alertBox.textContent = `Base registrada como ${newEntry.id} en ${SELECTED_COLONY.shortName || SELECTED_COLONY.name}. Esperando decisión del Arcade.`;
+        alertBox.className = 'alert show alert-ok';
+        document.getElementById('colonyLat').value = '';
+        document.getElementById('colonyLon').value = '';
+        SELECTED_COLONY_PLANET = null;
+        document.querySelectorAll('.colony-planet-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('colonyBaseForm').style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registrar base en esta colonia';
+      }catch(e){
+        alertBox.textContent = 'No se pudo registrar la base. Intenta de nuevo.';
+        alertBox.className = 'alert show alert-error';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Registrar base en esta colonia';
+      }
+    });
+  })();
 </script>
 </body>
 </html>
