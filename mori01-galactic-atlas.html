@@ -158,6 +158,57 @@
     color:var(--text-dim); background:rgba(7,8,13,.8); padding:5px 10px;
     border:1px solid var(--border-soft); border-radius:4px; z-index:2;
   }
+
+  .glyph-nav{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:14px 18px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:8px;
+    margin-bottom:18px;
+  }
+  .glyph-nav-label{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.15em;
+    color:var(--accent-gold); text-transform:uppercase; margin-right:4px; white-space:nowrap;
+  }
+  .glyph-inputs{display:flex; gap:4px; align-items:center;}
+  .glyph-inputs input{
+    width:30px; height:34px; text-align:center; font-family:var(--font-mono); font-size:14px;
+    font-weight:700; color:var(--accent-cyan); background:var(--bg-panel-2);
+    border:1px solid var(--border-bright); border-radius:3px; outline:none;
+    text-transform:uppercase; caret-color:var(--accent-gold);
+  }
+  .glyph-inputs input:focus{border-color:var(--accent-cyan); box-shadow:0 0 8px rgba(6,182,212,.25);}
+  .glyph-nav .btn{
+    font-family:var(--font-mono); font-size:12px; padding:8px 16px;
+    background:var(--accent-cyan); color:var(--bg-deep); border:none; cursor:pointer;
+    font-weight:700; letter-spacing:.08em; border-radius:3px; transition:all .2s;
+    white-space:nowrap;
+  }
+  .glyph-nav .btn:hover{background:#31cbe6; transform:translateY(-1px);}
+  .glyph-nav .btn:disabled{opacity:.4; cursor:default; transform:none;}
+  .glyph-nav-coords{
+    font-family:var(--font-mono); font-size:11px; color:var(--text-dim);
+    margin-left:auto; white-space:nowrap;
+  }
+  .glyph-nav-coords .found{color:var(--accent-green);}
+  .glyph-nav-coords .error{color:var(--accent-red);}
+
+  .map-legend{
+    position:absolute; top:12px; right:12px; font-family:var(--font-mono); font-size:10.5px;
+    color:var(--text-muted); background:rgba(7,8,13,.85); padding:10px 14px;
+    border:1px solid var(--border-soft); border-radius:4px; z-index:2;
+    max-height:260px; overflow-y:auto;
+  }
+  .map-legend::-webkit-scrollbar{width:4px;}
+  .map-legend::-webkit-scrollbar-thumb{background:var(--border-bright); border-radius:2px;}
+  .map-legend-header{
+    font-size:10px; letter-spacing:.15em; color:var(--accent-gold);
+    text-transform:uppercase; margin-bottom:8px; padding-bottom:6px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .map-legend-item{display:flex; align-items:center; gap:7px; margin-bottom:5px; cursor:pointer; transition:color .15s;}
+  .map-legend-item:last-child{margin-bottom:0;}
+  .map-legend-item:hover{color:var(--text-primary);}
+  .legend-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+  .legend-count{margin-left:auto; font-size:9px; color:var(--text-dim);}
 </style>
 </head>
 <body>
@@ -172,12 +223,19 @@
     <a class="btn btn-primary" href="./mori01-local-map.html">Mapa Local del Sistema →</a>
   </div>
 
+  <div class="glyph-nav" id="glyphNav">
+    <span class="glyph-nav-label">Buscar por glifos</span>
+    <div class="glyph-inputs" id="glyphInputs"></div>
+    <button class="btn" id="glyphSearchBtn">Buscar</button>
+    <span class="glyph-nav-coords" id="glyphNavResult"></span>
+  </div>
+
   <div class="panel" style="padding:0; overflow:hidden;">
     <div class="galaxy-map" id="galaxyMap">
       <div class="map-coords-display" id="mapCoords">Cargando mapa…</div>
-      <div class="map-legend">
+      <div class="map-legend" id="colonyLegend">
+        <div class="map-legend-header">Sistemas</div>
         <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span>Centro Galáctico</span></div>
-        <div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div><span id="legendColonyCount">0 sistemas</span></div>
       </div>
       <div class="coord-display" id="coordDisplay">X: — Y: — Z: —</div>
     </div>
@@ -582,9 +640,36 @@
 
     createEclipticGrid(maxExtent);
 
-    document.getElementById('legendColonyCount').textContent = `${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''}`;
+    renderLegend();
 
     fitCameraToAllSystems();
+  }
+
+  function renderLegend(){
+    const container = document.getElementById('colonyLegend');
+    const baseCount = ALL_BASES ? ALL_BASES.filter(b => b.status === 'citizen').length : 0;
+    let html = '<div class="map-legend-header">Sistemas</div>';
+    html += `<div class="map-legend-item"><div class="legend-dot" style="background:var(--accent-gold)"></div><span>Centro Galáctico</span></div>`;
+    ALL_COLONIES.forEach((c, i) => {
+      const color = '#' + colonyColor(i).toString(16).padStart(6, '0');
+      const name = escapeHtml(c.shortName || c.name);
+      const count = ALL_BASES.filter(b => (b.colonyId === c.id || (!b.colonyId && c.id === 'mori-01')) && b.status === 'citizen').length;
+      html += `<div class="map-legend-item" data-colony-idx="${i}" title="${name} — ${c.region || ''}, ${c.galaxy || ''}">
+        <div class="legend-dot" style="background:${color}"></div>
+        <span>${name}</span>
+        <span class="legend-count">${count > 0 ? count + ' bases' : ''}</span>
+      </div>`;
+    });
+    html += `<div class="map-legend-item" style="margin-top:6px; padding-top:6px; border-top:1px solid var(--border-soft);"><span style="color:var(--text-dim)">${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''} · ${baseCount} base${baseCount !== 1 ? 's' : ''}</span></div>`;
+    container.innerHTML = html;
+
+    container.querySelectorAll('.map-legend-item[data-colony-idx]').forEach(item => {
+      item.addEventListener('click', () => {
+        const idx = parseInt(item.dataset.colonyIdx, 10);
+        const colony = ALL_COLONIES[idx];
+        if(colony) selectColony(colony);
+      });
+    });
   }
 
   function fitCameraToAllSystems(){
@@ -898,6 +983,7 @@
     const q = query(citizensCol, where('status', '==', 'citizen'));
     onSnapshot(q, snap => {
       ALL_BASES = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+      renderLegend();
       if(activeColony){
         const colonyBases = ALL_BASES.filter(b => b.colonyId === activeColony.id || (!b.colonyId && activeColony.id === 'mori-01'));
         renderBases(colonyBases, activeColony.planets || []);
@@ -908,8 +994,88 @@
     });
   }
 
+  function initGlyphInput(){
+    const container = document.getElementById('glyphInputs');
+    for(let i = 0; i < 12; i++){
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.maxLength = 1;
+      inp.placeholder = i < 4 ? ['0','1','2','3'][i] : (i === 4 ? '4' : '0');
+      inp.dataset.idx = i;
+      inp.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+        if(e.target.value.length === 1 && i < 11){
+          container.children[i + 1].focus();
+          container.children[i + 1].select();
+        }
+      });
+      inp.addEventListener('keydown', (e) => {
+        if(e.key === 'Backspace' && !e.target.value && i > 0){
+          container.children[i - 1].focus();
+          container.children[i - 1].select();
+        }
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          navigateToGlyphs();
+        }
+      });
+      container.appendChild(inp);
+    }
+
+    document.getElementById('glyphSearchBtn').addEventListener('click', navigateToGlyphs);
+  }
+
+  function navigateToGlyphs(){
+    const container = document.getElementById('glyphInputs');
+    const resultEl = document.getElementById('glyphNavResult');
+    let hex = '';
+    for(let i = 0; i < 12; i++){
+      hex += container.children[i].value || '0';
+    }
+
+    if(hex.length !== 12 || /[^0-9A-F]/.test(hex)){
+      resultEl.innerHTML = '<span class="error">Inválido — 12 hex (0-F)</span>';
+      return;
+    }
+
+    const sig = hexStringToSignature(hex);
+    if(!sig){
+      resultEl.innerHTML = '<span class="error">Error al decodificar</span>';
+      return;
+    }
+
+    const cart = decodeGlyphsToCartesian(sig);
+    if(!cart){
+      resultEl.innerHTML = '<span class="error">Coordenadas inválidas</span>';
+      return;
+    }
+
+    const target = new THREE.Vector3(cart.x, cart.y, cart.z);
+    const startPos = camera.position.clone();
+    const startTarget = controls.target.clone();
+    const viewDist = 400;
+    const dir = new THREE.Vector3(0.4, 0.3, 0.65).normalize();
+    const targetPos = target.clone().add(dir.multiplyScalar(viewDist));
+    const duration = 1400;
+    const startTime = performance.now();
+
+    function animateFly(now){
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      camera.position.lerpVectors(startPos, targetPos, ease);
+      controls.target.lerpVectors(startTarget, target, ease);
+      controls.update();
+      if(t < 1) requestAnimationFrame(animateFly);
+    }
+    requestAnimationFrame(animateFly);
+
+    resultEl.innerHTML = `<span class="found">X: ${cart.x} | Y: ${cart.y} | Z: ${cart.z}</span>`;
+  }
+
   async function init(){
     initThreeJS();
+    initGlyphInput();
 
     ALL_COLONIES = await loadAllColonies();
     rebuild3DMap();
