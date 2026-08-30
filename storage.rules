@@ -1,0 +1,51 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Fotos de bases y de carnet (ambas viven bajo bases/, con nombres
+    // distintos: bases/{docId}.ext para la base, bases/{docId}-avatar.ext
+    // para el carnet). Cualquier jugador con sesión iniciada puede SUBIR
+    // la suya; solo los admins pueden BORRAR cualquiera desde el panel.
+    match /bases/{fileName} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*')
+                   && firestore.get(/databases/(default)/documents/meta/storageUsage).data.bytesUsed < 4831838208;
+      allow delete: if request.auth != null
+                   && (
+                     request.auth.token.email == 'remitente2008@gmail.com'
+                     || request.auth.token.email == 'moringostv@gmail.com'
+                   );
+    }
+
+    // Imágenes de referencia de cada planeta — solo las suben y borran los admins.
+    match /planets/{fileName} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+                   && (
+                     request.auth.token.email == 'remitente2008@gmail.com'
+                     || request.auth.token.email == 'moringostv@gmail.com'
+                   )
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null
+                   && (
+                     request.auth.token.email == 'remitente2008@gmail.com'
+                     || request.auth.token.email == 'moringostv@gmail.com'
+                   );
+    }
+
+    // Fotos de capital de colonias — solo admins.
+    match /colonies/{allPaths=**} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null
+                   && (
+                     request.auth.token.email == 'remitente2008@gmail.com'
+                     || request.auth.token.email == 'moringostv@gmail.com'
+                   )
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
