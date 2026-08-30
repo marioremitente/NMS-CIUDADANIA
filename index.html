@@ -451,7 +451,7 @@
         <p>Un mapa en vivo del sistema, con cada mundo, su firma de portal y las bases de la comunidad actualizándose en tiempo real, directo desde el registro de ciudadanos.</p>
         <div class="atlas-teaser-stats">
           <div class="atlas-teaser-stat"><span class="n" id="teaserWorlds">6</span><span class="l">Mundos</span></div>
-          <div class="atlas-teaser-stat"><span class="n" id="teaserGlyphs">—</span><span class="l">Glifos de portal</span></div>
+          <div class="atlas-teaser-stat"><span class="n" id="teaserGlyphs">—</span><span class="l">Sistemas</span></div>
           <div class="atlas-teaser-stat"><span class="n" id="teaserBases">—</span><span class="l">Bases activas</span></div>
         </div>
         <a class="btn btn-primary" href="./mori01-galactic-atlas.html">Abrir el Atlas completo →</a>
@@ -547,6 +547,7 @@
 <script type="module">
   import { PLANETS, SYSTEM_SIGNATURE, SYSTEM_INFO, glyphSVG, ROLES } from './mori01-data.js';
   import { db } from './firebase-config.js';
+  import { loadAllColonies, glyphsToCartesianLocal } from './colonies-data.js';
   import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   document.title = `MORI-01 · ${SYSTEM_INFO.shortName}`;
@@ -651,22 +652,46 @@
     rolesGridOther.innerHTML = errMsg;
   });
 
-  // ---------- ATLAS TEASER (mini mapa animado) ----------
-  document.getElementById('teaserGlyphs').textContent = SYSTEM_SIGNATURE.length;
+  // ---------- ATLAS TEASER (mini mapa multi-colonia) ----------
   document.getElementById('teaserMarkerLabel').textContent = SYSTEM_INFO.shortName;
 
   const teaserCanvas = document.getElementById('teaserCanvas');
   const tctx = teaserCanvas.getContext('2d');
   let teaserStars = null;
   let markerPulse = 0;
+  let teaserColonies = [];
+  let teaserMarkers = [];
+
+  function colonyColorTeaser(i){
+    const colors = ['#06b6d4', '#7c6cff', '#3ddc97', '#f5b849', '#e8546b', '#ff9900', '#9900ff'];
+    return colors[i % colors.length];
+  }
+
+  function projectColony(colony){
+    const cart = glyphsToCartesianLocal(colony.signature);
+    if(!cart) return null;
+    // Normalizar coords galácticas (rango aprox ±2047) a 0-1
+    return {
+      nx: (cart.x + 2047) / 4096,
+      nz: (cart.z + 2047) / 4096,
+      cart
+    };
+  }
 
   function positionTeaserLabel(){
     const rect = teaserCanvas.parentElement.getBoundingClientRect();
-    const cx = rect.width/2, cy = rect.height/2;
-    const markerX = cx + rect.width*0.15, markerY = cy - rect.height*0.1;
     const label = document.getElementById('teaserMarkerLabel');
-    label.style.left = (markerX + 12) + 'px';
-    label.style.top = (markerY - 10) + 'px';
+    if(teaserMarkers.length){
+      const first = projectColony(teaserColonies[0]);
+      const cx = rect.width/2, cy = rect.height/2;
+      const markerX = cx + ((first ? first.nx : 0.5) - 0.5) * rect.width * 0.9;
+      const markerY = cy - ((first ? first.nz : 0.5) - 0.5) * rect.height * 0.7;
+      label.style.left = (markerX + 12) + 'px';
+      label.style.top = (markerY - 10) + 'px';
+    }else{
+      label.style.left = (rect.width/2 + 12) + 'px';
+      label.style.top = (rect.height/2 - 10) + 'px';
+    }
   }
 
   function drawTeaserMap(){
@@ -682,7 +707,7 @@
 
     if(!teaserStars || teaserStars.w !== w || teaserStars.h !== h){
       teaserStars = { w, h, dots: [] };
-      for(let i=0; i<140; i++){
+      for(let i=0; i<160; i++){
         teaserStars.dots.push({ x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.1, a:Math.random()*0.55+0.1 });
       }
     }
@@ -692,11 +717,21 @@
     });
 
     const cx = w/2, cy = h/2;
+
+    // Malla de sectores galácticos (dos galaxias superpuestas / regiones)
+    tctx.strokeStyle = 'rgba(6, 182, 212, 0.06)';
+    tctx.lineWidth = 1;
+    for(let gx=-3; gx<=3; gx++){
+      tctx.beginPath(); tctx.moveTo(cx+gx*w*0.18, 0); tctx.lineTo(cx+gx*w*0.18, h); tctx.stroke();
+      tctx.beginPath(); tctx.moveTo(0, cy+gx*h*0.16); tctx.lineTo(w, cy+gx*h*0.16); tctx.stroke();
+    }
+
+    // Espirales de cada colonia-cluster (fondo decorativo)
     for(let arm=0; arm<3; arm++){
       const armOffset = (arm * Math.PI*2) / 3;
       tctx.beginPath();
       for(let t=0; t<Math.PI*5; t+=0.03){
-        const r = t * Math.min(w,h) * 0.03;
+        const r = t * Math.min(w,h) * 0.035;
         const x = cx + Math.cos(t+armOffset)*r;
         const y = cy + Math.sin(t+armOffset)*r*0.4;
         t === 0 ? tctx.moveTo(x,y) : tctx.lineTo(x,y);
@@ -706,28 +741,66 @@
       tctx.stroke();
     }
 
-    const markerX = cx + w*0.15, markerY = cy - h*0.1;
+    // Marcadores de cada colonia
     markerPulse += 0.035;
-    const pulseR = 8 + Math.sin(markerPulse)*4;
+    teaserMarkers.forEach((colony, i)=>{
+      const proj = projectColony(colony);
+      if(!proj) return;
+      const mx = cx + (proj.nx - 0.5) * w * 0.9;
+      const my = cy - (proj.nz - 0.5) * h * 0.7;
+      const col = colonyColorTeaser(i);
 
-    const pulseGrad = tctx.createRadialGradient(markerX, markerY, 0, markerX, markerY, 26);
-    pulseGrad.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
-    pulseGrad.addColorStop(1, 'transparent');
-    tctx.fillStyle = pulseGrad;
-    tctx.beginPath(); tctx.arc(markerX, markerY, 26, 0, Math.PI*2); tctx.fill();
+      const pulseR = 8 + Math.sin(markerPulse + i*1.7)*4;
+      const pulseGrad = tctx.createRadialGradient(mx, my, 0, mx, my, 26);
+      pulseGrad.addColorStop(0, hexToRgba(col, 0.35));
+      pulseGrad.addColorStop(1, 'transparent');
+      tctx.fillStyle = pulseGrad;
+      tctx.beginPath(); tctx.arc(mx, my, 26, 0, Math.PI*2); tctx.fill();
 
-    tctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
-    tctx.lineWidth = 1;
-    tctx.beginPath(); tctx.arc(markerX, markerY, pulseR, 0, Math.PI*2); tctx.stroke();
+      tctx.strokeStyle = hexToRgba(col, 0.5);
+      tctx.lineWidth = 1;
+      tctx.beginPath(); tctx.arc(mx, my, pulseR, 0, Math.PI*2); tctx.stroke();
 
-    tctx.fillStyle = '#06b6d4';
-    tctx.beginPath(); tctx.arc(markerX, markerY, 3.5, 0, Math.PI*2); tctx.fill();
+      tctx.fillStyle = col;
+      tctx.beginPath(); tctx.arc(mx, my, 3.5, 0, Math.PI*2); tctx.fill();
+
+      // Etiqueta
+      tctx.fillStyle = hexToRgba(col, 0.8);
+      tctx.font = '600 9px monospace';
+      tctx.textAlign = 'center';
+      tctx.fillText(colony.shortName || colony.name || '', mx, my - 10);
+    });
 
     positionTeaserLabel();
     requestAnimationFrame(drawTeaserMap);
   }
+
+  function hexToRgba(hex, a){
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16);
+    const g = parseInt(h.substring(2,4),16);
+    const b = parseInt(h.substring(4,6),16);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
+
   drawTeaserMap();
   window.addEventListener('resize', ()=>{ teaserStars = null; });
+
+  // Cargar colonias y poblar stats del teaser
+  (async function initTeaser(){
+    try{
+      teaserColonies = await loadAllColonies();
+      teaserMarkers = teaserColonies;
+      const valid = teaserColonies.filter(c => glyphsToCartesianLocal(c.signature));
+      document.getElementById('teaserGlyphs').textContent = valid.length;
+      // Mundos: suma de planetas de todas las colonias
+      const totalWorlds = teaserColonies.reduce((acc, c) => acc + ((c.planets && c.planets.length) || 0), 0);
+      document.getElementById('teaserWorlds').textContent = totalWorlds || PLANETS.length;
+      teaserMarkerLabel.textContent = valid.length + ' sistema' + (valid.length !== 1 ? 's' : '') + ' · ' + totalWorlds + ' mundos';
+    }catch(e){
+      document.getElementById('teaserWorlds').textContent = PLANETS.length;
+    }
+  })();
 </script>
 
 </body>
