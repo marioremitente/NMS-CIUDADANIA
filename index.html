@@ -429,7 +429,7 @@
   }
   body.primer-imperio .gek-leader{opacity:1; transform:translate(-50%, -55%) scale(1);}
   .gek-leader .gek-leader-tag{
-    position:absolute; left:0; right:0; bottom:0;
+    position:absolute; left:0; right:0; top:0;
     background:rgba(0,0,0,.75); padding:8px 10px; text-align:center;
     font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; color:var(--accent-red);
   }
@@ -721,7 +721,7 @@
         document.body.appendChild(leaderEl);
       }
       leaderEl.style.backgroundPosition = (lider.col / (GEK_COLS - 1) * 100).toFixed(2) + '% ' + (lider.row / (GEK_ROWS - 1) * 100).toFixed(2) + '%';
-      leaderEl.innerHTML = '<div class="gek-leader-tag">G E K &nbsp;·&nbsp; LÍDER DE ATAQUE '+ lider.col + '-' + lider.row +'</div>';
+      leaderEl.innerHTML = '<div class="gek-leader-tag">⚠ ALERTA · PRIMER IMPERIO · GEK ' + lider.col + '-' + lider.row + ' ⚠</div>';
       // invasión contenida: solo 2 mensajes comerciales
       lanzarImpuestoGek();
       setTimeout(lanzarImpuestoGek, 700);
