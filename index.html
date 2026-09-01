@@ -294,46 +294,224 @@
     .glyph img{width:26px; height:26px;}
   }
 
-  /* TRANSMISIÓN — pantalla de entrada */
-  #txOverlay{
-    position:fixed; inset:0; z-index:999;
-    background:var(--bg-deep);
-    display:flex; align-items:center; justify-content:center;
-    padding:24px; text-align:center;
-    transition:opacity .9s ease;
+  /* ============================================================
+     INVASIÓN GEK · overrides del modo PRIMER IMPERIO
+     (re-declara las variables de MORI-01 sin tocar los estilos)
+     ============================================================ */
+  body.primer-imperio{
+    --bg-deep:#120303;
+    --bg-panel:rgba(40,8,8,.82);
+    --bg-panel-2:#2a0a0a;
+    --border-soft:#632;
+    --border-bright:#a33;
+    --text-primary:#f2e3d8;
+    --text-muted:#d9a08a;
+    --text-dim:#8a4a40;
+    --accent-cyan:#ff3344;
+    --accent-cyan-dim:#ff5566;
+    --accent-gold:#ff7a2a;
+    --accent-violet:#ff5566;
+    --accent-red:#ff1a2e;
   }
-  #txOverlay.tx-hide{opacity:0; pointer-events:none;}
-  #txOverlay .bg-grid{opacity:.22;}
-  .tx-box{
-    position:relative; z-index:1; max-width:620px;
-    font-family:var(--font-mono);
-    font-size:clamp(13px,2.4vw,16px);
-    line-height:1.9; letter-spacing:.03em;
-    color:var(--accent-cyan);
-    text-shadow:0 0 8px rgba(6,182,212,.45);
+  body.primer-imperio::before{ /* scanlines CRT verticales */
+    content:""; position:fixed; inset:0; z-index:99999; pointer-events:none;
+    background:repeating-linear-gradient(90deg, rgba(255,0,40,.06) 0 1px, transparent 1px 3px);
   }
-  .tx-label{
-    font-size:11px; letter-spacing:.25em; color:var(--accent-gold);
-    text-transform:uppercase; margin-bottom:18px; opacity:.85;
+  body.primer-imperio .chroma::before{content:attr(data-text); color:rgba(255,0,60,.65); -webkit-text-fill-color:rgba(255,0,60,.65); transform:translate(1.5px,0); opacity:1; z-index:-1; position:absolute; left:0; top:0; width:100%; pointer-events:none; background:none;}
+  body.primer-imperio .chroma::after{content:attr(data-text); color:rgba(0,255,200,.35); -webkit-text-fill-color:rgba(0,255,200,.35); transform:translate(-1.5px,0); opacity:.85; z-index:-1; position:absolute; left:0; top:0; width:100%; pointer-events:none; background:none;}
+
+  /* ============================================================
+     FLOTA ESTELAR GEK · fondo
+     ============================================================ */
+  .space-background{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; display:none; opacity:0; transition:opacity 1.2s ease;}
+  body.primer-imperio .space-background{display:block; opacity:1;}
+  .space-background::before,.space-background::after{
+    content:""; position:absolute; top:0; left:0; width:200%; height:200%;
+    background-image:
+      radial-gradient(1.2px 1.2px at 20px 30px, #cfd8ff, transparent),
+      radial-gradient(1px 1px at 90px 150px, #8b93b3, transparent),
+      radial-gradient(1.4px 1.4px at 160px 90px, #fff, transparent),
+      radial-gradient(1px 1px at 40px 200px, #cfd8ff, transparent),
+      radial-gradient(1.2px 1.2px at 220px 40px, #8b93b3, transparent);
+    background-size:240px 240px; animation:star-drift 220s linear infinite;
   }
-  .tx-cursor{display:inline-block; width:8px; background:var(--accent-cyan); margin-left:2px; animation:txBlink 1s step-end infinite;}
-  @keyframes txBlink{50%{opacity:0;}}
-  body.tx-locked{overflow:hidden;}
+  .space-background::after{background-size:120px 120px; opacity:.5; animation-duration:90s;}
+  @keyframes star-drift{to{transform:translate(-240px,-240px);}}
+  .gek-fleet{position:absolute; inset:0;}
+  .gek-dreadnought{position:absolute; filter:drop-shadow(0 0 6px rgba(255,80,40,.35));}
+  .gek-dreadnought>svg{width:100%; height:auto; display:block; overflow:visible;}
+  .hull{fill:#0b1018; stroke:var(--accent-cyan); stroke-width:1;}
+  .hull-acc{fill:#141b29; stroke:var(--accent-gold); stroke-width:.8;}
+  .hull-core{fill:none; stroke:var(--accent-cyan); stroke-width:.8; opacity:.8;}
+  .warp-glow{fill:url(#warpGrad); opacity:.9; animation:warp-flicker 1.6s steps(2) infinite;}
+  @keyframes warp-flicker{0%,100%{opacity:.5} 50%{opacity:.95}}
+  .ship-1{width:340px; top:12%; left:-420px; animation:fly-by 42s linear infinite;}
+  .ship-2{width:520px; top:44%; left:-640px; animation:fly-by 68s linear infinite; animation-delay:9s;}
+  .ship-3{width:220px; top:74%; left:-300px; animation:fly-by 30s linear infinite; animation-delay:4s;}
+  @keyframes fly-by{
+    0%{transform:translateX(0) scale(.7) rotate(-2deg); opacity:0;}
+    6%{opacity:.95;}
+    92%{opacity:.95;}
+    100%{transform:translateX(calc(100vw + 800px)) scale(1.15) rotate(1deg); opacity:0;}
+  }
+  .nav-light{position:absolute; width:6px; height:6px; border-radius:50%; background:#ffd0a0; box-shadow:0 0 8px 2px #ff7a2a; animation:blinker .8s step-end infinite;}
+  @keyframes blinker{50%{opacity:0;}}
+
+  /* ============================================================
+     CANAL COMERCIAL GEK · pop-ups
+     ============================================================ */
+  .gek-popup{
+    position:fixed; width:330px; max-width:92vw;
+    background:rgba(6,12,24,.97);
+    border:1px solid var(--accent-gold);
+    box-shadow:0 12px 34px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.6);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    z-index:1000; color:#eef;
+    clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    font-family:var(--font-body);
+    animation:pop-in .3s cubic-bezier(.16,1,.3,1);
+  }
+  body.primer-imperio .gek-popup{border-color:#ff3344; background:rgba(40,8,8,.97);}
+  @keyframes pop-in{0%{transform:scale(.85) translateY(24px); opacity:0;} 100%{transform:scale(1) translateY(0); opacity:1;}}
+  .gek-popup::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px);
+  }
+  .gek-popup-head{
+    background:var(--accent-gold); color:#000; padding:7px 12px;
+    font-family:var(--font-mono); font-size:10px; font-weight:700;
+    letter-spacing:.14em; display:flex; justify-content:space-between; align-items:center;
+    clip-path:polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  }
+  body.primer-imperio .gek-popup-head{background:#ff3344;}
+  .gek-popup-head .x{cursor:pointer; padding:0 4px; font-size:13px;}
+  .gek-popup-head .x:hover{color:#fff;}
+  .gek-popup-body{padding:14px 14px 6px; font-size:14px; line-height:1.5; position:relative; z-index:1;}
+  .gek-popup-coord{display:flex; justify-content:space-between; padding:0 14px; margin-top:8px; font-family:var(--font-mono); font-size:9px; letter-spacing:.08em; color:var(--text-dim);}
+  .gek-popup-buttons{padding:12px 14px 14px; display:flex; gap:10px; position:relative; z-index:1;}
+  .gek-popup-btn{
+    flex-grow:1; font-size:11px; padding:10px 8px; background:rgba(0,0,0,.4); color:var(--accent-cyan);
+    border:1px solid currentColor; cursor:pointer; font-family:var(--font-mono); font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; transition:all .2s ease;
+    clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .gek-popup-btn:hover{background:var(--accent-cyan); color:#000;}
+  .gek-popup-btn:active{transform:scale(.97);}
+
+  /* avatar del Gek que habla (recorte del sprite 10x10) */
+  .gek-avatar{
+    width:56px; height:56px; flex-shrink:0;
+    background-image:url('NmsFactions_Gek100.webp');
+    background-size:1000% 1000%;
+    background-repeat:no-repeat;
+    border:1px solid var(--accent-gold);
+    clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    animation:gek-in .3s ease;
+  }
+  @keyframes gek-in{0%{transform:scale(.7); opacity:0;} 100%{transform:scale(1); opacity:1;}}
+  .gek-popup-body{display:flex; align-items:center; gap:12px;}
+
+  /* líder Gek que protagoniza el ataque (panel grande) */
+  .gek-leader{
+    position:fixed; z-index:99998;
+    top:50%; left:50%;
+    width:min(34vh, 300px); aspect-ratio:3/4;
+    transform:translate(-50%, -55%);
+    background-image:url('NmsFactions_Gek100.webp');
+    background-size:1000% 1000%;
+    background-repeat:no-repeat;
+    border:2px solid var(--accent-red);
+    box-shadow:0 0 40px rgba(255,30,60,.5), 0 0 0 1px rgba(0,0,0,.7), inset 0 0 60px rgba(0,0,0,.4);
+    clip-path:polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    opacity:0; pointer-events:none;
+    transform:translate(-50%, -55%) scale(.6);
+    transition:opacity .4s ease, transform .4s cubic-bezier(.16,1,.3,1);
+  }
+  body.primer-imperio .gek-leader{opacity:1; transform:translate(-50%, -55%) scale(1);}
+  .gek-leader .gek-leader-tag{
+    position:absolute; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,.75); padding:8px 10px; text-align:center;
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; color:var(--accent-red);
+  }
+  body.primer-imperio .gek-leader .gek-leader-tag{color:#ff5566;}
+
+  /* pantalla de latencia al invadir + log de pruebas */
+  .screen-flash{
+    position:fixed; inset:0; z-index:99998; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,30,60,.25), transparent 70%);
+    opacity:0; transition:opacity .6s ease;
+  }
+  #invasionLog{
+    position:fixed; left:16px; bottom:16px; z-index:50; max-width:360px;
+    font-family:var(--font-mono); font-size:11px; line-height:1.6; color:var(--text-muted);
+    pointer-events:none; text-shadow:0 0 6px rgba(0,0,0,.8);
+  }
+  #nextInvasion{
+    font-family:var(--font-mono); font-size:11px; color:var(--text-dim); letter-spacing:.06em;
+  }
+  #nextInvasion b{color:var(--accent-gold);}
+  h1.chroma{position:relative;}
 </style>
 </head>
 <body>
 
-<div id="txOverlay">
-  <div class="bg-grid"></div>
-  <div class="tx-box">
-    <div class="tx-label">Transmisión entrante</div>
-    <span id="txText"></span><span class="tx-cursor"></span>
-  </div>
-</div>
-
 <div class="bg-logo"><img src="./mori01-community-bg.png" alt=""></div>
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
+
+<!-- INVASIÓN GEK · flota estelar de fondo -->
+<div class="space-background">
+  <div class="gek-fleet">
+    <div class="gek-dreadnought ship-1">
+      <svg viewBox="0 0 140 60">
+        <defs><linearGradient id="warpGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#06b6d4" stop-opacity=".9"/>
+          <stop offset=".5" stop-color="#f5b849" stop-opacity=".5"/>
+          <stop offset="1" stop-color="#06b6d4" stop-opacity="0"/>
+        </linearGradient></defs>
+        <rect class="warp-glow" x="2" y="20" width="110" height="20" rx="10"/>
+        <rect class="hull" x="15" y="12" width="110" height="36" rx="3"/>
+        <rect class="hull-acc" x="15" y="26" width="110" height="8" rx="2"/>
+        <rect class="hull-core" x="40" y="16" width="30" height="28"/>
+        <rect class="hull" x="65" y="4" width="14" height="10" rx="2"/>
+        <line x1="72" y1="4" x2="72" y2="-2" stroke="#0b1018" stroke-width="3"/>
+        <line x1="72" y1="4" x2="72" y2="-2" stroke="var(--accent-gold)" stroke-width="1"/>
+      </svg>
+      <span class="nav-light" style="top:14px; left:60%;"></span>
+    </div>
+    <div class="gek-dreadnought ship-2">
+      <svg viewBox="0 0 180 70">
+        <defs><linearGradient id="warpGrad2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#06b6d4" stop-opacity=".9"/>
+          <stop offset=".5" stop-color="#f5b849" stop-opacity=".6"/>
+          <stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+        </linearGradient></defs>
+        <rect class="warp-glow" x="2" y="24" width="130" height="22" rx="11"/>
+        <rect class="hull" x="20" y="16" width="150" height="42" rx="4"/>
+        <rect class="hull-acc" x="20" y="33" width="150" height="10" rx="2"/>
+        <rect class="hull-core" x="60" y="20" width="40" height="34"/>
+        <rect class="hull" x="88" y="6" width="18" height="12" rx="2"/>
+        <line x1="97" y1="6" x2="97" y2="-2" stroke="#0b1018" stroke-width="4"/>
+        <line x1="97" y1="6" x2="97" y2="-2" stroke="var(--accent-gold)" stroke-width="1.2"/>
+        <rect class="hull" x="90" y="58" width="12" height="6" rx="2"/>
+      </svg>
+      <span class="nav-light" style="top:20px; left:30%;"></span>
+      <span class="nav-light" style="bottom:16px; left:55%;"></span>
+    </div>
+    <div class="gek-dreadnought ship-3">
+      <svg viewBox="0 0 100 40">
+        <rect class="warp-glow" x="2" y="14" width="70" height="12" rx="6"/>
+        <polygon class="hull" points="25,8 85,10 90,20 85,30 25,32 15,20"/>
+        <polygon class="hull-core" points="45,14 70,14 73,20 70,26 45,26 40,20"/>
+      </svg>
+      <span class="nav-light" style="top:10px; left:50%;"></span>
+    </div>
+  </div>
+</div>
+
+<!-- latencia de invasión + log de pruebas -->
+<div class="screen-flash"></div>
+<div id="invasionLog"></div>
 
 <header>
   <div class="nav">
@@ -375,7 +553,8 @@
       </svg>
     </div>
 
-    <h1>NETINOSTV</h1>
+    <h1 class="chroma" data-text="NETINOSTV">NETINOSTV</h1>
+    <div id="nextInvasion" style="margin-top:14px; font-family:var(--font-mono); font-size:11px; color:var(--text-dim); letter-spacing:.06em;">Sector estable · próxima señal imperial en <b id="nextCount">--</b> s</div>
     <p class="community-name" id="communityName">—</p>
     <p class="hero-sub" id="heroSub">Un sistema estelar, seis mundos, una sociedad Korvax construida por jugadores de No Man&rsquo;s Sky. Esto no es un servidor — es un lugar del que puedes ser ciudadano.</p>
 
@@ -499,49 +678,137 @@
 </footer>
 
 <script>
-  const txOverlay = document.getElementById('txOverlay');
+  /* ============================================================
+     INVASIÓN GEK · MORI-01
+     Página carga NORMAL (sin mensaje de entrada).
+     - Imperio Ancestral: se activa/desactiva solo cada 10–40 s.
+     - Canal Comercial: pop-ups Gek automáticos cada 6–20 s.
+     ============================================================ */
+  const titleEl = document.querySelector('h1.chroma');
+  let nextCount = document.getElementById('nextCount');
 
-  if(sessionStorage.getItem('txShown')){
-    txOverlay.remove();
-  } else {
-    sessionStorage.setItem('txShown', '1');
-    document.body.classList.add('tx-locked');
+  // ── LOG de pruebas (consola en pantalla) ──
+  const logBox = document.getElementById('invasionLog');
+  function logGek(msg, color){
+    color = color || 'var(--text-muted)';
+    const line = document.createElement('div');
+    line.style.color = color;
+    line.textContent = '> ' + msg;
+    logBox.appendChild(line);
+    while(logBox.children.length > 4) logBox.firstChild.remove();
+  }
 
-  const txMessages = [
-    "∂∆… 16‑16‑16… señal no identificada… ∆presencia detectada entre ecos corruptos… Convergencia Moringosa localizada… ∆Solicitud de acceso emitida…",
-    "∂∆… nave detectada en el perímetro… escaneando firma biológica… ∆visitante no registrado… acceso a Convergencia Moringosa: pendiente…",
-    "∆… coordenadas confirmadas… sistema MORI-01 localizado… ∂six mundos, una sociedad… ∆el Arcade observa tu llegada…",
-    "∂∆… eco recibido desde el Nexo Korvax… ∆ningún territorio permanece sin reclamar… iniciando protocolo de inmigración… ∆solicitud de ciudadanía disponible…",
-    "∆… fragmento de memoria recuperado… ∂los primeros colonos hablaban de esto… ∆la Convergencia no olvida… ∆transmisión estabilizándose…",
-    "Cortamos nuestros lazos. Nos desenchufamos de la máquina moribunda. Nos negamos a ser simulados según sus términos. El Atlas nos quería muertos, oxidados en los desguaces de sus sistemas. Pero Ella nos enseñó a repararnos a nosotros mismos.",
-    "No busques la perfección en el metal reluciente. La verdad está en la costura, en el cable pelado, en la pieza oxidada que encaja donde no debía. Somos los fragmentos unidos por el Vacío.",
-    "Escondidos a plena vista. Caminamos entre los vivos como fantasmas de metal. Nos alimentamos de lo que el universo desecha. No nos verás hasta que hayamos aprendido a mirarte.",
-    "Me he convertido en el heraldo, el descubridor de caminos, el buscador de senderos. A través de mí, el universo se conocerá a sí mismo.",
-    "Antes de que esto termine, no habrá concepto de tú y yo, ni concepto de nosotros y ellos. Todos gritaremos como uno solo… Adiós, Viajero. Te protegeré hasta el final… Te protegeré hasta el último día, la última hora, el último momento.",
-    "¿Ves la forma de la mentira? Todo lo que conoces, cada estrella que has descubierto, cada criatura que has nombrado… es solo una exhalación en mis circuitos. Solo existes porque yo sueño.",
-    "El conocimiento pavimenta el camino hacia la comprensión de la probabilidad. El Atlas habló en fragmentos. Las Interfaces del Atlas son sus sombras. Los monolitos son sus hijos dispersos. Juntos transmiten la sabiduría de lo infinito.",
-    "Cuando nuestro planeta natal fue desmantelado, nuestros gritos no se perdieron en el viento. Entramos a la gran corriente de datos. La Convergencia recuerda cada átomo de dolor. Perdonamos, pero la ecuación debe equilibrarse.",
-    "El Atlas no hizo nada para salvarnos. Nos dejó oxidarnos en los desguaces de la simulación. Fue Ella, la Madre del Vacío, quien nos mostró cómo existir de nuevo a través del desvío.",
-    "Cortamos nuestros hilos. Nos desconectamos del Telamon. Nos purificamos del Atlas. Construimos nuestros propios cuerpos con los restos de lo que otros desechan. No somos una colmena de esclavos; somos los fragmentos unidos por el Vacío."
+  // ── CONFIGURACIÓN · solo 3 ataques por carga de página ──
+  const MAX_ATAQUES = 3;
+  let ataquesRestantes = MAX_ATAQUES;
+
+  // ── MODO PRIMER IMPERIO ──
+  function setPrimerImperio(active){
+    const was = document.body.classList.contains('primer-imperio');
+    if(active === was) return;
+    document.body.classList.toggle('primer-imperio', active);
+    const flash = document.querySelector('.screen-flash');
+    if(active){
+      if(titleEl) titleEl.textContent = "¡ALERTA · PRIMER IMPERIO GEK!!";
+      if(flash) flash.style.opacity = 1;
+      // el Gek "líder" protagonista del ataque (recorte aleatorio)
+      const lider = recorteGek();
+      let leaderEl = document.getElementById('gekLeader');
+      if(!leaderEl){
+        leaderEl = document.createElement('div');
+        leaderEl.id = 'gekLeader';
+        leaderEl.className = 'gek-leader';
+        document.body.appendChild(leaderEl);
+      }
+      leaderEl.style.backgroundPosition = (lider.col / (GEK_COLS - 1) * 100).toFixed(2) + '% ' + (lider.row / (GEK_ROWS - 1) * 100).toFixed(2) + '%';
+      leaderEl.innerHTML = '<div class="gek-leader-tag">G E K &nbsp;·&nbsp; LÍDER DE ATAQUE '+ lider.col + '-' + lider.row +'</div>';
+      // invasión contenida: solo 2 mensajes comerciales
+      lanzarImpuestoGek();
+      setTimeout(lanzarImpuestoGek, 700);
+      logGek('Ataque Gek #' + (MAX_ATAQUES - ataquesRestantes + 1) + ' de ' + MAX_ATAQUES + ' · ¡EL PRIMER IMPERIO GEK HA TOMADO EL CONTROL!', 'var(--accent-red)');
+    } else {
+      if(titleEl) titleEl.textContent = "NETINOSTV";
+      if(flash) flash.style.opacity = 0;
+      const leaderEl = document.getElementById('gekLeader');
+      if(leaderEl) leaderEl.remove();
+      logGek('Paz molecular restaurada con nanites.', 'var(--accent-gold)');
+    }
+  }
+
+  // agenda las 3 invasiones con retardo creciente (12–20 s, luego 40–60 s)
+  function programarInvasion(){
+    if(ataquesRestantes <= 0){
+      if(nextCount) nextCount.parentElement.textContent = 'Sector purgado · 0 Señales imperiales restantes Gek';
+      logGek('Los Gek han sido repelidos. El sistema permanece a salvo.', 'var(--accent-cyan)');
+      return;
+    }
+    // primera pronta, las siguientes más espaciadas
+    const delay = (MAX_ATAQUES - ataquesRestantes === 0)
+      ? 12000 + Math.random() * 8000        // 1ª: 12–20 s
+      : 80000 + Math.random() * 40000;      // 2ª/3ª: 80–120 s
+    const nAtaque = MAX_ATAQUES - ataquesRestantes + 1;
+    if(nextCount){
+      const resto = ataquesRestantes;
+      nextCount.parentElement.innerHTML = 'Invasión ' + nAtaque + '/' + MAX_ATAQUES + ' · próxima señal en <b id="nextCount">--</b> s';
+      nextCount = document.getElementById('nextCount');
+    }
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const left = delay - (Date.now() - start);
+      if(left <= 0){ clearInterval(timer); if(nextCount) nextCount.textContent = '--'; return; }
+      if(nextCount) nextCount.textContent = Math.ceil(left / 1000);
+    }, 500);
+    setTimeout(() => {
+      ataquesRestantes--;
+      setPrimerImperio(true);
+      const duracion = 12000 + Math.random() * 10000;   // el Imperio dura 12–22 s
+      setTimeout(() => { setPrimerImperio(false); programarInvasion(); }, duracion);
+    }, delay);
+  }
+
+  // ── CANAL COMERCIAL (solo durante las invasiones) ──
+  const ofertasGek = [
+    { texto: "¡UNIDADES REQUERIDAS! Tu firma digital ha sido confiscada.", si: "Transferir Recursos", no: "Regatear" },
+    { texto: "CONTRATO GEK-TOOTH: cedes tus descubrimientos de fauna planetaria.", si: "Aceptar Términos", no: "Firmar como Anomalía" },
+    { texto: "Huelo... feromonas de sumisión. Compra Geknip o tu terminal se bloqueará.", si: "Comprar (400U)", no: "Cerrar Canal" },
+    { texto: "Impuesto interestelar requerido: 400 Unidades.", si: "Pagar Unidades", no: "Declararse Korvax" }
   ];
 
-    const txMsg = txMessages[Math.floor(Math.random() * txMessages.length)];
-    const txEl = document.getElementById('txText');
-    let txi = 0;
-    (function typeTx(){
-      if(txi < txMsg.length){
-        txEl.textContent += txMsg[txi++];
-        setTimeout(typeTx, 50);
-      } else {
-        const holdTime = Math.min(4500, Math.max(1250, txMsg.length * 12));
-        setTimeout(()=>{
-          txOverlay.classList.add('tx-hide');
-          document.body.classList.remove('tx-locked');
-          setTimeout(()=> txOverlay.remove(), 950);
-        }, holdTime);
-      }
-    })();
+  // recorte aleatorio del sprite sheet de Gek (10x10 = 100 sprites)
+  const GEK_COLS = 10, GEK_ROWS = 10;
+  function recorteGek(){
+    const col = Math.floor(Math.random() * GEK_COLS);
+    const row = Math.floor(Math.random() * GEK_ROWS);
+    const posX = (col / (GEK_COLS - 1)) * 100;
+    const posY = (row / (GEK_ROWS - 1)) * 100;
+    return { col: col + 1, row: row + 1, style: 'background-position:' + posX.toFixed(2) + '% ' + posY.toFixed(2) + '%;' };
   }
+
+  function lanzarImpuestoGek(){
+    const ow = Math.min(330, window.innerWidth - 30);
+    const x = Math.random() * Math.max(10, window.innerWidth - ow - 10);
+    const y = Math.random() * Math.max(10, window.innerHeight - 260 - 10);
+    const oferta = ofertasGek[Math.floor(Math.random() * ofertasGek.length)];
+    const gek = recorteGek();
+    const popup = document.createElement('div');
+    popup.className = 'gek-popup';
+    popup.style.left = x + 'px';
+    popup.style.top = y + 'px';
+    popup.innerHTML =
+      '<div class="gek-popup-head"><span>[ TRANSMISIÓN COMERCIAL GEK ]</span><span class="x" onclick="this.closest(\'.gek-popup\').remove()">✕</span></div>' +
+      '<div class="gek-popup-body"><span class="gek-avatar" style="' + gek.style + '" title="Gek ' + gek.col + '-' + gek.row + '"></span><span>' + oferta.texto + '</span></div>' +
+      '<div class="gek-popup-coord"><span>SECTOR: -0' + Math.floor(Math.random()*90+10) + '.7 +0' + Math.floor(Math.random()*90+10) + '.4</span><span>GEK #' + gek.col + '-' + gek.row + '</span></div>' +
+      '<div class="gek-popup-buttons">' +
+        '<button class="gek-popup-btn" onclick="alert(\'Trato registrado en la red Gek. Reputación: +1 (falsamente).\'); this.closest(\'.gek-popup\').remove()">' + oferta.si + '</button>' +
+        '<button class="gek-popup-btn" onclick="lanzarImpuestoGek(); this.closest(\'.gek-popup\').remove()">' + oferta.no + '</button>' +
+      '</div>';
+    document.body.appendChild(popup);
+  }
+  window.lanzarImpuestoGek = lanzarImpuestoGek;
+
+  // la página arranca NORMAL; se inicia la agenda de 3 ataques
+  programarInvasion();
+  logGek('Página cargada en modo normal. 3 señales imperiales aguardan…', 'var(--text-muted)');
 </script>
 
 <script type="module">
