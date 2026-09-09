@@ -1,0 +1,799 @@
+/* ============================================================
+   COSMOS THEME — Decorative overlay for NMS-CIUDADANIA
+   Update 7.0 Cosmos: space stations, nebulae, asteroids, alliances
+   Purely cosmetic — does not touch any JS engine or logic
+   ============================================================ */
+
+/* ---- REPLACE ORIGINAL BACKGROUND WITH COSMOS ---- */
+.bg-logo,
+.bg-grid,
+.bg-glow {
+  display: none !important;
+}
+
+/* ---- TEXT CONTRAST SAFETY (readable over starfield/nebula) ---- */
+:root {
+  --text-primary: #f2f4fa;
+  --text-muted: #a8b0cc;
+  --text-dim: #6b7399;
+}
+
+body :where(h1, h2, h3, h4, p, li, td, th, label, legend, a, span, small, figcaption, blockquote, em, strong) {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 16px rgba(0, 0, 0, .25);
+}
+
+/* ---- WHITE, VISIBLE HEADLINE (Hazte Ciudadano page) ---- */
+h1#pageTitle {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .75), 0 0 18px rgba(0, 0, 0, .45);
+}
+
+h1#pageTitle + .lede {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8), 0 0 16px rgba(0, 0, 0, .5);
+}
+
+/* ---- PAGE INTRO BOX (recuadro tipo panel) ---- */
+.intro-panel {
+  text-align: center;
+  padding: 34px 30px;
+  margin-bottom: 28px;
+}
+.intro-panel .lede {
+  max-width: 62ch;
+  margin: 0 auto;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* ── dense starfield (fine stars) ── */
+    radial-gradient(0.8px 0.8px at 66% 14%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 17% 26%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 18% 75%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(1px 1px at 50% 32%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 51% 4%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 39% 15%, rgba(255,255,255,0.68), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 80% 53%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 15% 89%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 19% 5%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(1px 1px at 81% 1%, rgba(255,255,255,0.74), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 74% 38%, rgba(255,255,255,0.31), transparent 99.8%),
+    radial-gradient(1px 1px at 5% 77%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 25% 76%, rgba(255,255,255,0.65), transparent 99.8%),
+    radial-gradient(1px 1px at 15% 5%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 5% 42%, rgba(255,255,255,0.64), transparent 99.8%),
+    radial-gradient(1px 1px at 22% 2%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 7% 71%, rgba(255,255,255,0.55), transparent 99.8%),
+    radial-gradient(1px 1px at 2% 79%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 49% 1%, rgba(255,255,255,0.3), transparent 99.8%),
+    radial-gradient(1px 1px at 1% 7%, rgba(255,255,255,0.31), transparent 99.8%),
+    radial-gradient(1px 1px at 90% 92%, rgba(255,255,255,0.5), transparent 99.8%),
+    radial-gradient(1px 1px at 61% 5%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(1px 1px at 43% 78%, rgba(255,255,255,0.52), transparent 99.8%),
+    radial-gradient(1px 1px at 30% 89%, rgba(255,255,255,0.7), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 2% 87%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 70% 16%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 33% 77%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(1px 1px at 22% 58%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 76% 66%, rgba(255,255,255,0.45), transparent 99.8%),
+    radial-gradient(1px 1px at 55% 98%, rgba(255,255,255,0.31), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 34% 92%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 27% 4%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 42% 10%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 11% 32%, rgba(255,255,255,0.71), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 81% 1%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 88% 24%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(1px 1px at 28% 54%, rgba(255,255,255,0.64), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 19% 30%, rgba(255,255,255,0.31), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 23% 92%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 14% 87%, rgba(255,255,255,0.46), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 55% 55%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 59% 39%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(1px 1px at 35% 95%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 93% 80%, rgba(255,255,255,0.35), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 1% 18%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(1px 1px at 40% 58%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 90% 95%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(1px 1px at 33% 54%, rgba(255,255,255,0.81), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 81% 74%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 52% 79%, rgba(255,255,255,0.78), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 66% 19%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 82% 63%, rgba(255,255,255,0.53), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 79% 87%, rgba(255,255,255,0.82), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 93% 46%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 16% 58%, rgba(255,255,255,0.64), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 50% 70%, rgba(255,255,255,0.74), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 35% 52%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(1px 1px at 52% 78%, rgba(255,255,255,0.4), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 92% 6%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 31% 17%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(1px 1px at 87% 47%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 75% 65%, rgba(255,255,255,0.49), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 84% 31%, rgba(255,255,255,0.81), transparent 99.8%),
+    radial-gradient(1px 1px at 59% 61%, rgba(255,255,255,0.82), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 8% 47%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 91% 87%, rgba(255,255,255,0.3), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 30% 57%, rgba(255,255,255,0.78), transparent 99.8%),
+    radial-gradient(1px 1px at 41% 67%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 30% 93%, rgba(255,255,255,0.31), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 34% 65%, rgba(255,255,255,0.67), transparent 99.8%),
+    radial-gradient(1px 1px at 52% 36%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(1px 1px at 60% 64%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 66% 10%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(1px 1px at 29% 96%, rgba(255,255,255,0.3), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 57% 35%, rgba(255,255,255,0.4), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 64% 11%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(1px 1px at 65% 20%, rgba(255,255,255,0.65), transparent 99.8%),
+    radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.53), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 42% 20%, rgba(255,255,255,0.6), transparent 99.8%),
+    radial-gradient(1px 1px at 53% 66%, rgba(255,255,255,0.66), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 96% 69%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(1.2px 1.2px at 53% 80%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(1px 1px at 58% 74%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 50% 85%, rgba(255,255,255,0.52), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 40% 88%, rgba(255,255,255,0.81), transparent 99.8%),
+    radial-gradient(1px 1px at 34% 93%, rgba(255,255,255,0.56), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 64% 31%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(1px 1px at 93% 46%, rgba(255,255,255,0.66), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 58% 8%, rgba(255,255,255,0.32), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 77% 59%, rgba(255,255,255,0.32), transparent 99.8%),
+    radial-gradient(1px 1px at 63% 21%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(1px 1px at 39% 88%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 51% 91%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(1px 1px at 21% 35%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 83% 54%, rgba(255,255,255,0.8), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 51% 50%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(1px 1px at 69% 32%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 43% 87%, rgba(255,255,255,0.73), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 35% 19%, rgba(255,255,255,0.32), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 7% 52%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 55% 91%, rgba(255,255,255,0.26), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 92% 50%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 40% 45%, rgba(255,255,255,0.38), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 44% 62%, rgba(255,255,255,0.33), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 5% 10%, rgba(255,255,255,0.29), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 12% 86%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(1px 1px at 64% 71%, rgba(255,255,255,0.26), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 5% 54%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 42% 40%, rgba(255,255,255,0.6), transparent 99.8%),
+    radial-gradient(1px 1px at 16% 15%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 83% 53%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 60% 5%, rgba(255,255,255,0.68), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 58% 17%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 93% 6%, rgba(255,255,255,0.66), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 85% 71%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 61% 45%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(1px 1px at 88% 95%, rgba(255,255,255,0.27), transparent 99.8%),
+    radial-gradient(1px 1px at 27% 2%, rgba(255,255,255,0.78), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 24% 38%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 39% 8%, rgba(255,255,255,0.6), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 36% 17%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 46% 59%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(1px 1px at 76% 66%, rgba(255,255,255,0.51), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 76% 63%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 35% 61%, rgba(255,255,255,0.63), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 24% 31%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(1px 1px at 19% 19%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 81% 5%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(1px 1px at 68% 77%, rgba(255,255,255,0.52), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 3% 32%, rgba(255,255,255,0.43), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 58% 43%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 28% 54%, rgba(255,255,255,0.6), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 80% 83%, rgba(255,255,255,0.71), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 97% 39%, rgba(255,255,255,0.28), transparent 99.8%),
+    radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 85% 81%, rgba(255,255,255,0.68), transparent 99.8%),
+    radial-gradient(1px 1px at 37% 94%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 78% 13%, rgba(255,255,255,0.26), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 21% 78%, rgba(255,255,255,0.73), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 4% 84%, rgba(255,255,255,0.63), transparent 99.8%),
+    radial-gradient(1px 1px at 7% 13%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(1px 1px at 81% 51%, rgba(255,255,255,0.43), transparent 99.8%),
+    radial-gradient(1px 1px at 42% 79%, rgba(255,255,255,0.34), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 64% 13%, rgba(255,255,255,0.7), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 87% 55%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(1px 1px at 79% 13%, rgba(255,255,255,0.65), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 48% 21%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 34% 54%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 56% 4%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(1px 1px at 8% 57%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 15% 44%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 38% 21%, rgba(255,255,255,0.29), transparent 99.8%),
+    radial-gradient(1px 1px at 35% 28%, rgba(255,255,255,0.53), transparent 99.8%),
+    radial-gradient(1px 1px at 62% 95%, rgba(255,255,255,0.81), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 32% 7%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(1px 1px at 93% 59%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 77% 88%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(1px 1px at 91% 69%, rgba(255,255,255,0.43), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 65% 38%, rgba(255,255,255,0.46), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 54% 80%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(1px 1px at 81% 48%, rgba(255,255,255,0.28), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 60% 53%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 19% 27%, rgba(255,255,255,0.25), transparent 99.8%),
+    radial-gradient(1px 1px at 9% 28%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 47% 68%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 61% 76%, rgba(255,255,255,0.63), transparent 99.8%),
+    radial-gradient(1px 1px at 59% 62%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 78% 47%, rgba(255,255,255,0.55), transparent 99.8%),
+    radial-gradient(1px 1px at 77% 22%, rgba(255,255,255,0.52), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 74% 89%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 65% 97%, rgba(255,255,255,0.64), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 29% 67%, rgba(255,255,255,0.47), transparent 99.8%),
+    radial-gradient(1px 1px at 47% 62%, rgba(255,255,255,0.76), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 59% 78%, rgba(255,255,255,0.28), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 32% 21%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(1px 1px at 71% 97%, rgba(255,255,255,0.67), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 86% 89%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(1px 1px at 49% 44%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(1px 1px at 42% 95%, rgba(255,255,255,0.63), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 34% 51%, rgba(255,255,255,0.79), transparent 99.8%),
+    radial-gradient(1px 1px at 41% 43%, rgba(255,255,255,0.34), transparent 99.8%),
+    radial-gradient(1px 1px at 58% 53%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 56% 72%, rgba(255,255,255,0.57), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 43% 29%, rgba(255,255,255,0.65), transparent 99.8%),
+    radial-gradient(1px 1px at 17% 70%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(1px 1px at 45% 34%, rgba(255,255,255,0.27), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 81% 31%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(1px 1px at 94% 2%, rgba(255,255,255,0.73), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 84% 55%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 22% 65%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 98% 24%, rgba(255,255,255,0.7), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 31% 26%, rgba(255,255,255,0.32), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 44% 16%, rgba(255,255,255,0.63), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 72% 95%, rgba(255,255,255,0.29), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 55% 72%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 11% 28%, rgba(255,255,255,0.57), transparent 99.8%),
+    radial-gradient(1px 1px at 3% 32%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 72% 24%, rgba(255,255,255,0.55), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 58% 44%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(1px 1px at 5% 13%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 17% 30%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 54% 8%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(1px 1px at 11% 49%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 32% 83%, rgba(255,255,255,0.67), transparent 99.8%),
+    radial-gradient(1px 1px at 21% 74%, rgba(255,255,255,0.84), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 56% 26%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 70% 95%, rgba(255,255,255,0.41), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 56% 24%, rgba(255,255,255,0.5), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 1% 75%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 9% 23%, rgba(255,255,255,0.81), transparent 99.8%),
+    radial-gradient(1px 1px at 24% 81%, rgba(255,255,255,0.39), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 50% 94%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 22% 68%, rgba(255,255,255,0.42), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 39% 73%, rgba(255,255,255,0.79), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 89% 97%, rgba(255,255,255,0.6), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 2% 79%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 46% 31%, rgba(255,255,255,0.58), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 72% 43%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(1px 1px at 74% 77%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(1px 1px at 48% 17%, rgba(255,255,255,0.7), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 77% 31%, rgba(255,255,255,0.78), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 23% 73%, rgba(255,255,255,0.4), transparent 99.8%),
+    radial-gradient(1px 1px at 75% 21%, rgba(255,255,255,0.3), transparent 99.8%),
+    radial-gradient(1px 1px at 15% 41%, rgba(255,255,255,0.51), transparent 99.8%),
+    radial-gradient(1px 1px at 50% 90%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 46% 62%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 7% 3%, rgba(255,255,255,0.61), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 98% 26%, rgba(255,255,255,0.69), transparent 99.8%),
+    radial-gradient(1px 1px at 29% 33%, rgba(255,255,255,0.67), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 73% 42%, rgba(255,255,255,0.68), transparent 99.8%),
+    radial-gradient(1px 1px at 28% 23%, rgba(255,255,255,0.55), transparent 99.8%),
+    radial-gradient(1px 1px at 53% 52%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 84% 31%, rgba(255,255,255,0.59), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 39% 49%, rgba(255,255,255,0.34), transparent 99.8%),
+    radial-gradient(1px 1px at 30% 27%, rgba(255,255,255,0.37), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 19% 41%, rgba(255,255,255,0.54), transparent 99.8%),
+    radial-gradient(1px 1px at 78% 15%, rgba(255,255,255,0.74), transparent 99.8%),
+    radial-gradient(1px 1px at 60% 23%, rgba(255,255,255,0.3), transparent 99.8%),
+    radial-gradient(1px 1px at 27% 5%, rgba(255,255,255,0.38), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 81% 49%, rgba(255,255,255,0.57), transparent 99.8%),
+    radial-gradient(1px 1px at 20% 21%, rgba(255,255,255,0.66), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 3% 83%, rgba(255,255,255,0.72), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 4% 65%, rgba(255,255,255,0.53), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 60% 43%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(1px 1px at 96% 30%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(1px 1px at 71% 2%, rgba(255,255,255,0.62), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 61% 15%, rgba(255,255,255,0.45), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 58% 7%, rgba(255,255,255,0.73), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 3% 27%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 65% 57%, rgba(255,255,255,0.82), transparent 99.8%),
+    radial-gradient(1px 1px at 79% 1%, rgba(255,255,255,0.82), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 82% 22%, rgba(255,255,255,0.75), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 51% 4%, rgba(255,255,255,0.56), transparent 99.8%),
+    radial-gradient(1px 1px at 76% 85%, rgba(255,255,255,0.36), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 48% 14%, rgba(255,255,255,0.77), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 53% 1%, rgba(255,255,255,0.83), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 32% 58%, rgba(255,255,255,0.44), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 42% 55%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 82% 76%, rgba(255,255,255,0.67), transparent 99.8%),
+    radial-gradient(1px 1px at 24% 76%, rgba(255,255,255,0.48), transparent 99.8%),
+    radial-gradient(1px 1px at 67% 46%, rgba(255,255,255,0.57), transparent 99.8%),
+    radial-gradient(0.6px 0.6px at 79% 80%, rgba(255,255,255,0.35), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 44% 81%, rgba(255,255,255,0.56), transparent 99.8%),
+    radial-gradient(0.8px 0.8px at 51% 59%, rgba(255,255,255,0.72), transparent 99.8%),
+    /* ── tinted twinkle stars (cyan / gold / violet / ice) ── */
+    radial-gradient(1.6px 1.6px at 42% 17%, rgba(6,182,212,0.57), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 1% 94%, rgba(245,184,73,0.51), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 48% 71%, rgba(124,108,255,0.4), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 19% 79%, rgba(200,210,240,0.84), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 93% 50%, rgba(6,182,212,0.87), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 87% 63%, rgba(245,184,73,0.81), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 50% 32%, rgba(124,108,255,0.4), transparent 99.5%),
+    radial-gradient(2px 2px at 89% 62%, rgba(200,210,240,0.66), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 16% 37%, rgba(6,182,212,0.55), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 11% 1%, rgba(245,184,73,0.36), transparent 99.5%),
+    radial-gradient(2px 2px at 24% 90%, rgba(124,108,255,0.8), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 40% 59%, rgba(200,210,240,0.78), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 29% 54%, rgba(6,182,212,0.35), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 64% 10%, rgba(245,184,73,0.78), transparent 99.5%),
+    radial-gradient(2px 2px at 52% 71%, rgba(124,108,255,0.72), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 88% 35%, rgba(200,210,240,0.82), transparent 99.5%),
+    radial-gradient(2px 2px at 78% 83%, rgba(6,182,212,0.79), transparent 99.5%),
+    radial-gradient(2px 2px at 65% 9%, rgba(245,184,73,0.86), transparent 99.5%),
+    radial-gradient(2px 2px at 84% 19%, rgba(124,108,255,0.88), transparent 99.5%),
+    radial-gradient(1.6px 1.6px at 80% 80%, rgba(200,210,240,0.84), transparent 99.5%),
+    radial-gradient(2px 2px at 20% 27%, rgba(6,182,212,0.54), transparent 99.5%),
+    radial-gradient(2px 2px at 57% 91%, rgba(245,184,73,0.38), transparent 99.5%),
+    radial-gradient(2px 2px at 83% 35%, rgba(124,108,255,0.56), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 11% 96%, rgba(200,210,240,0.83), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 51% 95%, rgba(6,182,212,0.65), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 65% 32%, rgba(245,184,73,0.45), transparent 99.5%),
+    radial-gradient(1.4px 1.4px at 74% 12%, rgba(124,108,255,0.6), transparent 99.5%),
+    radial-gradient(2px 2px at 38% 56%, rgba(200,210,240,0.74), transparent 99.5%),
+    /* ── nebula colour patches (very soft, low opacity for text safety) ── */
+    radial-gradient(ellipse 90% 60% at 12%  8%, rgba(124,108,255,.10) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 88% 92%, rgba(6,182,212,.08) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 50% 45%, rgba(245,184,73,.04) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 40% at 75% 20%, rgba(124,108,255,.06) 0%, transparent 40%),
+    /* ── base ── */
+    var(--bg-deep);
+  animation: cosmosNebulaShift 40s ease-in-out infinite alternate;
+}
+
+@keyframes cosmosNebulaShift {
+  0%   { opacity: .85; filter: hue-rotate(0deg); }
+  50%  { opacity: 1;   filter: hue-rotate(5deg); }
+  100% { opacity: .9;  filter: hue-rotate(-3deg); }
+}
+
+/* ---- COSMIC DUST PARTICLES (asteroids) ---- */
+.cosmos-dust {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cosmos-dust span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(200,210,240,.5);
+  border-radius: 50%;
+  box-shadow: 0 0 6px 1px rgba(6,182,212,.2);
+  animation: cosmosDrift linear infinite;
+}
+
+.cosmos-dust span:nth-child(1)  { left:  8%; top: 12%; animation-duration: 28s; animation-delay:  0s; width: 5px; height: 5px; background: rgba(6,182,212,.55); box-shadow: 0 0 10px 2px rgba(6,182,212,.3); }
+.cosmos-dust span:nth-child(2)  { left: 22%; top: 78%; animation-duration: 35s; animation-delay: -4s; width: 4px; height: 4px; background: rgba(200,210,240,.45); }
+.cosmos-dust span:nth-child(3)  { left: 45%; top: 30%; animation-duration: 24s; animation-delay: -8s; width: 6px; height: 6px; background: rgba(245,184,73,.5); box-shadow: 0 0 12px 2px rgba(245,184,73,.25); }
+.cosmos-dust span:nth-child(4)  { left: 67%; top: 55%; animation-duration: 32s; animation-delay: -2s; width: 4px; height: 4px; background: rgba(200,210,240,.4); }
+.cosmos-dust span:nth-child(5)  { left: 80%; top: 15%; animation-duration: 38s; animation-delay: -12s; width: 5px; height: 5px; background: rgba(124,108,255,.5); box-shadow: 0 0 10px 2px rgba(124,108,255,.25); }
+.cosmos-dust span:nth-child(6)  { left: 35%; top: 90%; animation-duration: 26s; animation-delay: -6s; width: 4px; height: 4px; background: rgba(200,210,240,.4); }
+.cosmos-dust span:nth-child(7)  { left: 55%; top:  5%; animation-duration: 33s; animation-delay: -10s; width: 5px; height: 5px; background: rgba(6,182,212,.45); box-shadow: 0 0 10px 2px rgba(6,182,212,.2); }
+.cosmos-dust span:nth-child(8)  { left: 92%; top: 40%; animation-duration: 30s; animation-delay: -3s; width: 4px; height: 4px; background: rgba(200,210,240,.4); }
+.cosmos-dust span:nth-child(9)  { left: 15%; top: 60%; animation-duration: 36s; animation-delay: -7s; width: 3px; height: 3px; background: rgba(245,184,73,.4); box-shadow: 0 0 8px 1px rgba(245,184,73,.2); }
+.cosmos-dust span:nth-child(10) { left: 70%; top: 85%; animation-duration: 22s; animation-delay: -1s; width: 4px; height: 4px; background: rgba(200,210,240,.45); }
+.cosmos-dust span:nth-child(11) { left: 50%; top: 45%; animation-duration: 40s; animation-delay: -14s; width: 6px; height: 6px; background: rgba(124,108,255,.45); box-shadow: 0 0 12px 2px rgba(124,108,255,.2); }
+.cosmos-dust span:nth-child(12) { left:  5%; top: 35%; animation-duration: 31s; animation-delay: -9s; width: 4px; height: 4px; background: rgba(6,182,212,.4); }
+
+@keyframes cosmosDrift {
+  0%   { transform: translate(0, 0) scale(1); opacity: .5; }
+  25%  { transform: translate(18px, -25px) scale(1.15); opacity: .85; }
+  50%  { transform: translate(-12px, 15px) scale(.9); opacity: .6; }
+  75%  { transform: translate(20px, 30px) scale(1.1); opacity: .8; }
+  100% { transform: translate(0, 0) scale(1); opacity: .5; }
+}
+
+/* ---- COMMEMORATIVE OUTPOST (real art, bottom-left) ---- */
+.cosmos-station {
+  position: fixed;
+  bottom: -30px;
+  left: -30px;
+  width: min(280px, 24vw);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  opacity: .55;
+  filter: drop-shadow(0 0 24px rgba(6,182,212,.25)) drop-shadow(0 0 50px rgba(124,108,255,.12));
+  animation: cosmosStationFloat 18s ease-in-out infinite alternate;
+}
+
+.cosmos-station img {
+  width: 100%;
+  height: auto;
+}
+
+@keyframes cosmosStationFloat {
+  0%   { transform: translateY(0) rotate(0deg); }
+  50%  { transform: translateY(-18px) rotate(.8deg); }
+  100% { transform: translateY(6px) rotate(-.5deg); }
+}
+
+/* ---- ALLIANCE BANNER DECORATION ---- */
+.cosmos-alliance-banner {
+  position: relative;
+  overflow: visible;
+}
+
+.cosmos-alliance-banner::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(124,108,255,.7) 15%,
+    rgba(6,182,212,.85) 50%,
+    rgba(245,184,73,.7) 85%,
+    transparent 100%
+  );
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 0 16px rgba(6,182,212,.25), 0 0 4px rgba(124,108,255,.2);
+  animation: cosmosBannerPulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes cosmosBannerPulse {
+  0%   { opacity: .7; }
+  50%  { opacity: 1; }
+  100% { opacity: .8; }
+}
+
+/* ---- SECTION DIVIDER — COSMIC LINE ---- */
+.cosmos-divider {
+  width: 100%;
+  height: 2px;
+  margin: 48px 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(6,182,212,.3) 15%,
+    rgba(124,108,255,.5) 50%,
+    rgba(6,182,212,.3) 85%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.cosmos-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: rgba(6,182,212,.7);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(6,182,212,.5), 0 0 32px rgba(6,182,212,.2);
+}
+
+/* ---- HERO SECTION — COSMIC GLOW RING ---- */
+.hero .ring::after {
+  content: "";
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6,182,212,.14) 0%, rgba(124,108,255,.06) 40%, transparent 70%);
+  animation: cosmosRingGlow 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes cosmosRingGlow {
+  0%   { opacity: .6; transform: scale(1); }
+  50%  { opacity: 1;  transform: scale(1.08); }
+  100% { opacity: .7; transform: scale(.97); }
+}
+
+/* ---- PLANET GRID — COSMIC HOVER ---- */
+.planet-grid .planet-card,
+.gallery-card {
+  transition: border-color .2s, transform .2s, box-shadow .3s;
+}
+
+.planet-grid .planet-card:hover,
+.gallery-card:hover {
+  box-shadow: 0 0 30px rgba(6,182,212,.15), 0 0 60px rgba(124,108,255,.06), 0 8px 32px rgba(0,0,0,.4);
+}
+
+/* ---- ATLAS TEASER — DEEP SPACE VIGNETTE ---- */
+.atlas-teaser {
+  position: relative;
+}
+
+.atlas-teaser::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,
+    rgba(124,108,255,.15) 0%,
+    transparent 35%,
+    transparent 65%,
+    rgba(6,182,212,.15) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- PANEL ALLIANCE TOP BORDER (registration/dashboard pages) ---- */
+.panel {
+  position: relative;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(6,182,212,.4) 20%,
+    rgba(124,108,255,.5) 50%,
+    rgba(245,184,73,.4) 80%,
+    transparent 100%
+  );
+  border-radius: 0 0 3px 3px;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(6,182,212,.15);
+}
+
+/* ---- FOOTER / BOTTOM GLOW ---- */
+body::after {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 250px;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(to top,
+    rgba(6,182,212,.08) 0%,
+    rgba(124,108,255,.03) 40%,
+    transparent 100%
+  );
+}
+
+/* ---- DECORATIVE COSMOS IMAGES ---- */
+.cosmos-img {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  background-size: contain;
+  background-repeat: no-repeat;
+  aspect-ratio: 1 / 1;
+}
+
+.cosmos-img--asteroid {
+  width: min(200px, 16vw);
+  height: auto;
+  left: 4%;
+  top: 15%;
+  background-image: url('./cosmos-img/asteroid.png');
+  opacity: .2;
+  filter: drop-shadow(0 0 12px rgba(200,210,240,.15));
+  animation: cosmosImgFloat 30s ease-in-out infinite alternate-reverse;
+  animation-delay: -8s;
+}
+
+.cosmos-img--ice-asteroid {
+  width: min(160px, 13vw);
+  height: auto;
+  right: 8%;
+  bottom: 35%;
+  background-image: url('./cosmos-img/ice-asteroid.png');
+  opacity: .22;
+  filter: drop-shadow(0 0 14px rgba(6,182,212,.18));
+  animation: cosmosImgFloat 28s ease-in-out infinite alternate;
+  animation-delay: -12s;
+}
+
+.cosmos-img--datacore {
+  width: min(90px, 7vw);
+  height: auto;
+  right: 12%;
+  top: 42%;
+  background-image: url('./cosmos-img/hulk-datacore.png');
+  opacity: .22;
+  filter: drop-shadow(0 0 10px rgba(6,182,212,.15));
+  animation: cosmosImgFloat 26s ease-in-out infinite alternate;
+  animation-delay: -10s;
+}
+
+/* ---- INFESTED OUTPOST / VIRUS SLIME (replicated) ---- */
+.cosmos-img--slime {
+  background-image: url('./cosmos-img/slime-virus.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 16px rgba(67,220,120,.25)) drop-shadow(0 0 30px rgba(67,220,120,.1));
+  animation: cosmosSlimePulse 6s ease-in-out infinite alternate;
+}
+
+.cosmos-img--slime-1 {
+  width: min(120px, 10vw);
+  height: auto;
+  left: 15%;
+  top: 22%;
+  transform: rotate(-15deg);
+}
+
+.cosmos-img--slime-2 {
+  width: min(90px, 7vw);
+  height: auto;
+  right: 6%;
+  top: 70%;
+  transform: rotate(25deg);
+  animation-delay: -2s;
+}
+
+.cosmos-img--slime-3 {
+  width: min(150px, 12vw);
+  height: auto;
+  left: 6%;
+  bottom: 25%;
+  transform: rotate(10deg);
+  animation-delay: -4s;
+}
+
+@keyframes cosmosSlimePulse {
+  0%   { opacity: .18; }
+  50%  { opacity: .32; }
+  100% { opacity: .22; }
+}
+
+/* ---- SCATTERED SMALL ASTEROIDS (index scenery) ---- */
+.cosmos-astro {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  background-image: url('./cosmos-img/asteroid.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: .28;
+  filter: drop-shadow(0 0 10px rgba(200,210,240,.12));
+  animation: cosmosImgFloat 30s ease-in-out infinite alternate;
+}
+.cosmos-astro--1 { width: 46px; height: 46px; left: 12%; top: 13%; }
+.cosmos-astro--2 { width: 36px; height: 36px; left: 27%; top: 42%; animation-delay: -6s; transform: rotate(25deg); }
+.cosmos-astro--3 { width: 52px; height: 52px; right: 22%; top: 20%; animation-delay: -12s; }
+.cosmos-astro--4 { width: 34px; height: 34px; right: 7%; bottom: 26%; animation-delay: -18s; transform: rotate(-18deg); }
+.cosmos-astro--5 { width: 58px; height: 58px; left: 6%; bottom: 33%; animation-delay: -24s; }
+
+/* ---- VIRUS SLIME AT THE CORNERS (index) ---- */
+.cosmos-slime--tl { width: min(58px, 5vw); left: 3%;  top: 16%; }
+.cosmos-slime--tr { width: min(66px, 6vw); right: 3%; top: 16%; animation-delay: -2s; transform: rotate(14deg); }
+.cosmos-slime--bl { width: min(52px, 5vw); left: 3%;  bottom: 12%; animation-delay: -4s; transform: rotate(-20deg); }
+.cosmos-slime--br { width: min(62px, 5vw); right: 3%; bottom: 12%; animation-delay: -1s; transform: rotate(20deg); }
+
+/* ---- DISTANT FLOATERS (far scenery, slow drift) ---- */
+.cosmos-dist {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: .22;
+  filter: drop-shadow(0 0 8px rgba(6,182,212,.18));
+  animation: cosmosFarDrift 110s ease-in-out infinite alternate;
+}
+.cosmos-dist--poi        { background-image: url('./cosmos-img/poi-floating.png');  width: 40px; height: 40px; right: 13%; top: 26%; }
+.cosmos-dist--poi-2      { background-image: url('./cosmos-img/poi-floating.png');  width: 30px; height: 30px; left: 24%; top: 60%; animation-delay: -30s; }
+.cosmos-dist--datacore   { background-image: url('./cosmos-img/hulk-datacore.png'); width: 44px; height: 44px; left: 34%; top: 14%; }
+.cosmos-dist--datacore-2 { background-image: url('./cosmos-img/hulk-datacore.png'); width: 36px; height: 36px; right: 6%;  top: 55%; animation-delay: -45s; }
+
+@keyframes cosmosFarDrift {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(24px, -14px) rotate(-2deg); }
+  50%  { transform: translate(-16px, 12px) rotate(1.5deg); }
+  75%  { transform: translate(10px, 20px) rotate(-1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ---- VINTAGE INTERCEPTOR (station hangar ship) ---- */
+.cosmos-img--interceptor {
+  width: min(160px, 13vw);
+  height: auto;
+  right: 20%;
+  top: 30%;
+  background-image: url('./cosmos-img/interceptor.png');
+  opacity: .2;
+  filter: drop-shadow(0 0 16px rgba(6,182,212,.2));
+  animation: cosmosImgFloat 26s ease-in-out infinite alternate;
+  animation-delay: -9s;
+}
+
+/* ---- COSMOS ICONS STRIP (alliance banner strip) ---- */
+.cosmos-img--icons {
+  width: min(500px, 60vw);
+  height: 280px;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  background-image: url('./cosmos-img/cosmos-icons.png');
+  background-size: 100% auto;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  opacity: .14;
+  mask-image: linear-gradient(to top, black 30%, transparent 90%);
+  animation: cosmosImgFloat 40s ease-in-out infinite alternate;
+  animation-delay: -18s;
+}
+
+@keyframes cosmosImgFloat {
+  0%   { transform: translateY(0) rotate(0deg); }
+  33%  { transform: translateY(-14px) rotate(1deg); }
+  66%  { transform: translateY(8px) rotate(-.8deg); }
+  100% { transform: translateY(-4px) rotate(.3deg); }
+}
+
+/* ---- SPLIT SNAPSHOT PIECES (sd.png -> 3 random spots) ---- */
+.cosmos-sd {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at center, black 30%, transparent 82%);
+  mask-image: radial-gradient(ellipse 75% 75% at center, black 30%, transparent 82%);
+  filter: saturate(1.25);
+  animation: cosmosImgFloat 45s ease-in-out infinite alternate;
+}
+
+.cosmos-sd--sm  { width: min(200px, 17vw); aspect-ratio: 455 / 768; }
+.cosmos-sd--md  { width: min(260px, 23vw); aspect-ratio: 455 / 768; }
+.cosmos-sd--lg  { width: min(330px, 29vw); aspect-ratio: 455 / 768; }
+
+.cosmos-sd--1 { background-image: url('./cosmos-img/sd-1.png'); }
+.cosmos-sd--2 { background-image: url('./cosmos-img/sd-2.png'); }
+.cosmos-sd--3 { background-image: url('./cosmos-img/sd-3.png'); }
+
+/* ---- REDUCED MOTION ---- */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .cosmos-dust span,
+  .cosmos-station,
+  .cosmos-alliance-banner::before,
+  .hero .ring::after,
+  .cosmos-img,
+  .cosmos-sd,
+  .cosmos-img--icons,
+  .cosmos-img--slime,
+  .cosmos-astro,
+  .cosmos-dist {
+    animation: none !important;
+  }
+
+  .cosmos-dust span {
+    opacity: .4 !important;
+  }
+
+  .cosmos-img--slime {
+    opacity: .22 !important;
+  }
+}
