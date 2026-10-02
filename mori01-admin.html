@@ -299,6 +299,32 @@
 
 
   <div class="panel">
+    <h2>Galería pública</h2>
+    <p class="sub">Sube imágenes para mostrar directamente en la galería (aparecen aprobadas por defecto).</p>
+    <div id="galleryAdminAlert" class="alert"></div>
+    <div class="field">
+      <label for="galleryTitle">Título (opcional)</label>
+      <input type="text" id="galleryTitle" placeholder="Ej. Base de la capital">
+    </div>
+    <div class="field">
+      <label for="galleryDesc">Descripción (opcional)</label>
+      <input type="text" id="galleryDesc" placeholder="Descripción breve">
+    </div>
+    <div class="field">
+      <label>Imagen</label>
+      <label class="file-btn" for="galleryImgInput" style="display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border:1px solid var(--border-bright); border-radius:4px; cursor:pointer; width:fit-content; background:var(--bg-panel-2);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+        Elegir imagen
+      </label>
+      <input type="file" id="galleryImgInput" accept="image/*" style="display:none">
+      <div class="photo-preview" id="galleryPreview" style="display:none; margin-top:12px;"><img id="galleryPreviewImg" alt="" style="max-width:320px; max-height:320px; border-radius:6px; border:1px solid var(--border-soft);"></div>
+    </div>
+    <button class="btn btn-primary" id="galleryUploadBtn" disabled style="width:auto; margin-top:10px">Subir a galería</button>
+    <div id="galleryListAdmin" style="margin-top:20px"></div>
+  </div>
+
+
+  <div class="panel">
     <h2>Imágenes de planetas</h2>
     <p class="sub">Foto de referencia para cada planeta. Se muestra en "Mi Ciudadanía" para los planetas donde un jugador tiene bases; si no subes una, ahí aparece "Por explorar".</p>
     <div id="planetImgGrid" class="planet-img-grid"></div>
@@ -336,7 +362,7 @@
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
   import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus, glyphsToCartesianLocal, glyphToPosition } from './colonies-data.js';
   import {
-    collection, doc, updateDoc, deleteDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction
+    collection, doc, updateDoc, deleteDoc, addDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -1266,6 +1292,53 @@
       }
     });
   }
+
+  // GALERIA
+  const galleryCol = collection(db, 'gallery');
+  let galleryFile = null;
+  function showGalleryAlert(msg,type){
+    const box=document.getElementById('galleryAdminAlert');
+    if(!box) return;
+    box.textContent=msg; box.className='alert show '+(type==='error'?'alert-error':'alert-ok');
+    setTimeout(()=>box.className='alert',3500);
+  }
+  const gi = document.getElementById('galleryImgInput');
+  if(gi){
+    gi.addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      if(!file.type.startsWith('image/')) return showGalleryAlert('Solo imagenes', 'error');
+      if(file.size>5*1024*1024) return showGalleryAlert('Max 5MB', 'error');
+      galleryFile=file; const img=document.getElementById('galleryPreviewImg'); img.src=URL.createObjectURL(file);
+      document.getElementById('galleryPreview').style.display='block'; document.getElementById('galleryUploadBtn').disabled=false;
+    });
+  }
+  const gb = document.getElementById('galleryUploadBtn');
+  if(gb){
+    gb.addEventListener('click', async ()=>{
+      if(!galleryFile) return; const btn=gb; btn.disabled=true; btn.textContent='Subiendo...';
+      try{
+        const ext = galleryFile.name.split('.').pop()||'jpg'; const pth='gallery/'+Date.now()+'.'+ext;
+        const sref = ref(storage,pth); await uploadBytes(sref,galleryFile); const url=await getDownloadURL(sref);
+        await addDoc(galleryCol,{url,storagePath:pth,title:(document.getElementById('galleryTitle').value||'').trim(),description:(document.getElementById('galleryDesc').value||'').trim(),approved:true,ts:serverTimestamp()});
+        showGalleryAlert('Subido a galeria','ok'); document.getElementById('galleryTitle').value=''; document.getElementById('galleryDesc').value=''; galleryFile=null;
+        document.getElementById('galleryPreview').style.display='none'; document.getElementById('galleryImgInput').value='';
+      }catch(e){showGalleryAlert('Error al subir','error');}
+      btn.disabled=false; btn.textContent='Subir a galeria';
+    });
+  }
+  onSnapshot(query(galleryCol, orderBy('ts','desc')), snap=>{
+    const list=document.getElementById('galleryListAdmin'); if(!list) return;
+    list.innerHTML = snap.docs.map(d=>{
+      const data=d.data(); const t=data.title||'Sin titulo'; const desc=data.description||'';
+      return '<div class="photo-row"><div class="photo-thumb"><img src="'+(data.url||'')+'"></div><div class="photo-info"><div class="pname">'+t+'</div><div class="pmeta">'+desc+'</div><button class="act-btn delete" data-del="'+d.id+'" data-path="'+(data.storagePath||'')+'">Eliminar</button></div></div>';
+    }).join('');
+    list.querySelectorAll('[data-del]').forEach(btn=>{
+      btn.onclick=async()=>{
+        if(!confirm('Eliminar imagen?')) return; const id=btn.dataset.del, path=btn.dataset.path;
+        await deleteDoc(doc(db,'gallery',id)); if(path){ try{ await deleteObject(ref(storage,path)); }catch(e){} }
+      };
+    });
+  });
 </script>
 </body>
 </html>

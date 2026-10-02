@@ -522,9 +522,17 @@
 
     const col = colonyColor(colorIdx);
 
-    const sphereGeo = new THREE.SphereGeometry(12, 24, 24);
+    const stations = colony.stations || [];
+    const hasClaimedStation = stations.some(s => s.claimStatus !== 'released');
+
+    let mainGeo;
+    if (hasClaimedStation) {
+      mainGeo = new THREE.OctahedronGeometry(14, 0);
+    } else {
+      mainGeo = new THREE.SphereGeometry(12, 24, 24);
+    }
     const sphereMat = new THREE.MeshBasicMaterial({ color: col });
-    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    const sphere = new THREE.Mesh(mainGeo, sphereMat);
     sphere.position.set(cart.x, cart.y, cart.z);
     group.add(sphere);
 
@@ -553,6 +561,15 @@
     ring.rotation.x = -Math.PI / 2;
     ring.position.copy(sphere.position);
     group.add(ring);
+
+    if (hasClaimedStation) {
+      const stationRingGeo = new THREE.RingGeometry(20, 24, 48);
+      const stationRingMat = new THREE.MeshBasicMaterial({ color: 0xf5b849, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+      const stationRing = new THREE.Mesh(stationRingGeo, stationRingMat);
+      stationRing.rotation.x = -Math.PI / 2;
+      stationRing.position.copy(sphere.position);
+      group.add(stationRing);
+    }
 
     const ring2Geo = new THREE.RingGeometry(35, 38, 48);
     const ring2Mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
@@ -879,6 +896,23 @@
       </div>
     `).join('');
 
+    const stations = colony.stations || [];
+    stations.forEach(s => {
+      const released = s.claimStatus === 'released';
+      const statusLabel = released ? ' (Liberada)' : '';
+      const verified = s.verifiedAt ? `<br><small style="color:var(--text-dim); font-size:11px; font-family:var(--font-mono)">Verificado ${escapeHtml(s.verifiedAt)}</small>` : '';
+      const row = document.createElement('div');
+      row.className = 'data-row';
+      row.innerHTML = `
+        <span class="data-key">Estación${s.race ? ' · ' + escapeHtml(s.race) : ''}</span>
+        <span class="data-value ${released ? '' : 'gold'}">
+          ${escapeHtml(s.name || 'Sin nombre')}${s.director ? ' · ' + escapeHtml(s.director) : ''}${statusLabel}
+          ${verified}
+        </span>
+      `;
+      document.getElementById('systemDataRows').appendChild(row);
+    });
+
     if(cart){
       document.getElementById('colonyCartesian').textContent = `${cart.x}, ${cart.y}, ${cart.z}`;
     } else {
@@ -970,7 +1004,7 @@
           <div class="base-info">
             <h3>${escapeHtml(base.name || 'Sin nombre')}</h3>
             <p><span class="status-dot"></span>${escapeHtml(base.id)}</p>
-            <p>Planeta: <span class="highlight">${escapeHtml(planetName)}</span> · Coords: <span class="highlight">${base.lat}, ${base.lon}</span></p>
+            <p>Planeta: <span class="highlight">${escapeHtml(planetName)}</span> · Coords: <span class="highlight">${base.lat ?? '—'}, ${base.lon ?? '—'}</span></p>
             <div class="base-tags">${tags}</div>
           </div>
         </div>

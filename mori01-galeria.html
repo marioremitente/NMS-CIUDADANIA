@@ -27,17 +27,55 @@
   h1{font-family:var(--font-display); font-weight:400; font-size:clamp(30px,5vw,44px); letter-spacing:.03em; margin-bottom:12px;}
   .lede{color:var(--text-muted); font-size:15px; max-width:620px; margin-bottom:36px;}
 
-  .gallery-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:18px;}
-  .gallery-card{
-    background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:6px; overflow:hidden;
-    transition:border-color .2s, transform .2s; cursor:pointer;
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:20px;
+    align-items:start;
   }
-  .gallery-card:hover{border-color:var(--accent-cyan); transform:translateY(-3px);}
-  .gallery-card .gimg{width:100%; aspect-ratio:1; background:var(--bg-panel-2); overflow:hidden;}
-  .gallery-card .gimg img{width:100%; height:100%; object-fit:cover; display:block;}
-  .gallery-card .ginfo{padding:12px 14px;}
-  .gallery-card .gname{font-weight:600; font-size:13.5px; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .gallery-card{
+    position:relative;
+    background:var(--bg-panel);
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    box-shadow:0 10px 40px -20px rgba(0,0,0,.6);
+  }
+  .gallery-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--accent-cyan);
+    box-shadow:0 20px 60px -20px rgba(6,182,212,.35);
+  }
+  .gallery-card .gimg{
+    width:100%;
+    aspect-ratio:4/5;
+    background:var(--bg-panel-2);
+    overflow:hidden;
+    position:relative;
+  }
+  .gallery-card .gimg img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .35s ease;
+  }
+  .gallery-card:hover .gimg img{ transform:scale(1.05); }
+  .gallery-card .ginfo{
+    position:absolute;
+    inset:auto 0 0 0;
+    padding:14px 16px 16px;
+    background:linear-gradient(to top, rgba(7,8,13,.96) 0%, rgba(7,8,13,.6) 60%, rgba(7,8,13,0) 100%);
+    backdrop-filter:blur(4px) saturate(1.1);
+    transform:translateY(8px);
+    opacity:0;
+    transition:transform .25s ease, opacity .25s ease;
+  }
+  .gallery-card:hover .ginfo{ transform:translateY(0); opacity:1; }
+  .gallery-card .gname{font-weight:600; font-size:14px; margin-bottom:2px; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .gallery-card .gplanet{font-size:11.5px; color:var(--accent-cyan); font-family:var(--font-mono);}
+  .gallery-card .gdesc{font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.4; max-height:2.8em; overflow:hidden;}
   .empty-state{color:var(--text-dim); font-size:13.5px; text-align:center; padding:60px 0; font-family:var(--font-mono);}
 
   .lightbox{
@@ -108,6 +146,17 @@
 
   const citizensCol = collection(db, 'citizens');
   const basesCol = collection(db, 'citizenBases');
+  const galleryCol = collection(db, 'gallery');
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
+  const citizensCol = collection(db, 'citizens');
+  const basesCol = collection(db, 'citizenBases');
+  const galleryCol = collection(db, 'gallery');
 
   function escapeHtml(s){
     const d = document.createElement('div');
@@ -117,7 +166,7 @@
 
   function openLightbox(photoUrl, name, planetName){
     lightboxImg.src = photoUrl;
-    lightboxImg.alt = `Base de ${name}`;
+    lightboxImg.alt = 'Imagen ' + name;
     lightboxName.textContent = name;
     lightboxPlanet.textContent = planetName;
     lightbox.classList.add('show');
@@ -139,34 +188,40 @@
   function renderGallery(entries){
     const grid = document.getElementById('galleryGrid');
     if(!entries.length){
-      grid.innerHTML = '<div class="empty-state">Todavía no hay fotos aprobadas. ¡Sube la tuya desde tu Tarjeta de Ciudadano!</div>';
+      grid.innerHTML = '<div class="empty-state">Todavía no hay fotos aprobadas. ¡Sube la tuya desde tu Tarjeta de Ciudadano o desde el Admin!</div>';
       return;
     }
-    const sorted = [...entries].sort((a,b)=> (b.ts||0) - (a.ts||0));
+    const sorted = [...entries].sort((a,b)=>{
+      const ta = b.ts?.toMillis ? b.ts.toMillis() : (b.ts||0);
+      const tb = a.ts?.toMillis ? a.ts.toMillis() : (a.ts||0);
+      if(ta !== tb) return ta - tb;
+      return 0;
+    });
     grid.innerHTML = sorted.map((e,i)=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
-      return `
-        <div class="gallery-card" data-idx="${i}">
-          <div class="gimg"><img src="${e.photoUrl}" alt="Base de ${escapeHtml(e.name)}" loading="lazy"></div>
-          <div class="ginfo">
-            <div class="gname">${escapeHtml(e.name)}</div>
-            <div class="gplanet">${planet ? planet.name : '—'}</div>
-          </div>
-        </div>`;
+      const name = e.title || e.name || 'Sin título';
+      const desc = e.description ? '<div class="gdesc">'+escapeHtml(e.description)+'</div>' : '';
+      const planetName = e.planetName || (planet ? planet.name : (e.planetIndex===undefined?'—':'—'));
+      const url = e.photoUrl || e.url;
+      return '<div class="gallery-card" data-idx="'+i+'"><div class="gimg"><img src="'+url+'" alt="'+escapeHtml(name)+'" loading="lazy"></div><div class="ginfo"><div class="gname">'+escapeHtml(name)+'</div>'+(planetName?' <div class="gplanet">'+escapeHtml(planetName)+'</div>':'')+desc+'</div></div>';
     }).join('');
 
     grid.querySelectorAll('.gallery-card').forEach(card=>{
       const e = sorted[parseInt(card.dataset.idx, 10)];
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
-      card.addEventListener('click', ()=> openLightbox(e.photoUrl, e.name, planet ? planet.name : '—'));
+      const name = e.title || e.name || 'Sin título';
+      const planetName = e.planetName || (planet ? planet.name : '—');
+      const url = e.photoUrl || e.url;
+      card.addEventListener('click', ()=> openLightbox(url, name, planetName));
     });
   }
 
   let citizenPhotos = [];
   let basePhotos = [];
+  let galleryPhotos = [];
 
   function repaint(){
-    renderGallery([...citizenPhotos, ...basePhotos]);
+    renderGallery([...citizenPhotos, ...basePhotos, ...galleryPhotos]);
   }
 
   const q1 = query(citizensCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
@@ -174,8 +229,7 @@
     citizenPhotos = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
     repaint();
   }, err=>{
-    document.getElementById('galleryGrid').innerHTML =
-      '<div class="empty-state">No se pudo cargar la galería. Revisa las reglas o el índice de Firestore.</div>';
+    document.getElementById('galleryGrid').innerHTML = '<div class="empty-state">No se pudo cargar la galería. Revisa las reglas o el índice de Firestore.</div>';
   });
 
   const q2 = query(basesCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
@@ -184,6 +238,13 @@
     repaint();
   }, err=>{
     console.warn('No se pudieron cargar las fotos de bases adicionales', err);
+  });
+
+  onSnapshot(query(galleryCol, orderBy('ts','desc')), snap=>{
+    galleryPhotos = snap.docs.map(d=>({ docId:d.id, ...d.data(), photoUrl: d.data().url }));
+    repaint();
+  }, err=>{
+    console.warn('No se pudieron cargar la galería subida desde Admin', err);
   });
 </script>
 </body>
