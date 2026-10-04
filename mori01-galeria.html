@@ -137,22 +137,11 @@
   </div>
 </div>
 
-<script type="module">
-  import { db } from './firebase-config.js';
+<script type="module">  import { db } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import { collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
-
-  const citizensCol = collection(db, 'citizens');
-  const basesCol = collection(db, 'citizenBases');
-  const galleryCol = collection(db, 'gallery');
-
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s ?? '';
-    return d.innerHTML;
-  }
+  document.getElementById('backLink').textContent = ← Volver a ;
 
   const citizensCol = collection(db, 'citizens');
   const basesCol = collection(db, 'citizenBases');
@@ -194,58 +183,36 @@
     const sorted = [...entries].sort((a,b)=>{
       const ta = b.ts?.toMillis ? b.ts.toMillis() : (b.ts||0);
       const tb = a.ts?.toMillis ? a.ts.toMillis() : (a.ts||0);
-      if(ta !== tb) return ta - tb;
-      return 0;
+      return ta - tb;
     });
     grid.innerHTML = sorted.map((e,i)=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       const name = e.title || e.name || 'Sin título';
       const desc = e.description ? '<div class="gdesc">'+escapeHtml(e.description)+'</div>' : '';
-      const planetName = e.planetName || (planet ? planet.name : (e.planetIndex===undefined?'—':'—'));
+      const planetName = e.planetName || (planet ? planet.name : '');
       const url = e.photoUrl || e.url;
-      return '<div class="gallery-card" data-idx="'+i+'"><div class="gimg"><img src="'+url+'" alt="'+escapeHtml(name)+'" loading="lazy"></div><div class="ginfo"><div class="gname">'+escapeHtml(name)+'</div>'+(planetName?' <div class="gplanet">'+escapeHtml(planetName)+'</div>':'')+desc+'</div></div>';
+      return '<div class="gallery-card" data-idx="'+i+'"><div class="gimg"><img src="'+url+'" alt="'+escapeHtml(name)+'" loading="lazy"></div><div class="ginfo"><div class="gname">'+escapeHtml(name)+'</div>'+(planetName?'<div class="gplanet">'+escapeHtml(planetName)+'</div>':'')+desc+'</div></div>';
     }).join('');
-
     grid.querySelectorAll('.gallery-card').forEach(card=>{
-      const e = sorted[parseInt(card.dataset.idx, 10)];
+      const e = sorted[parseInt(card.dataset.idx,10)];
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       const name = e.title || e.name || 'Sin título';
-      const planetName = e.planetName || (planet ? planet.name : '—');
+      const planetName = e.planetName || (planet ? planet.name : '');
       const url = e.photoUrl || e.url;
-      card.addEventListener('click', ()=> openLightbox(url, name, planetName));
+      card.addEventListener('click', ()=> openLightbox(url,name,planetName));
     });
   }
 
-  let citizenPhotos = [];
-  let basePhotos = [];
-  let galleryPhotos = [];
+  let citizenPhotos=[], basePhotos=[], galleryPhotos=[];
+  function repaint(){ renderGallery([...citizenPhotos,...basePhotos,...galleryPhotos]); }
 
-  function repaint(){
-    renderGallery([...citizenPhotos, ...basePhotos, ...galleryPhotos]);
-  }
+  const q1 = query(citizensCol, where('photoStatus','==','approved'), orderBy('ts','desc'));
+  onSnapshot(q1, snap=>{ citizenPhotos = snap.docs.map(d=>({docId:d.id,...d.data()})).filter(e=>e.photoUrl); repaint(); }, err=>{ document.getElementById('galleryGrid').innerHTML='<div class="empty-state">No se pudo cargar la galería.</div>'; });
 
-  const q1 = query(citizensCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
-  onSnapshot(q1, snap=>{
-    citizenPhotos = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
-    repaint();
-  }, err=>{
-    document.getElementById('galleryGrid').innerHTML = '<div class="empty-state">No se pudo cargar la galería. Revisa las reglas o el índice de Firestore.</div>';
-  });
+  const q2 = query(basesCol, where('photoStatus','==','approved'), orderBy('ts','desc'));
+  onSnapshot(q2, snap=>{ basePhotos = snap.docs.map(d=>({docId:d.id,...d.data()})).filter(e=>e.photoUrl); repaint(); }, err=>{ console.warn('bases',err); });
 
-  const q2 = query(basesCol, where('photoStatus', '==', 'approved'), orderBy('ts', 'desc'));
-  onSnapshot(q2, snap=>{
-    basePhotos = snap.docs.map(d=>({ docId: d.id, ...d.data() })).filter(e=>e.photoUrl);
-    repaint();
-  }, err=>{
-    console.warn('No se pudieron cargar las fotos de bases adicionales', err);
-  });
-
-  onSnapshot(query(galleryCol, orderBy('ts','desc')), snap=>{
-    galleryPhotos = snap.docs.map(d=>({ docId:d.id, ...d.data(), photoUrl: d.data().url }));
-    repaint();
-  }, err=>{
-    console.warn('No se pudieron cargar la galería subida desde Admin', err);
-  });
+  onSnapshot(query(galleryCol, orderBy('ts','desc')), snap=>{ galleryPhotos = snap.docs.map(d=>({docId:d.id,...d.data(), photoUrl:d.data().url})); repaint(); }, err=>{ console.warn('gallery',err); });
 </script>
 </body>
 </html>
