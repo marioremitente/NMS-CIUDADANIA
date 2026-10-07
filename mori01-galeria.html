@@ -137,11 +137,13 @@
   </div>
 </div>
 
-<script type="module">  import { db } from './firebase-config.js';
+<script type="module">
+  import { db } from './firebase-config.js';
   import { PLANETS, SYSTEM_INFO } from './mori01-data.js';
   import { collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  document.getElementById('backLink').textContent = ← Volver a ;
+  // CORREGIDO: antes esta línea no era JavaScript válido y rompía todo el script
+  document.getElementById('backLink').textContent = `← Volver a ${SYSTEM_INFO.shortName}`;
 
   const citizensCol = collection(db, 'citizens');
   const basesCol = collection(db, 'citizenBases');
@@ -152,6 +154,11 @@
     d.textContent = s ?? '';
     return d.innerHTML;
   }
+
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxName = document.getElementById('lightboxName');
+  const lightboxPlanet = document.getElementById('lightboxPlanet');
 
   function openLightbox(photoUrl, name, planetName){
     lightboxImg.src = photoUrl;
@@ -165,14 +172,13 @@
     lightboxImg.src = '';
   }
 
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightboxImg');
-  const lightboxName = document.getElementById('lightboxName');
-  const lightboxPlanet = document.getElementById('lightboxPlanet');
-
   document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', e=>{ if(e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeLightbox(); });
+
+  function tsMillis(e){
+    return e.ts?.toMillis ? e.ts.toMillis() : (e.ts || 0);
+  }
 
   function renderGallery(entries){
     const grid = document.getElementById('galleryGrid');
@@ -180,18 +186,15 @@
       grid.innerHTML = '<div class="empty-state">Todavía no hay fotos aprobadas. ¡Sube la tuya desde tu Tarjeta de Ciudadano o desde el Admin!</div>';
       return;
     }
-    const sorted = [...entries].sort((a,b)=>{
-      const ta = b.ts?.toMillis ? b.ts.toMillis() : (b.ts||0);
-      const tb = a.ts?.toMillis ? a.ts.toMillis() : (a.ts||0);
-      return ta - tb;
-    });
+    // Más recientes primero (el orden se hace aquí, en el cliente)
+    const sorted = [...entries].sort((a,b)=> tsMillis(b) - tsMillis(a));
     grid.innerHTML = sorted.map((e,i)=>{
       const planet = PLANETS.find(p=>p.i===e.planetIndex);
       const name = e.title || e.name || 'Sin título';
       const desc = e.description ? '<div class="gdesc">'+escapeHtml(e.description)+'</div>' : '';
       const planetName = e.planetName || (planet ? planet.name : '');
       const url = e.photoUrl || e.url;
-      return '<div class="gallery-card" data-idx="'+i+'"><div class="gimg"><img src="'+url+'" alt="'+escapeHtml(name)+'" loading="lazy"></div><div class="ginfo"><div class="gname">'+escapeHtml(name)+'</div>'+(planetName?'<div class="gplanet">'+escapeHtml(planetName)+'</div>':'')+desc+'</div></div>';
+      return '<div class="gallery-card" data-idx="'+i+'"><div class="gimg"><img src="'+escapeHtml(url)+'" alt="'+escapeHtml(name)+'" loading="lazy"></div><div class="ginfo"><div class="gname">'+escapeHtml(name)+'</div>'+(planetName?'<div class="gplanet">'+escapeHtml(planetName)+'</div>':'')+desc+'</div></div>';
     }).join('');
     grid.querySelectorAll('.gallery-card').forEach(card=>{
       const e = sorted[parseInt(card.dataset.idx,10)];
@@ -206,10 +209,11 @@
   let citizenPhotos=[], basePhotos=[], galleryPhotos=[];
   function repaint(){ renderGallery([...citizenPhotos,...basePhotos,...galleryPhotos]); }
 
-  const q1 = query(citizensCol, where('photoStatus','==','approved'), orderBy('ts','desc'));
-  onSnapshot(q1, snap=>{ citizenPhotos = snap.docs.map(d=>({docId:d.id,...d.data()})).filter(e=>e.photoUrl); repaint(); }, err=>{ document.getElementById('galleryGrid').innerHTML='<div class="empty-state">No se pudo cargar la galería.</div>'; });
+  // CORREGIDO: sin orderBy junto a where() para no necesitar índice compuesto
+  const q1 = query(citizensCol, where('photoStatus','==','approved'));
+  onSnapshot(q1, snap=>{ citizenPhotos = snap.docs.map(d=>({docId:d.id,...d.data()})).filter(e=>e.photoUrl); repaint(); }, err=>{ console.warn("gallery load err", err); });
 
-  const q2 = query(basesCol, where('photoStatus','==','approved'), orderBy('ts','desc'));
+  const q2 = query(basesCol, where('photoStatus','==','approved'));
   onSnapshot(q2, snap=>{ basePhotos = snap.docs.map(d=>({docId:d.id,...d.data()})).filter(e=>e.photoUrl); repaint(); }, err=>{ console.warn('bases',err); });
 
   onSnapshot(query(galleryCol, orderBy('ts','desc')), snap=>{ galleryPhotos = snap.docs.map(d=>({docId:d.id,...d.data(), photoUrl:d.data().url})); repaint(); }, err=>{ console.warn('gallery',err); });
