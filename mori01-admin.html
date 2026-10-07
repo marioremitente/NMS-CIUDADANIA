@@ -721,7 +721,8 @@
   function openColonyForm(existing){
     const wrap = document.getElementById('colonyFormWrap');
     const isEdit = !!existing;
-    const colony = existing || {
+    const isEdit = !!existing;
+    const firstStation = existing && Array.isArray(existing.stations) && existing.stations[0] ? existing.stations[0] : null;    const colony = existing || {
       id: '', name: '', shortName: '', tag: '', region: '', race: '', economy: '', conflict: '',
       galaxy: '', signature: [1,1,1,1,1,1,1,1,1,1,1,1],
       galacticPos: { x: 0, y: 0 }, planets: [], capitalPlanetIndex: null,
@@ -764,7 +765,25 @@
         <label style="font-size:13px; font-weight:600;">Planetas</label>
         <button class="act-btn approve" id="cfAddPlanet">+ Agregar planeta</button>
       </div>
-      <div id="cfPlanetsWrap"></div>
+      <div id="cfPlanetsWrap">      </div>
+
+
+      <div style="margin-top:14px; margin-bottom:10px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px;">Estación Espacial</label>
+        <div class="colony-form-grid">
+          <div><label>Nombre de la estación</label><input type="text" id="cfStationName" placeholder="Nombre de la estación"></div>
+          <div><label>Raza</label><input type="text" id="cfStationRace" placeholder="Korvax, Vy'keen, Gek"></div>
+          <div><label>Director</label><input type="text" id="cfStationDirector" placeholder="Nick"></div>
+          <div>
+            <label>Estado de reclamación</label>
+            <select id="cfStationClaim" style="width:100%; background:var(--bg-panel-2); border:1px solid var(--border-soft); color:var(--text-primary); padding:9px 11px; border-radius:4px; font-size:13px;">
+              <option value="claimed">Reclamada</option>
+              <option value="released">Liberada</option>
+            </select>
+          </div>
+          <div class="full"><label>Verificado el (YYYY-MM-DD)</label><input type="text" id="cfStationVerified" placeholder="2026-10-04"></div>
+        </div>
+      </div>
 
 
       <div class="colony-photo-area">
@@ -805,6 +824,15 @@
 
     let currentPlanets = JSON.parse(planetsJson);
     let capitalPhotoFile = null;
+    if (firstStation) {
+      setTimeout(() => {
+        const sn = document.getElementById('cfStationName'); if(sn) sn.value = firstStation.name || '';
+        const sr = document.getElementById('cfStationRace'); if(sr) sr.value = firstStation.race || '';
+        const sd = document.getElementById('cfStationDirector'); if(sd) sd.value = firstStation.director || '';
+        const sc = document.getElementById('cfStationClaim'); if(sc) sc.value = firstStation.claimStatus || 'claimed';
+        const sv = document.getElementById('cfStationVerified'); if(sv) sv.value = firstStation.verifiedAt || '';
+      }, 0);
+    }
     renderPlanetBlocks(currentPlanets);
 
 
@@ -816,7 +844,16 @@
 
     document.getElementById('cfAddPlanet').addEventListener('click', () => {
       currentPlanets.push({ i: currentPlanets.length + 1, name: '', capital: false, clima: '', centinela: '', flora: '', fauna: '', rec: '' });
-      renderPlanetBlocks(currentPlanets);
+      if (firstStation) {
+      setTimeout(() => {
+        const sn = document.getElementById('cfStationName'); if(sn) sn.value = firstStation.name || '';
+        const sr = document.getElementById('cfStationRace'); if(sr) sr.value = firstStation.race || '';
+        const sd = document.getElementById('cfStationDirector'); if(sd) sd.value = firstStation.director || '';
+        const sc = document.getElementById('cfStationClaim'); if(sc) sc.value = firstStation.claimStatus || 'claimed';
+        const sv = document.getElementById('cfStationVerified'); if(sv) sv.value = firstStation.verifiedAt || '';
+      }, 0);
+    }
+    renderPlanetBlocks(currentPlanets);
     });
 
 
@@ -905,6 +942,18 @@
         };
 
 
+        const stations = [];
+        const stName = document.getElementById('cfStationName')?.value.trim();
+        if (stName) {
+          stations.push({
+            name: stName,
+            race: document.getElementById('cfStationRace')?.value.trim() || '',
+            director: document.getElementById('cfStationDirector')?.value.trim() || '',
+            claimStatus: document.getElementById('cfStationClaim')?.value || 'claimed',
+            verifiedAt: document.getElementById('cfStationVerified')?.value.trim() || ''
+          });
+        }
+        colonyData.stations = stations;
         await saveColony(colonyData);
 
 
@@ -985,7 +1034,16 @@
             });
           });
           currentPlanets.splice(idx, 1);
-          renderPlanetBlocks(currentPlanets);
+          if (firstStation) {
+      setTimeout(() => {
+        const sn = document.getElementById('cfStationName'); if(sn) sn.value = firstStation.name || '';
+        const sr = document.getElementById('cfStationRace'); if(sr) sr.value = firstStation.race || '';
+        const sd = document.getElementById('cfStationDirector'); if(sd) sd.value = firstStation.director || '';
+        const sc = document.getElementById('cfStationClaim'); if(sc) sc.value = firstStation.claimStatus || 'claimed';
+        const sv = document.getElementById('cfStationVerified'); if(sv) sv.value = firstStation.verifiedAt || '';
+      }, 0);
+    }
+    renderPlanetBlocks(currentPlanets);
         });
       });
     }
