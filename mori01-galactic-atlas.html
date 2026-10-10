@@ -209,6 +209,19 @@
   .map-legend-item:hover{color:var(--text-primary);}
   .legend-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
   .legend-count{margin-left:auto; font-size:9px; color:var(--text-dim);}
+
+  .station-row{display:flex; align-items:center; gap:14px; padding:12px 14px; background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px; margin-bottom:10px; transition:border-color .2s;}
+  .station-row:hover{border-color:var(--accent-gold);}
+  .station-icon{width:38px; height:38px; flex-shrink:0;}
+  .station-info{flex:1; min-width:0;}
+  .station-info h3{font-family:var(--font-display); font-size:14px; font-weight:400; margin-bottom:3px;}
+  .station-info p{font-size:12px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px; word-break:break-word;}
+  .station-pill{font-family:var(--font-mono); font-size:10px; padding:2px 8px; border-radius:20px; border:1px solid var(--border-soft); white-space:nowrap;}
+  .station-pill.claimed{color:var(--accent-gold); border-color:rgba(245,184,73,.45);}
+  .station-pill.released{color:var(--text-muted);}
+  .station-fly{font-family:var(--font-mono); font-size:11px; padding:6px 12px; background:transparent; color:var(--accent-cyan); border:1px solid var(--border-bright); border-radius:3px; cursor:pointer; white-space:nowrap;}
+  .station-fly:hover{border-color:var(--accent-cyan);}
+  .legend-diamond{width:7px; height:7px; transform:rotate(45deg); flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -264,6 +277,11 @@
   <div class="panel">
     <div class="signature-label"><span>Firma del sistema · Dirección de portal</span><span id="signatureCount">—</span></div>
     <div class="glyph-row" id="portalCode"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">Estaciones Espaciales</div>
+    <div id="stationsList"></div>
   </div>
 
   <div class="panel">
@@ -341,6 +359,8 @@
   let ALL_COLONIES = [];
   let activeColony = null;
   let ALL_BASES = [];
+  let ALL_STATIONS = [];
+  let stationMarkers = [];
 
   let scene, camera, renderer, controls;
   let colonyMarkers = [];
@@ -677,8 +697,27 @@
         <span class="legend-count">${count > 0 ? count + ' bases' : ''}</span>
       </div>`;
     });
+    if(ALL_STATIONS.length){
+      html += '<div class="map-legend-header" style="margin-top:8px;">Estaciones</div>';
+      ALL_STATIONS.forEach((st, i) => {
+        const col = st.claimStatus === 'released' ? '#8b93b3' : '#f5b849';
+        const placed = Array.isArray(st.signature) && st.signature.length >= 12;
+        html += `<div class="map-legend-item" data-station-idx="${i}" title="${escapeHtml(st.name || '')}${placed ? '' : ' — sin código de glifos, no aparece en el mapa'}">
+          <div class="legend-diamond" style="background:${col}"></div>
+          <span>${escapeHtml(st.name || 'Sin nombre')}</span>
+          <span class="legend-count">${placed ? '' : 'sin glifos'}</span>
+        </div>`;
+      });
+    }
     html += `<div class="map-legend-item" style="margin-top:6px; padding-top:6px; border-top:1px solid var(--border-soft);"><span style="color:var(--text-dim)">${colonyMarkers.length} sistema${colonyMarkers.length !== 1 ? 's' : ''} · ${baseCount} base${baseCount !== 1 ? 's' : ''}</span></div>`;
     container.innerHTML = html;
+
+    container.querySelectorAll('.map-legend-item[data-station-idx]').forEach(item => {
+      item.addEventListener('click', () => {
+        const st = ALL_STATIONS[parseInt(item.dataset.stationIdx, 10)];
+        if(st) focusStation(st);
+      });
+    });
 
     container.querySelectorAll('.map-legend-item[data-colony-idx]').forEach(item => {
       item.addEventListener('click', () => {
@@ -754,13 +793,23 @@
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-    const spheres = colonyMarkers.map(m => m.userData.sphere).filter(Boolean);
+    const spheres = [...colonyMarkers.map(m => m.userData.sphere), ...stationMarkers.map(m => m.userData.hit)].filter(Boolean);
     const intersects = raycaster.intersectObjects(spheres);
 
     if(intersects.length > 0){
       const hit = intersects[0].object;
       const parentGroup = hit.parent;
-      if(parentGroup && parentGroup.userData && parentGroup.userData.colonyId){
+      if(parentGroup && parentGroup.userData && parentGroup.userData.stationId){
+        hoveredMarker = parentGroup;
+        renderer.domElement.style.cursor = 'pointer';
+        const st = parentGroup.userData.station;
+        markerLabel.textContent = `Estación · ${st.name || 'Sin nombre'}${st.claimStatus === 'released' ? ' (Liberada)' : ''}`;
+        markerLabel.style.display = 'block';
+        markerLabel.style.left = (event.clientX - rect.left + 14) + 'px';
+        markerLabel.style.top = (event.clientY - rect.top - 10) + 'px';
+        const sc = parentGroup.userData.cart;
+        document.getElementById('coordDisplay').textContent = `X: ${sc.x} | Y: ${sc.y} | Z: ${sc.z}`;
+      } else if(parentGroup && parentGroup.userData && parentGroup.userData.colonyId){
         hoveredMarker = parentGroup;
         renderer.domElement.style.cursor = 'pointer';
         const c = parentGroup.userData.colony;
@@ -781,6 +830,10 @@
   }
 
   function onMouseClick(event){
+    if(hoveredMarker && hoveredMarker.userData.stationId){
+      focusStation(hoveredMarker.userData.station);
+      return;
+    }
     if(hoveredMarker && hoveredMarker.userData.colonyId){
       const colony = hoveredMarker.userData.colony;
       selectColony(colony);
@@ -853,6 +906,19 @@
       } else if(m.userData.sphere){
         m.userData.sphere.scale.setScalar(1 + Math.sin(phase * 4) * 0.08);
       }
+    });
+
+    stationMarkers.forEach((m, i) => {
+      const ph = t + i * 1.3;
+      const u = m.userData;
+      if(u.core) u.core.rotation.y -= 0.02;
+      if(u.frame) u.frame.rotation.y += 0.01;
+      if(u.ring){
+        u.ring.material.opacity = Math.sin(ph * 2.4) * 0.15 + 0.4;
+        const rs = 1 + Math.sin(ph * 1.6) * 0.1;
+        u.ring.scale.set(rs, rs, 1);
+      }
+      if(u.core) u.core.scale.setScalar(m === hoveredMarker ? 1.35 : 1);
     });
 
     if(galaxyCenterMarker){
@@ -1012,6 +1078,154 @@
     }).join('');
   }
 
+  // ── Estaciones espaciales (colección propia "stations") ──
+  function stationIconSVG(color){
+    return `<svg class="station-icon" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="20" rx="17" ry="6" fill="none" stroke="${color}" stroke-opacity=".6" stroke-width="1.5"/><polygon points="20,4 30,20 20,36 10,20" fill="${color}" fill-opacity=".85" stroke="${color}"/><line x1="10" y1="20" x2="30" y2="20" stroke="#07080d" stroke-opacity=".5"/></svg>`;
+  }
+
+  function createStationMarker(st){
+    if(!Array.isArray(st.signature) || st.signature.length < 12) return null;
+    const cart = decodeGlyphsToCartesian(st.signature);
+    if(!cart) return null;
+    const released = st.claimStatus === 'released';
+    const col = released ? 0x8b93b3 : 0xf5b849;
+    const pos = new THREE.Vector3(cart.x, cart.y, cart.z);
+
+    const group = new THREE.Group();
+    group.userData = { stationId: st.id, station: st, cart };
+
+    const core = new THREE.Mesh(
+      new THREE.OctahedronGeometry(10, 0),
+      new THREE.MeshBasicMaterial({ color: col, transparent: released, opacity: released ? 0.65 : 1 })
+    );
+    core.position.copy(pos);
+    group.add(core);
+
+    const frame = new THREE.Mesh(
+      new THREE.OctahedronGeometry(18, 0),
+      new THREE.MeshBasicMaterial({ color: col, wireframe: true, transparent: true, opacity: 0.55 })
+    );
+    frame.position.copy(pos);
+    group.add(frame);
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(26, 29, 48),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.copy(pos);
+    group.add(ring);
+
+    const drop = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(cart.x, 0, cart.z), pos]),
+      new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.25 })
+    );
+    group.add(drop);
+
+    const lc = document.createElement('canvas');
+    lc.width = 512; lc.height = 80;
+    const lctx = lc.getContext('2d');
+    lctx.fillStyle = 'rgba(7,8,13,0.7)';
+    lctx.roundRect(30, 8, 452, 60, 8);
+    lctx.fill();
+    lctx.fillStyle = '#' + col.toString(16).padStart(6, '0');
+    lctx.font = 'bold 28px monospace';
+    lctx.textAlign = 'center';
+    lctx.fillText('◆ ' + (st.name || 'Estación'), 256, 49);
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(lc), transparent: true, opacity: 0.95 }));
+    label.scale.set(80, 12, 1);
+    label.position.set(cart.x, cart.y + 34, cart.z);
+    group.add(label);
+
+    group.userData.core = core;
+    group.userData.frame = frame;
+    group.userData.ring = ring;
+    group.userData.hit = frame;
+    return group;
+  }
+
+  function rebuildStationMarkers(){
+    stationMarkers.forEach(m => scene.remove(m));
+    stationMarkers = [];
+    ALL_STATIONS.forEach(st => {
+      const m = createStationMarker(st);
+      if(m){ scene.add(m); stationMarkers.push(m); }
+    });
+  }
+
+  function flyToPoint(target){
+    const startPos = camera.position.clone();
+    const startTarget = controls.target.clone();
+    const dir = new THREE.Vector3(0.4, 0.3, 0.65).normalize();
+    const targetPos = target.clone().add(dir.multiplyScalar(400));
+    const duration = 1400;
+    const startTime = performance.now();
+    function step(now){
+      const t = Math.min((now - startTime) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      camera.position.lerpVectors(startPos, targetPos, ease);
+      controls.target.lerpVectors(startTarget, target, ease);
+      controls.update();
+      if(t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function focusStation(st){
+    if(!st || !Array.isArray(st.signature) || st.signature.length < 12) return;
+    const cart = decodeGlyphsToCartesian(st.signature);
+    if(!cart) return;
+    flyToPoint(new THREE.Vector3(cart.x, cart.y, cart.z));
+    document.getElementById('coordDisplay').textContent = `X: ${cart.x} | Y: ${cart.y} | Z: ${cart.z}`;
+    document.getElementById('galaxyMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function renderStationsPanel(){
+    const el = document.getElementById('stationsList');
+    if(!ALL_STATIONS.length){
+      el.innerHTML = '<div class="no-bases">No hay estaciones registradas.</div>';
+      return;
+    }
+    el.innerHTML = ALL_STATIONS.map((st, i) => {
+      const released = st.claimStatus === 'released';
+      const color = released ? '#8b93b3' : '#f5b849';
+      const placed = Array.isArray(st.signature) && st.signature.length >= 12 && decodeGlyphsToCartesian(st.signature);
+      const lines = [];
+      if(st.race) lines.push('Raza: ' + escapeHtml(st.race));
+      if(st.director) lines.push('Director: ' + escapeHtml(st.director));
+      if(st.verifiedAt) lines.push('Verificada: ' + escapeHtml(st.verifiedAt));
+      if(placed) lines.push('Glifos: <span style="color:var(--accent-cyan)">' + signatureToHexString(st.signature) + '</span>');
+      if(st.notes) lines.push(escapeHtml(st.notes));
+      return `
+        <div class="station-row">
+          ${stationIconSVG(color)}
+          <div class="station-info">
+            <h3>${escapeHtml(st.name || 'Sin nombre')}</h3>
+            ${lines.map(l => `<p>${l}</p>`).join('')}
+          </div>
+          <span class="station-pill ${released ? 'released' : 'claimed'}">${released ? 'Liberada' : 'Reclamada'}</span>
+          ${placed ? `<button class="station-fly" data-station-fly="${i}">Ver en el mapa</button>` : ''}
+        </div>`;
+    }).join('');
+    el.querySelectorAll('[data-station-fly]').forEach(btn => {
+      btn.addEventListener('click', () => focusStation(ALL_STATIONS[parseInt(btn.dataset.stationFly, 10)]));
+    });
+  }
+
+  function subscribeStations(){
+    onSnapshot(collection(db, 'stations'), snap => {
+      ALL_STATIONS = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      ALL_STATIONS.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
+      rebuildStationMarkers();
+      renderLegend();
+      renderStationsPanel();
+    }, err => {
+      console.warn('stations', err);
+      document.getElementById('stationsList').innerHTML =
+        '<div class="no-bases">No se pudieron cargar las estaciones. Revisa las reglas de Firestore.</div>';
+    });
+  }
+
   function subscribeBases(){
     const citizensCol = collection(db, 'citizens');
     const q = query(citizensCol, where('status', '==', 'citizen'));
@@ -1120,6 +1334,7 @@
     }
 
     subscribeBases();
+    subscribeStations();
     animate(0);
   }
 
