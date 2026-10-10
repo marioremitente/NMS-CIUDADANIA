@@ -721,8 +721,8 @@
   function openColonyForm(existing){
     const wrap = document.getElementById('colonyFormWrap');
     const isEdit = !!existing;
-    const isEdit = !!existing;
-    const firstStation = existing && Array.isArray(existing.stations) && existing.stations[0] ? existing.stations[0] : null;    const colony = existing || {
+    const firstStation = existing && Array.isArray(existing.stations) && existing.stations[0] ? existing.stations[0] : null;
+    const colony = existing || {
       id: '', name: '', shortName: '', tag: '', region: '', race: '', economy: '', conflict: '',
       galaxy: '', signature: [1,1,1,1,1,1,1,1,1,1,1,1],
       galacticPos: { x: 0, y: 0 }, planets: [], capitalPlanetIndex: null,
