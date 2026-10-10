@@ -202,7 +202,7 @@
   .glyph-row-admin input:focus{border-color:var(--accent-cyan);}
 
 
-  .planet-block, .station-block{
+  .planet-block{
     background:var(--bg-panel-2); border:1px solid var(--border-soft); border-radius:6px;
     padding:14px; margin-bottom:10px; position:relative;
   }
@@ -215,7 +215,6 @@
     padding:8px 10px; border-radius:4px; font-size:12.5px;
   }
   .planet-block-grid input:focus{border-color:var(--accent-cyan);}
-  .planet-block-grid select{width:100%; background:var(--bg-deep); border:1px solid var(--border-soft); color:var(--text-primary); padding:8px 10px; border-radius:4px; font-size:12.5px;}
   .planet-block-grid label{display:block; font-size:10px; letter-spacing:.05em; color:var(--text-dim); text-transform:uppercase; margin-bottom:3px; font-family:var(--font-mono);}
   .planet-block-capital{display:flex; align-items:center; gap:6px; margin-top:8px;}
   .planet-block-capital input[type=radio]{accent-color:var(--accent-gold);}
@@ -346,6 +345,19 @@
 
 
   <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h2>Estaciones espaciales</h2>
+        <p class="sub" style="margin-bottom:0;">Registro independiente de las colonias: puedes reclamar una estación espacial sin tener una colonia en ese sistema.</p>
+      </div>
+      <button class="act-btn approve" id="newStationBtn">+ Nueva Estación</button>
+    </div>
+    <div id="stationList" class="colony-list" style="margin-top:16px;"></div>
+    <div id="stationFormWrap" class="colony-form" style="display:none;"></div>
+  </div>
+
+
+  <div class="panel">
     <div class="tabs" id="tabs">
       <div class="tab active" data-filter="all">Todos <span class="count" id="countAll">0</span></div>
       <div class="tab" data-filter="pending">Pendientes <span class="count" id="countPending">0</span></div>
@@ -454,6 +466,7 @@
       subscribeUsage();
       renderPlanetImages();
       renderColonies();
+      watchStations();
     }else{
       if(unsubscribe){ unsubscribe(); unsubscribe = null; }
       if(unsubscribeUsage){ unsubscribeUsage(); unsubscribeUsage = null; }
@@ -716,13 +729,166 @@
   });
 
 
+  // ── Estaciones espaciales (colección propia, independiente de las colonias) ──
+  const stationsCol = collection(db, 'stations');
+  let allStations = [];
+  let stationsWatching = false;
+
+  function watchStations(){
+    if(stationsWatching) return;
+    stationsWatching = true;
+    onSnapshot(stationsCol, snap => {
+      allStations = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      allStations.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
+      renderStations();
+    }, err => {
+      console.warn('stations', err);
+      showAdminAlert('No se pudieron cargar las estaciones. Revisa las reglas de Firestore.', 'error');
+    });
+  }
+
+  function sigToStr(sig){
+    return Array.isArray(sig) ? sig.map(v => (v - 1).toString(16).toUpperCase()).join(',') : '';
+  }
+
+  function renderStations(){
+    const list = document.getElementById('stationList');
+    if(!allStations.length){
+      list.innerHTML = '<div class="empty-state">No hay estaciones registradas. Agrega la primera con el botón de arriba.</div>';
+      return;
+    }
+    list.innerHTML = allStations.map(st => {
+      const claimed = (st.claimStatus || 'claimed') === 'claimed';
+      const meta = [st.race || '—', st.director ? 'Director: ' + st.director : null, st.verifiedAt ? 'Verificada ' + st.verifiedAt : null, st.signature ? 'Glifos: ' + sigToStr(st.signature) : null].filter(Boolean).join(' · ');
+      return `
+        <div class="colony-row" data-station-id="${escapeHtml(st.id)}">
+          <div class="colony-dot ${claimed ? 'active' : 'inactive'}"></div>
+          <div class="colony-info">
+            <div class="cname">${escapeHtml(st.name || 'Sin nombre')}</div>
+            <div class="cmeta">${escapeHtml(meta)}</div>
+          </div>
+          <span class="colony-status-pill ${claimed ? 'active' : 'inactive'}">${claimed ? 'Reclamada' : 'Liberada'}</span>
+          <div class="reg-actions">
+            <button class="act-btn" data-station-action="edit">Editar</button>
+            <button class="act-btn delete" data-station-action="delete">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('stationList').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-station-action]');
+    if(!btn) return;
+    const row = e.target.closest('.colony-row');
+    const st = allStations.find(x => x.id === row.dataset.stationId);
+    if(!st) return;
+    if(btn.dataset.stationAction === 'edit'){
+      openStationForm(st);
+    }else if(btn.dataset.stationAction === 'delete'){
+      if(!confirm(`¿Eliminar definitivamente la estación "${st.name}"? Esta acción no se puede deshacer.`)) return;
+      try{
+        await deleteDoc(doc(db, 'stations', st.id));
+        showAdminAlert('Estación eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas.', 'error');
+      }
+    }
+  });
+
+  document.getElementById('newStationBtn').addEventListener('click', () => openStationForm(null));
+
+  function openStationForm(existing){
+    const wrap = document.getElementById('stationFormWrap');
+    const isEdit = !!existing;
+    const st = existing || {};
+    const claim = st.claimStatus || 'claimed';
+    wrap.innerHTML = `
+      <h3>${isEdit ? 'Editar Estación' : 'Nueva Estación'}</h3>
+      <div id="stationAlert" class="alert"></div>
+      <div class="colony-form-grid">
+        <div><label>Nombre de la estación</label><input type="text" id="sfName" value="${escapeHtml(st.name || '')}" placeholder="Nombre de la estación"></div>
+        <div><label>Raza</label><input type="text" id="sfRace" value="${escapeHtml(st.race || '')}" placeholder="Korvax, Vy'keen, Gek"></div>
+        <div><label>Director</label><input type="text" id="sfDirector" value="${escapeHtml(st.director || '')}" placeholder="Nick"></div>
+        <div>
+          <label>Estado de reclamación</label>
+          <select id="sfClaim">
+            <option value="claimed" ${claim === 'claimed' ? 'selected' : ''}>Reclamada</option>
+            <option value="released" ${claim === 'released' ? 'selected' : ''}>Liberada</option>
+          </select>
+        </div>
+        <div><label>Verificado el (YYYY-MM-DD)</label><input type="text" id="sfVerified" value="${escapeHtml(st.verifiedAt || '')}" placeholder="2026-10-04"></div>
+        <div><label>Código de glifos (12, hex, coma) — opcional</label><input type="text" id="sfCode" value="${escapeHtml(sigToStr(st.signature))}" placeholder="3,4,1,4,0,0,6,0,5,C,3,9"></div>
+        <div class="full"><label>Notas — opcional</label><input type="text" id="sfNotes" value="${escapeHtml(st.notes || '')}" placeholder="Sistema, galaxia, observaciones…"></div>
+      </div>
+      <div style="margin-top:18px; display:flex; gap:8px;">
+        <button class="act-btn approve" id="sfSaveBtn">${isEdit ? 'Guardar cambios' : 'Agregar estación'}</button>
+        <button class="act-btn" id="sfCancelBtn">Cancelar</button>
+      </div>
+    `;
+    wrap.style.display = 'block';
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    function showStationAlert(msg, type){
+      const box = document.getElementById('stationAlert');
+      if(!box) return;
+      box.textContent = msg;
+      box.className = 'alert show ' + (type === 'error' ? 'alert-error' : 'alert-ok');
+      setTimeout(() => { box.className = 'alert'; }, 4000);
+    }
+
+    document.getElementById('sfCancelBtn').addEventListener('click', () => {
+      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+    });
+
+    document.getElementById('sfSaveBtn').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('sfSaveBtn');
+      const name = document.getElementById('sfName').value.trim();
+      if(!name){ showStationAlert('El nombre de la estación es obligatorio.', 'error'); return; }
+      const codeRaw = document.getElementById('sfCode').value.trim();
+      let signature = null;
+      if(codeRaw){
+        signature = parseGlyphs(codeRaw);
+        if(!signature){ showStationAlert('El código debe tener exactamente 12 glifos (0-F, separados por coma).', 'error'); return; }
+      }
+      const data = {
+        name,
+        race: document.getElementById('sfRace').value.trim(),
+        director: document.getElementById('sfDirector').value.trim(),
+        claimStatus: document.getElementById('sfClaim').value || 'claimed',
+        verifiedAt: document.getElementById('sfVerified').value.trim(),
+        notes: document.getElementById('sfNotes').value.trim(),
+        signature,
+        updatedAt: Date.now()
+      };
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
+      try{
+        if(isEdit){
+          await updateDoc(doc(db, 'stations', existing.id), data);
+        }else{
+          await addDoc(stationsCol, { ...data, createdAt: Date.now() });
+        }
+        showAdminAlert(isEdit ? 'Estación actualizada.' : 'Estación agregada.', 'ok');
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+      }catch(err){
+        console.error(err);
+        saveBtn.disabled = false;
+        saveBtn.textContent = isEdit ? 'Guardar cambios' : 'Agregar estación';
+        showStationAlert('No se pudo guardar. Revisa las reglas de Firestore.', 'error');
+      }
+    });
+  }
+
+
   document.getElementById('newColonyBtn').addEventListener('click', () => openColonyForm(null));
 
 
   function openColonyForm(existing){
     const wrap = document.getElementById('colonyFormWrap');
     const isEdit = !!existing;
-    const existingStations = existing && Array.isArray(existing.stations) ? existing.stations : [];    const colony = existing || {
+        const colony = existing || {
       id: '', name: '', shortName: '', tag: '', region: '', race: '', economy: '', conflict: '',
       galaxy: '', signature: [1,1,1,1,1,1,1,1,1,1,1,1],
       galacticPos: { x: 0, y: 0 }, planets: [], capitalPlanetIndex: null,
@@ -768,15 +934,6 @@
       <div id="cfPlanetsWrap">      </div>
 
 
-      <div style="margin-top:14px; margin-bottom:10px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <label style="font-size:13px; font-weight:600;">Estaciones espaciales</label>
-          <button type="button" class="act-btn approve" id="cfAddStation">+ Agregar estación</button>
-        </div>
-        <div id="cfStationsWrap"></div>
-      </div>
-
-
       <div class="colony-photo-area">
         <label style="display:block; font-size:11px; letter-spacing:.06em; color:var(--text-muted); text-transform:uppercase; margin-bottom:7px; font-family:var(--font-mono);">Foto de la capital</label>
         <label class="act-btn" for="cfCapitalPhoto" style="cursor:pointer;">Elegir imagen</label>
@@ -815,8 +972,6 @@
 
     let currentPlanets = JSON.parse(planetsJson);
     let capitalPhotoFile = null;
-    let currentStations = existingStations.map(st => ({ ...st }));
-    renderStationBlocks(currentStations);
     renderPlanetBlocks(currentPlanets);
 
 
@@ -829,13 +984,6 @@
     document.getElementById('cfAddPlanet').addEventListener('click', () => {
       currentPlanets.push({ i: currentPlanets.length + 1, name: '', capital: false, clima: '', centinela: '', flora: '', fauna: '', rec: '' });
     renderPlanetBlocks(currentPlanets);
-    });
-
-
-    document.getElementById('cfAddStation').addEventListener('click', () => {
-      const list = readStationBlocks();
-      list.push({ name: '', race: '', director: '', claimStatus: 'claimed', verifiedAt: '', codeRaw: '' });
-      renderStationBlocks(list);
     });
 
 
@@ -902,28 +1050,6 @@
       });
 
 
-      const stations = [];
-      let stationErr = null;
-      document.querySelectorAll('.station-block').forEach((block, i) => {
-        const sName = block.querySelector('.sb-name').value.trim();
-        if(!sName) return;
-        const codeRaw = block.querySelector('.sb-code').value.trim();
-        const st = {
-          name: sName,
-          race: block.querySelector('.sb-race').value.trim(),
-          director: block.querySelector('.sb-director').value.trim(),
-          claimStatus: block.querySelector('.sb-claim').value || 'claimed',
-          verifiedAt: block.querySelector('.sb-verified').value.trim()
-        };
-        if(codeRaw){
-          const sig = parseGlyphs(codeRaw);
-          if(!sig){ stationErr = 'El código de la estación "' + sName + '" debe tener exactamente 12 glifos (0-F, separados por coma).'; return; }
-          st.signature = sig;
-        }
-        stations.push(st);
-      });
-      if(stationErr){ showColonyAlert(stationErr, 'error'); return; }
-
       if(!planets.length){ showColonyAlert('Agrega al menos un planeta.', 'error'); return; }
       if(capitalIdx === null){ showColonyAlert('Marca un planeta como capital.', 'error'); return; }
 
@@ -946,7 +1072,6 @@
         };
 
 
-        colonyData.stations = stations;
         await saveColony(colonyData);
 
 
@@ -980,60 +1105,6 @@
       box.textContent = msg;
       box.className = 'alert show ' + (type === 'error' ? 'alert-error' : 'alert-ok');
       setTimeout(() => { box.className = 'alert'; }, 4000);
-    }
-
-
-    function readStationBlocks(){
-      return Array.from(document.querySelectorAll('.station-block')).map(b => ({
-        name: b.querySelector('.sb-name').value,
-        race: b.querySelector('.sb-race').value,
-        director: b.querySelector('.sb-director').value,
-        claimStatus: b.querySelector('.sb-claim').value,
-        verifiedAt: b.querySelector('.sb-verified').value,
-        codeRaw: b.querySelector('.sb-code').value
-      }));
-    }
-
-    function renderStationBlocks(stations){
-      const wrap = document.getElementById('cfStationsWrap');
-      if(!stations.length){
-        wrap.innerHTML = '<div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Sin estaciones. Usa "+ Agregar estación".</div>';
-        return;
-      }
-      wrap.innerHTML = stations.map((st, idx) => {
-        const codeRaw = st.codeRaw != null ? st.codeRaw : (Array.isArray(st.signature) ? st.signature.map(v => (v - 1).toString(16).toUpperCase()).join(',') : '');
-        const claim = st.claimStatus || 'claimed';
-        return `
-          <div class="station-block" data-idx="${idx}">
-            <div class="planet-block-header">
-              <span>Estación ${idx + 1}</span>
-              <button type="button" class="act-btn delete cf-remove-station" data-idx="${idx}">× Eliminar</button>
-            </div>
-            <div class="planet-block-grid">
-              <div><label>Nombre</label><input type="text" class="sb-name" value="${escapeHtml(st.name || '')}" placeholder="Nombre de la estación"></div>
-              <div><label>Raza</label><input type="text" class="sb-race" value="${escapeHtml(st.race || '')}" placeholder="Korvax, Vy'keen, Gek"></div>
-              <div><label>Director</label><input type="text" class="sb-director" value="${escapeHtml(st.director || '')}" placeholder="Nick"></div>
-              <div><label>Estado de reclamación</label>
-                <select class="sb-claim">
-                  <option value="claimed" ${claim === 'claimed' ? 'selected' : ''}>Reclamada</option>
-                  <option value="released" ${claim === 'released' ? 'selected' : ''}>Liberada</option>
-                </select>
-              </div>
-              <div><label>Verificado el (YYYY-MM-DD)</label><input type="text" class="sb-verified" value="${escapeHtml(st.verifiedAt || '')}" placeholder="2026-10-04"></div>
-              <div><label>Código de glifos (12, hex, coma) — opcional</label><input type="text" class="sb-code" value="${escapeHtml(codeRaw)}" placeholder="3,4,1,4,0,0,6,0,5,C,3,9"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      wrap.querySelectorAll('.cf-remove-station').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.idx, 10);
-          const list = readStationBlocks();
-          list.splice(idx, 1);
-          renderStationBlocks(list);
-        });
-      });
     }
 
 
