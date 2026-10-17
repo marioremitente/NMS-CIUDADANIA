@@ -356,6 +356,16 @@
     <div id="stationFormWrap" class="colony-form" style="display:none;"></div>
   </div>
 
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h2>Solicitudes de estación <span id="stationReqCount" style="font-family:var(--font-mono); font-size:12px; color:var(--accent-gold);"></span></h2>
+        <p class="sub" style="margin-bottom:0;">Enviadas por ciudadanos desde "Mi Ciudadanía". Verifica en el juego antes de aprobar: al aprobar se crea la estación como reclamada y verificada hoy.</p>
+      </div>
+    </div>
+    <div id="stationReqList" style="margin-top:16px;"></div>
+  </div>
+
 
   <div class="panel">
     <div class="tabs" id="tabs">
@@ -375,7 +385,7 @@
   import { PLANETS, SYSTEM_INFO, ROLES } from './mori01-data.js';
   import { loadAllColoniesAdmin, saveColony, deleteColony, setColonyStatus, glyphsToCartesianLocal, glyphToPosition } from './colonies-data.js';
   import {
-    collection, doc, updateDoc, deleteDoc, addDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction, serverTimestamp
+    collection, doc, updateDoc, deleteDoc, addDoc, setDoc, getDoc, orderBy, query, onSnapshot, runTransaction, serverTimestamp, writeBatch
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -426,6 +436,8 @@
   let currentFilter = 'all';
   let unsubscribe = null;
   let unsubscribeUsage = null;
+  let stationReqUnsub = null;
+  let allStationReqs = [];
 
 
   function showLoginAlert(msg){
@@ -467,9 +479,11 @@
       renderPlanetImages();
       renderColonies();
       watchStations();
+      watchStationRequests();
     }else{
       if(unsubscribe){ unsubscribe(); unsubscribe = null; }
       if(unsubscribeUsage){ unsubscribeUsage(); unsubscribeUsage = null; }
+      if(stationReqUnsub){ stationReqUnsub(); stationReqUnsub = null; }
       loginView.style.display = 'block';
       adminView.style.display = 'none';
       if(user){
@@ -796,6 +810,129 @@
   });
 
   document.getElementById('newStationBtn').addEventListener('click', () => openStationForm(null));
+
+  // ── Solicitudes de estación enviadas por ciudadanos (colección "stationRequests") ──
+  // Aprobar = crear el doc en "stations" + marcar la solicitud como aprobada (batch atómico).
+  const stationReqCol = collection(db, 'stationRequests');
+
+  function watchStationRequests(){
+    if(stationReqUnsub) return;
+    stationReqUnsub = onSnapshot(stationReqCol, snap => {
+      allStationReqs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      allStationReqs.sort((a, b) => ((b.createdAt && b.createdAt.toMillis) ? b.createdAt.toMillis() : 0) - ((a.createdAt && a.createdAt.toMillis) ? a.createdAt.toMillis() : 0));
+      renderStationRequests();
+    }, err => {
+      console.warn('stationRequests', err);
+      stationReqUnsub = null;
+      document.getElementById('stationReqList').innerHTML =
+        '<div class="empty-state">No se pudieron cargar las solicitudes. Revisa las reglas de Firestore.</div>';
+    });
+  }
+
+  function validSignature(sig){
+    return Array.isArray(sig) && sig.length === 12 && sig.every(v => Number.isInteger(v) && v >= 1 && v <= 16);
+  }
+
+  // Misma estación = mismo sistema (glifos 2-12; el primero es solo el planeta) y aún no liberada
+  function findStationInSystem(sig){
+    if(!validSignature(sig)) return null;
+    const key = sig.slice(1).join(',');
+    return allStations.find(s => validSignature(s.signature) && s.claimStatus !== 'released' && s.signature.slice(1).join(',') === key) || null;
+  }
+
+  function renderStationRequests(){
+    const list = document.getElementById('stationReqList');
+    const pending = allStationReqs.filter(r => (r.status || 'pending') === 'pending').length;
+    document.getElementById('stationReqCount').textContent = pending ? `· ${pending} pendiente${pending !== 1 ? 's' : ''}` : '';
+    if(!allStationReqs.length){
+      list.innerHTML = '<div class="empty-state">No hay solicitudes de estación.</div>';
+      return;
+    }
+    list.innerHTML = allStationReqs.map(r => {
+      const status = r.status || 'pending';
+      const hex = validSignature(r.signature) ? r.signature.map(v => (v - 1).toString(16).toUpperCase()).join('') : '(inválido)';
+      const dup = findStationInSystem(r.signature);
+      const dupHtml = (status === 'pending' && dup)
+        ? `<div class="reg-reason" style="font-style:normal;">⚠ Ya hay una estación reclamada en ese sistema: "${escapeHtml(dup.name || 'Sin nombre')}"${dup.director ? ' (' + escapeHtml(dup.director) + ')' : ''}.</div>` : '';
+      const reasonHtml = (status === 'rejected' && r.rejectionReason) ? `<div class="reg-reason">Motivo: ${escapeHtml(r.rejectionReason)}</div>` : '';
+      return `
+        <div class="reg-row" data-req-id="${escapeHtml(r.id)}">
+          <div class="reg-top">
+            <span class="reg-name">${escapeHtml(r.name || 'Sin nombre')}</span>
+            <span class="status-pill ${status}">${status === 'approved' ? 'Aprobada' : status === 'rejected' ? 'Rechazada' : 'Pendiente'}</span>
+          </div>
+          <div class="reg-meta">${escapeHtml(r.race || '—')} · Director: ${escapeHtml(r.director || '—')} · Glifos: ${escapeHtml(hex)}</div>
+          <div class="reg-extra">
+            <span><b>Correo</b> · ${escapeHtml(r.ownerEmail || '—')}</span>
+            ${r.notes ? `<span><b>Notas</b> · ${escapeHtml(r.notes)}</span>` : ''}
+          </div>
+          ${dupHtml}
+          ${reasonHtml}
+          <div class="reg-actions">
+            ${status === 'pending' ? `
+              <button class="act-btn approve" data-req-action="approve">Aprobar</button>
+              <button class="act-btn reject" data-req-action="reject">Rechazar</button>` : ''}
+            <button class="act-btn delete" data-req-action="delete">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('stationReqList').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-req-action]');
+    if(!btn) return;
+    const row = e.target.closest('.reg-row');
+    const r = allStationReqs.find(x => x.id === row.dataset.reqId);
+    if(!r) return;
+    const action = btn.dataset.reqAction;
+    const reqRef = doc(db, 'stationRequests', r.id);
+
+    if(action === 'approve'){
+      if(!validSignature(r.signature)){ showAdminAlert('Los glifos de esta solicitud no son válidos. Recházala.', 'error'); return; }
+      const dup = findStationInSystem(r.signature);
+      if(dup && !confirm(`Ya hay una estación reclamada en ese sistema ("${dup.name || 'Sin nombre'}"). ¿Aprobar de todos modos?`)) return;
+      if(!confirm(`¿Aprobar "${r.name}"? Se publicará en el Atlas como reclamada y verificada hoy.`)) return;
+      btn.disabled = true;
+      try{
+        const batch = writeBatch(db);
+        batch.set(doc(stationsCol), {
+          name: String(r.name || '').trim(),
+          race: String(r.race || '').trim(),
+          director: String(r.director || '').trim(),
+          claimStatus: 'claimed',
+          verifiedAt: new Date().toLocaleDateString('sv-SE'),
+          notes: String(r.notes || '').trim(),
+          signature: r.signature,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+        batch.update(reqRef, { status: 'approved', reviewedAt: Date.now() });
+        await batch.commit();
+        showAdminAlert('Estación aprobada y publicada en el Atlas.', 'ok');
+      }catch(err){
+        console.error(err);
+        btn.disabled = false;
+        showAdminAlert('No se pudo aprobar. Revisa las reglas de Firestore.', 'error');
+      }
+    }else if(action === 'reject'){
+      const reason = prompt(`Motivo del rechazo de "${r.name}" (opcional, el ciudadano lo verá):`, '');
+      if(reason === null) return;
+      try{
+        await updateDoc(reqRef, { status: 'rejected', rejectionReason: reason.trim().slice(0, 200) || null, reviewedAt: Date.now() });
+        showAdminAlert('Solicitud rechazada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo rechazar. Revisa las reglas.', 'error');
+      }
+    }else if(action === 'delete'){
+      if(!confirm(`¿Eliminar la solicitud "${r.name}"? Esto no afecta a la estación si ya fue aprobada.`)) return;
+      try{
+        await deleteDoc(reqRef);
+        showAdminAlert('Solicitud eliminada.', 'ok');
+      }catch(err){
+        showAdminAlert('No se pudo eliminar. Revisa las reglas.', 'error');
+      }
+    }
+  });
 
   function openStationForm(existing){
     const wrap = document.getElementById('stationFormWrap');
